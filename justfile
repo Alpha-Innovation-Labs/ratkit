@@ -85,7 +85,7 @@ pub:
         # Linux
         sed -i "s/^version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" Cargo.toml
     fi
-    echo "✓ Updated crates/lazydomain/Cargo.toml to version $NEW_VERSION"
+    echo "✓ Updated Cargo.toml to version $NEW_VERSION"
     
     # Update Cargo.lock by running cargo check
     cargo check --quiet
@@ -93,7 +93,7 @@ pub:
     
     # Git commit the version bump
     echo "📝 Committing version bump..."
-    git add Cargo.toml Cargo.lock
+    git add Cargo.toml
     git commit -m "chore: bump version to $NEW_VERSION"
     echo "✓ Committed version bump"
     
