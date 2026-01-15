@@ -64,7 +64,7 @@ pub:
     fi
     
     # Get current version from Cargo.toml (workspace root)
-    CURRENT_VERSION=$(grep '^version = ' crates/lazydomain/Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+    CURRENT_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
     echo "Current version: $CURRENT_VERSION"
     
     # Parse version components
@@ -80,10 +80,10 @@ pub:
     # Update Cargo.toml (cross-platform sed)
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS
-        sed -i '' "s/^version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" crates/lazydomain/Cargo.toml
+        sed -i '' "s/^version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" Cargo.toml
     else
         # Linux
-        sed -i "s/^version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" crates/lazydomain/Cargo.toml
+        sed -i "s/^version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" Cargo.toml
     fi
     echo "✓ Updated crates/lazydomain/Cargo.toml to version $NEW_VERSION"
     
@@ -115,11 +115,11 @@ pub:
     
     # Publish to crates.io
     echo "📦 Publishing to crates.io..."
-    cargo publish -p lazydomain
+    cargo publish
     
     # Install locally immediately (don't wait for crates.io)
     echo "💿 Installing from local source..."
-    cargo install --path crates/lazydomain --force
+    cargo install --path . --force
     
     echo "✅ Published version $NEW_VERSION to crates.io and installed locally"
     echo "You can now run: lazydomain"
