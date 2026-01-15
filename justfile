@@ -93,7 +93,7 @@ pub:
     
     # Git commit the version bump
     echo "📝 Committing version bump..."
-    git add crates/lazydomain/Cargo.toml Cargo.lock
+    git add Cargo.toml Cargo.lock
     git commit -m "chore: bump version to $NEW_VERSION"
     echo "✓ Committed version bump"
     
