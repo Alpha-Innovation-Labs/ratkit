@@ -163,7 +163,7 @@ fn main() -> std::io::Result<()> {
                 let style = if i == tab_idx {
                     Style::default()
                         .fg(Color::Yellow)
-                        .bg(Color::DarkGray)
+                        .bg(Color::Black)
                         .add_modifier(Modifier::BOLD)
                 } else {
                     Style::default().fg(Color::White)
@@ -174,7 +174,7 @@ fn main() -> std::io::Result<()> {
 
         let tabs_widget = Tabs::new(tab_titles)
             .select(tab_idx)
-            .style(Style::default().fg(Color::DarkGray));
+            .style(Style::default().fg(Color::Black));
 
         f.render_widget(tabs_widget, chunks[0]);
 
@@ -185,6 +185,10 @@ fn main() -> std::io::Result<()> {
 
         f.render_widget(paragraph, chunks[1]);
     });
+
+    loop {
+        std::thread::sleep(std::time::Duration::from_secs(3600));
+    }
 
     Ok(())
 }
