@@ -30,7 +30,7 @@ jobs:
           target: wasm32-unknown-unknown
 
       - name: Install trunk
-        uses: taiki-e/install-action-trunk@v2
+        uses: taiki-e/install-trunk-action@v1
 
       - name: Build with trunk
         working-directory: ./web-demo
