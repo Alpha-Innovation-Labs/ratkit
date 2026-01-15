@@ -1,0 +1,84 @@
+[package]
+name = "ratatui-toolkit"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+authors = ["Alpha Innovation Labs"]
+description = "A comprehensive collection of reusable TUI components for ratatui including resizable splits, tree views, markdown rendering, toast notifications, dialogs, and terminal embedding"
+documentation = "https://docs.rs/ratatui-toolkit"
+repository = "https://github.com/alpha-innovation-labs/ratatui-toolkit"
+homepage = "https://github.com/alpha-innovation-labs/ratatui-toolkit"
+license = "MIT"
+keywords = ["tui", "ratatui", "terminal", "ui", "widgets"]
+categories = ["command-line-interface", "gui"]
+readme = "README.md"
+include = ["src/**/*", "examples/**/*", "Cargo.toml", "LICENSE-MIT", "README.md", "CHANGELOG.md"]
+
+[features]
+default = ["markdown", "tree", "dialog", "toast", "split", "menu", "statusbar", "hotkey"]
+full = ["default", "terminal", "fuzzy", "master-layout", "file-tree"]
+
+# Core UI components
+markdown = ["dep:pulldown-cmark"]
+tree = []
+dialog = []
+toast = []
+split = []
+menu = []
+statusbar = []
+hotkey = []
+
+# Advanced components
+terminal = ["dep:alacritty_terminal", "dep:termwiz", "dep:libc", "dep:arboard", "dep:base64"]
+fuzzy = ["dep:portable-pty"]
+master-layout = ["split", "menu", "statusbar", "hotkey"]
+file-tree = ["tree", "dep:devicons"]
+
+[dependencies]
+# Core TUI framework
+ratatui = "0.29"
+crossterm = "0.28"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Utilities
+unicode-width = "0.2"
+tracing = "0.1"
+anyhow = "1"
+thiserror = "2"
+
+# Loading animations
+throbber-widgets-tui = "0.8"
+
+# Markdown rendering (feature-gated)
+pulldown-cmark = { version = "0.12", optional = true }
+
+# Terminal emulation (feature-gated)
+alacritty_terminal = { version = "0.25", optional = true }
+termwiz = { version = "0.23", optional = true }
+libc = { version = "0.2", optional = true }
+arboard = { version = "3", optional = true }
+base64 = { version = "0.22", optional = true }
+
+# VT100 terminal
+vt100 = "0.15"
+
+# PTY management (feature-gated)
+portable-pty = { version = "0.8", optional = true }
+
+# File icons (feature-gated)
+devicons = { version = "0.6", optional = true }
+
+[dev-dependencies]
+tempfile = "3"
+tokio-test = "0.4"
+
+[[example]]
+name = "showcase"
+path = "examples/showcase.rs"
+required-features = ["full"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
