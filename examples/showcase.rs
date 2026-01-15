@@ -20,11 +20,11 @@ use ratatui::{
     Terminal,
 };
 use ratatui_toolkit::{
-    render_markdown, render_toasts, render_hotkey_modal, ClickableScrollbar, ClickableScrollbarState, Dialog,
-    DialogType, Hotkey, HotkeyFooter, HotkeyItem, HotkeyModalConfig, HotkeySection, MenuBar, MenuItem,
-    ResizableSplit, ScrollbarEvent, StatusBar, StatusItem, StatusLineStacked,
-    Toast, ToastLevel, ToastManager, TreeNavigator, TreeNode, TreeView,
-    TreeViewState, VT100Term, SLANT_BL_TR, SLANT_TL_BR,
+    render_hotkey_modal, render_markdown, render_toasts, ClickableScrollbar,
+    ClickableScrollbarState, Dialog, DialogType, Hotkey, HotkeyFooter, HotkeyItem,
+    HotkeyModalConfig, HotkeySection, MenuBar, MenuItem, ResizableSplit, ScrollbarEvent, StatusBar,
+    StatusItem, StatusLineStacked, Toast, ToastLevel, ToastManager, TreeNavigator, TreeNode,
+    TreeView, TreeViewState, VT100Term, SLANT_BL_TR, SLANT_TL_BR,
 };
 use std::io;
 use std::time::Instant;
@@ -716,7 +716,12 @@ fn render_tree_demo(
         Line::from("    • Configurable keybindings"),
         Line::from("    • Full-row selection"),
     ])
-    .block(Block::default().borders(Borders::ALL).border_type(BorderType::Rounded).title(" Controls "));
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .title(" Controls "),
+    );
 
     frame.render_widget(info, chunks[1]);
 }
@@ -791,12 +796,16 @@ fn render_scrollbar_demo(frame: &mut ratatui::Frame, area: Rect, app: &mut App) 
         .map(|s| Line::from(s.as_str()))
         .collect();
 
-    let content =
-        Paragraph::new(visible_lines).block(Block::default().borders(Borders::ALL).border_type(BorderType::Rounded).title(format!(
-            " ClickableScrollbar - Line {}/{} ",
-            app.scrollbar_state.offset() + 1,
-            app.scroll_content.len()
-        )));
+    let content = Paragraph::new(visible_lines).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .title(format!(
+                " ClickableScrollbar - Line {}/{} ",
+                app.scrollbar_state.offset() + 1,
+                app.scroll_content.len()
+            )),
+    );
 
     frame.render_widget(content, chunks[0]);
 

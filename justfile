@@ -1,125 +1,88 @@
-# ratatui-toolkit justfile
-
-# Default recipe - show help
+# Default: Show help menu
 default:
-    @just --list
+    @just help
 
-# Run the showcase demo with all components
-dev:
-    cargo run --example showcase --features full
+# ============================================================================
+# Help Command
+# ============================================================================
 
-# Run a specific example
-example name:
-    cargo run --example {{name}} --features full
+help:
+    @echo ""
+    @echo "\033[1;36m======================================\033[0m"
+    @echo "\033[1;36m       Project Commands               \033[0m"
+    @echo "\033[1;36m======================================\033[0m"
+    @echo ""
+    @echo "\033[1;35m  Most Common Commands:\033[0m"
+    @echo "  just \033[0;33mdev\033[0m                     \033[0;32mStart showcase demo\033[0m"
+    @echo "  just \033[0;33mexample\033[0m                 \033[0;32mRun specific example\033[0m"
+    @echo "  just \033[0;33mtest\033[0m                    \033[0;32mRun all tests\033[0m"
+    @echo "  just \033[0;33mcheck\033[0m                   \033[0;32mRun all checks\033[0m"
+    @echo ""
+    @echo "\033[1;35m  Development:\033[0m"
+    @echo "  just \033[0;33mdev\033[0m                     \033[0;32mRun showcase demo\033[0m"
+    @echo "  just \033[0;33mexample <name>\033[0m          \033[0;32mRun specific example\033[0m"
+    @echo ""
+    @echo "\033[1;35m  Building:\033[0m"
+    @echo "  just \033[0;33mbuild\033[0m                   \033[0;32mBuild with all features\033[0m"
+    @echo ""
+    @echo "\033[1;35m  Verification:\033[0m"
+    @echo "  just \033[0;33mlint\033[0m                    \033[0;32mRun clippy linter\033[0m"
+    @echo "  just \033[0;33mfmt-check\033[0m              \033[0;32mCheck formatting\033[0m"
+    @echo "  just \033[0;33mcheck\033[0m                  \033[0;32mRun all checks\033[0m"
+    @echo ""
+    @echo "\033[1;35m  Testing:\033[0m"
+    @echo "  just \033[0;33mtest\033[0m                    \033[0;32mRun all tests\033[0m"
+    @echo ""
+    @echo "\033[1;35m  Utilities:\033[0m"
+    @echo "  just \033[0;33mfmt\033[0m                     \033[0;32mFormat code\033[0m"
+    @echo "  just \033[0;33mdoc\033[0m                     \033[0;32mBuild documentation\033[0m"
+    @echo "  just \033[0;33mpackage\033[0m                 \033[0;32mPackage for crates.io (dry run)\033[0m"
+    @echo "  just \033[0;33mclean\033[0m                   \033[0;32mClean build artifacts\033[0m"
+    @echo "  just \033[0;33mpub\033[0m                     \033[0;32mPublish to crates.io\033[0m"
+    @echo ""
+    @echo "\033[1;35m  Demo Utilities:\033[0m"
+    @echo "  just \033[0;33mdemo-record\033[0m             \033[0;32mRecord automated demo\033[0m"
+    @echo "  just \033[0;33mdemo-interactive\033[0m       \033[0;32mRecord interactive demo\033[0m"
+    @echo "  just \033[0;33mdemo-replay\033[0m            \033[0;32mReplay interactive demo\033[0m"
+    @echo "  just \033[0;33mdemo-upload\033[0m            \033[0;32mUpload demo to asciinema.org\033[0m"
+    @echo "  just \033[0;33mdemo-gif\033[0m                \033[0;32mConvert demo to GIF\033[0m"
+    @echo "  just \033[0;33mdemo-clean\033[0m              \033[0;32mRemove all demo files\033[0m"
+    @echo ""
 
-# Build with all features
-build:
-    cargo build --all-features
+# ============================================================================
+# Development Commands
+# ============================================================================
+import 'justfiles/development/dev.just'
+import 'justfiles/development/example.just'
 
-# Run all tests
-test:
-    cargo test --all-features
+# ============================================================================
+# Building Commands
+# ============================================================================
+import 'justfiles/building/build.just'
 
-# Run clippy linter
-lint:
-    cargo clippy --all-features -- -D warnings
+# ============================================================================
+# Verification Commands
+# ============================================================================
+import 'justfiles/verification/lint.just'
+import 'justfiles/verification/fmt-check.just'
+import 'justfiles/verification/check.just'
 
-# Format code
-fmt:
-    cargo fmt
+# ============================================================================
+# Testing Commands
+# ============================================================================
+import 'justfiles/testing/test.just'
 
-# Check formatting
-fmt-check:
-    cargo fmt --check
-
-# Build documentation
-doc:
-    cargo doc --all-features --no-deps --open
-
-# Run all checks (format, lint, test)
-check: fmt-check lint test
-
-# Package for crates.io (dry run)
-package:
-    cargo publish --dry-run
-
-# Clean build artifacts
-clean:
-    cargo clean
-
-
-pub:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    
-    # Check for ANY uncommitted changes
-    echo "🔍 Checking git status..."
-    if ! git diff --quiet --exit-code || ! git diff --cached --quiet --exit-code; then
-        echo "⚠️  Found uncommitted changes. Committing all changes before release..."
-        git add .
-        git commit -m "chore: prepare for release"
-        echo "✓ Committed all pending changes"
-    else
-        echo "✅ Git working directory is clean"
-    fi
-    
-    # Get current version from Cargo.toml (workspace root)
-    CURRENT_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
-    echo "Current version: $CURRENT_VERSION"
-    
-    # Parse version components
-    MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
-    MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
-    PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
-    
-    # Bump patch version
-    NEW_PATCH=$((PATCH + 1))
-    NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
-    echo "New version: $NEW_VERSION"
-    
-    # Update Cargo.toml (cross-platform sed)
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS
-        sed -i '' "s/^version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" Cargo.toml
-    else
-        # Linux
-        sed -i "s/^version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" Cargo.toml
-    fi
-    echo "✓ Updated Cargo.toml to version $NEW_VERSION"
-    
-    # Update Cargo.lock by running cargo check
-    cargo check --quiet
-    echo "✓ Updated Cargo.lock"
-    
-    # Git commit the version bump
-    echo "📝 Committing version bump..."
-    git add Cargo.toml
-    git commit -m "chore: bump version to $NEW_VERSION"
-    echo "✓ Committed version bump"
-    
-    # Create git tag
-    echo "🏷️  Creating git tag v$NEW_VERSION..."
-    git tag "v$NEW_VERSION"
-    echo "✓ Created tag v$NEW_VERSION"
-    
-    # Push commits and tags (if remote exists)
-    if git remote | grep -q .; then
-        echo "🚀 Pushing to remote..."
-        git push
-        git push --tags
-        echo "✓ Pushed commits and tags"
-    else
-        echo "⚠️  No git remote configured. Skipping push."
-        echo "   To add a remote: git remote add origin <url>"
-    fi
-    
-    # Publish to crates.io
-    echo "📦 Publishing to crates.io..."
-    cargo publish
-    
-    # Install locally immediately (don't wait for crates.io)
-    # echo "💿 Installing from local source..."
-    # cargo install --path . --force
-    
-    echo "✅ Published version $NEW_VERSION to crates.io"
-    echo "You can now run: lazydomain"
+# ============================================================================
+# Utilities Commands
+# ============================================================================
+import 'justfiles/utilities/fmt.just'
+import 'justfiles/utilities/doc.just'
+import 'justfiles/utilities/package.just'
+import 'justfiles/utilities/clean.just'
+import 'justfiles/utilities/pub.just'
+import 'justfiles/utilities/demo-record.just'
+import 'justfiles/utilities/demo-interactive.just'
+import 'justfiles/utilities/demo-replay.just'
+import 'justfiles/utilities/demo-upload.just'
+import 'justfiles/utilities/demo-gif.just'
+import 'justfiles/utilities/demo-clean.just'

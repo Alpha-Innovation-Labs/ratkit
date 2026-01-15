@@ -1,3 +1,7 @@
+//! Fuzzy finder component
+//!
+//! Provides a PTY-based fuzzy finder widget that spawns interactive fuzzy search tools.
+
 use anyhow::{Context, Result};
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
 use ratatui::{
@@ -11,6 +15,15 @@ use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 use vt100::Parser;
 
+/// Terminal state for fuzzy finder
+struct FuzzyFinderTerminal {
+    parser: Arc<Mutex<Parser>>,
+    _master: Arc<Mutex<Box<dyn MasterPty + Send>>>,
+    child: Arc<Mutex<Box<dyn Child + Send + Sync>>>,
+    reader: Arc<Mutex<Box<dyn Read + Send>>>,
+    writer: Arc<Mutex<Box<dyn Write + Send>>>,
+}
+
 /// A generic fuzzy finder widget that spawns a PTY-based fuzzy finder (like fzf)
 pub struct FuzzyFinder {
     /// PTY terminal state
@@ -21,14 +34,6 @@ pub struct FuzzyFinder {
     title: String,
     /// Loading message (before terminal spawns)
     loading_message: String,
-}
-
-struct FuzzyFinderTerminal {
-    parser: Arc<Mutex<Parser>>,
-    _master: Arc<Mutex<Box<dyn MasterPty + Send>>>,
-    child: Arc<Mutex<Box<dyn Child + Send + Sync>>>,
-    reader: Arc<Mutex<Box<dyn Read + Send>>>,
-    writer: Arc<Mutex<Box<dyn Write + Send>>>,
 }
 
 impl FuzzyFinder {
@@ -79,13 +84,11 @@ impl FuzzyFinder {
             pixel_height: 0,
         };
 
-        // Create the PTY pair
         tracing::debug!("Opening PTY with size {}x{}", rows, cols);
         let pair = pty_system
             .openpty(pty_size)
             .context("Failed to allocate PTY")?;
 
-        // Build the fzf command
         let mut cmd = CommandBuilder::new("fzf");
         cmd.arg("--prompt");
         cmd.arg(prompt.unwrap_or("Select: "));
@@ -97,7 +100,6 @@ impl FuzzyFinder {
         cmd.arg("inline");
         cmd.arg("--ansi");
 
-        // Spawn the child process
         tracing::debug!("Spawning fzf command");
         let child = pair
             .slave
@@ -105,7 +107,6 @@ impl FuzzyFinder {
             .context("Failed to spawn fzf process")?;
         tracing::debug!("fzf process spawned successfully");
 
-        // Set master PTY to non-blocking mode on Unix
         #[cfg(unix)]
         {
             if let Some(fd) = pair.master.as_raw_fd() {
@@ -116,18 +117,13 @@ impl FuzzyFinder {
             }
         }
 
-        // Get reader for the master PTY
         let reader = pair.master.try_clone_reader()?;
-
-        // Get writer to send items to fzf's stdin
         let mut writer = pair.master.take_writer()?;
 
-        // Write items to fzf's stdin
         let items_str = items.join("\n") + "\n";
         writer.write_all(items_str.as_bytes())?;
         writer.flush()?;
 
-        // Create VT100 parser for terminal emulation
         let parser = Arc::new(Mutex::new(Parser::new(rows, cols, 0)));
 
         self.terminal = Some(FuzzyFinderTerminal {
@@ -177,7 +173,6 @@ impl FuzzyFinder {
             .spawn_command(command)
             .context("Failed to spawn command")?;
 
-        // Set non-blocking mode
         #[cfg(unix)]
         {
             if let Some(fd) = pair.master.as_raw_fd() {
@@ -191,7 +186,6 @@ impl FuzzyFinder {
         let reader = pair.master.try_clone_reader()?;
         let mut writer = pair.master.take_writer()?;
 
-        // Write stdin if provided
         if let Some(input) = stdin {
             writer.write_all(input.as_bytes())?;
             writer.flush()?;
@@ -221,21 +215,19 @@ impl FuzzyFinder {
         Ok(())
     }
 
-    /// Read output from terminal (non-blocking) - call this regularly to update the display
+    /// Read output from terminal (non-blocking)
     pub fn update(&mut self) -> Result<()> {
         if let Some(terminal) = &self.terminal {
             let mut buf = [0u8; 8192];
             let mut reader = terminal.reader.lock().unwrap();
 
             match reader.read(&mut buf) {
-                Ok(0) => {} // EOF - process exited
+                Ok(0) => {}
                 Ok(n) => {
                     let mut parser = terminal.parser.lock().unwrap();
                     parser.process(&buf[..n]);
                 }
-                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                    // No data available right now
-                }
+                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {}
                 Err(e) => return Err(e.into()),
             }
         }
@@ -243,7 +235,6 @@ impl FuzzyFinder {
     }
 
     /// Try to read the selected result (if process exited)
-    /// Returns the last non-empty line from the terminal output
     pub fn get_selection(&mut self) -> Option<String> {
         if let Some(terminal) = &self.terminal {
             let parser = terminal.parser.lock().unwrap();
@@ -251,7 +242,6 @@ impl FuzzyFinder {
             let contents_bytes = screen.contents_formatted();
             let contents_str = String::from_utf8_lossy(&contents_bytes);
 
-            // Return last non-empty line
             for line in contents_str.lines().rev() {
                 let trimmed = line.trim();
                 if !trimmed.is_empty() {
@@ -289,13 +279,10 @@ impl FuzzyFinder {
 
 impl Widget for &FuzzyFinder {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        // Calculate centered popup area
         let popup_area = centered_rect(self.size_percent.0, self.size_percent.1, area);
 
-        // Clear background
         Clear.render(popup_area, buf);
 
-        // Render border
         let block = Block::default()
             .borders(Borders::ALL)
             .title(self.title.as_str())
@@ -304,25 +291,19 @@ impl Widget for &FuzzyFinder {
         let inner = block.inner(popup_area);
         block.render(popup_area, buf);
 
-        // Render content
         if let Some(terminal) = &self.terminal {
-            // Render PTY output
             let parser = terminal.parser.lock().unwrap();
             let screen = parser.screen();
 
-            // Render terminal content line by line
             for (row_idx, row) in screen.rows(0, inner.height).enumerate() {
                 if row_idx >= inner.height as usize {
                     break;
                 }
-
-                // row is now a String, so we can use it directly
                 let line = Line::from(row.as_str());
                 let y = inner.y + row_idx as u16;
                 buf.set_line(inner.x, y, &line, inner.width);
             }
         } else {
-            // Render loading message
             let loading = Paragraph::new(self.loading_message.as_str())
                 .alignment(Alignment::Center)
                 .style(Style::default().fg(Color::Gray));
@@ -333,7 +314,6 @@ impl Widget for &FuzzyFinder {
 
 impl Drop for FuzzyFinder {
     fn drop(&mut self) {
-        // Clean up resources
         if let Some(terminal) = &self.terminal {
             if let Ok(mut child) = terminal.child.lock() {
                 let _ = child.kill();
@@ -365,7 +345,6 @@ fn key_event_to_bytes(key: crossterm::event::KeyEvent) -> Vec<u8> {
     match key.code {
         KeyCode::Char(c) => {
             if key.modifiers.contains(KeyModifiers::CONTROL) {
-                // Ctrl+key combinations
                 match c {
                     'a'..='z' => vec![(c as u8) - b'a' + 1],
                     _ => vec![c as u8],

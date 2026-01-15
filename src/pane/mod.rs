@@ -1,3 +1,7 @@
+//! Pane component
+//!
+//! Provides styled panel components with title, icon, padding, and optional footer.
+
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -7,7 +11,7 @@ use ratatui::Frame;
 /// A styled panel component with title, icon, padding, and optional footer
 #[derive(Clone, Debug)]
 pub struct Pane<'a> {
-    /// Title text for the pane
+    /// Title text for pane
     pub title: String,
 
     /// Icon to display before the title (optional)
@@ -22,7 +26,7 @@ pub struct Pane<'a> {
     /// Height of the footer area when using widget footers
     pub footer_height: u16,
 
-    // Styling
+    /// Styling
     pub border_style: Style,
     pub border_type: BorderType,
     pub title_style: Style,
@@ -30,7 +34,7 @@ pub struct Pane<'a> {
 }
 
 impl<'a> Pane<'a> {
-    /// Create a new pane with the given title
+    /// Create a new pane with given title
     pub fn new(title: impl Into<String>) -> Self {
         Self {
             title: title.into(),
@@ -99,48 +103,7 @@ impl<'a> Pane<'a> {
         self
     }
 
-    /// Build the title line with optional icon
-    fn build_title_line(&self) -> Line<'a> {
-        let mut spans = vec![Span::raw(" ")];
-
-        if let Some(ref icon) = self.icon {
-            spans.push(Span::styled(icon.clone(), self.title_style));
-            spans.push(Span::raw(" "));
-        }
-
-        spans.push(Span::styled(self.title.clone(), self.title_style));
-        spans.push(Span::raw(" "));
-
-        Line::from(spans)
-    }
-
-    /// Get the inner area after applying padding
-    fn get_padded_area(&self, area: Rect) -> Rect {
-        Rect {
-            x: area.x + self.padding.3,
-            y: area.y + self.padding.0,
-            width: area.width.saturating_sub(self.padding.1 + self.padding.3),
-            height: area.height.saturating_sub(self.padding.0 + self.padding.2),
-        }
-    }
-
-    /// Build the block with title and optional text footer
-    fn build_block(&self) -> Block<'a> {
-        let mut block = Block::default()
-            .borders(Borders::ALL)
-            .border_type(self.border_type)
-            .border_style(self.border_style)
-            .title(self.build_title_line());
-
-        // Add text footer if present
-        if let Some(ref footer) = self.text_footer {
-            block = block.title_bottom(footer.clone().style(self.footer_style));
-        }
-
-        block
-    }
-
-    /// Render the pane with the given content widget (no footer widget)
+    /// Render the pane with given content widget (no footer widget)
     pub fn render<W>(&self, frame: &mut Frame, area: Rect, content: W)
     where
         W: Widget,
@@ -154,7 +117,6 @@ impl<'a> Pane<'a> {
     }
 
     /// Render the pane with content and a footer widget
-    /// The footer area will be `footer_height` lines tall at the bottom
     pub fn render_with_footer<C, F>(&self, frame: &mut Frame, area: Rect, content: C, footer: F)
     where
         C: Widget,
@@ -166,19 +128,14 @@ impl<'a> Pane<'a> {
 
         frame.render_widget(block, padded_area);
 
-        // If footer height is 0, just render content
         if self.footer_height == 0 {
             frame.render_widget(content, inner);
             return;
         }
 
-        // Split the inner area into content and footer
         let chunks = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Min(0),                     // Content area
-                Constraint::Length(self.footer_height), // Footer area
-            ])
+            .constraints([Constraint::Min(0), Constraint::Length(self.footer_height)])
             .split(inner);
 
         frame.render_widget(content, chunks[0]);
@@ -206,7 +163,6 @@ impl<'a> Pane<'a> {
     }
 
     /// Render just the pane block and return the inner area (useful for custom rendering)
-    /// Returns (content_area, optional_footer_area)
     pub fn render_block(&self, frame: &mut Frame, area: Rect) -> (Rect, Option<Rect>) {
         let padded_area = self.get_padded_area(area);
         let block = self.build_block();
@@ -214,17 +170,55 @@ impl<'a> Pane<'a> {
 
         frame.render_widget(block, padded_area);
 
-        // If no footer height, return just the content area
         if self.footer_height == 0 {
             return (inner, None);
         }
 
-        // Split into content and footer areas
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Min(0), Constraint::Length(self.footer_height)])
             .split(inner);
 
         (chunks[0], Some(chunks[1]))
+    }
+
+    /// Get the inner area after applying padding
+    fn get_padded_area(&self, area: Rect) -> Rect {
+        Rect {
+            x: area.x + self.padding.3,
+            y: area.y + self.padding.0,
+            width: area.width.saturating_sub(self.padding.1 + self.padding.3),
+            height: area.height.saturating_sub(self.padding.0 + self.padding.2),
+        }
+    }
+
+    /// Build title line with optional icon
+    fn build_title_line(&self) -> Line<'a> {
+        let mut spans = vec![Span::raw(" ")];
+
+        if let Some(ref icon) = self.icon {
+            spans.push(Span::styled(icon.clone(), self.title_style));
+            spans.push(Span::raw(" "));
+        }
+
+        spans.push(Span::styled(self.title.clone(), self.title_style));
+        spans.push(Span::raw(" "));
+
+        Line::from(spans)
+    }
+
+    /// Build block with title and optional text footer
+    fn build_block(&self) -> Block<'a> {
+        let mut block = Block::default()
+            .borders(Borders::ALL)
+            .border_type(self.border_type)
+            .border_style(self.border_style)
+            .title(self.build_title_line());
+
+        if let Some(ref footer) = self.text_footer {
+            block = block.title_bottom(footer.clone().style(self.footer_style));
+        }
+
+        block
     }
 }

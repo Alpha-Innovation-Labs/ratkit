@@ -1,3 +1,7 @@
+//! Button component
+//!
+//! Provides clickable button widgets for UI interactions.
+
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -63,13 +67,11 @@ impl Button {
         self.hovered = self.is_clicked(column, row);
     }
 
-    /// Render the button as a styled span (owned version for use in Line::from)
-    /// Returns (Span, area) where area is the calculated button position
+    /// Render the button as a styled span
     pub fn render(&self, panel_area: Rect, _title_prefix: &str) -> (Span<'static>, Rect) {
-        // Calculate button position (right side of title bar)
         let button_text = format!(" [{}] ", self.text);
         let button_width = button_text.len() as u16;
-        let button_x = panel_area.x + panel_area.width.saturating_sub(button_width + 2); // -2 for border
+        let button_x = panel_area.x + panel_area.width.saturating_sub(button_width + 2);
         let button_y = panel_area.y;
 
         let area = Rect {
@@ -85,27 +87,18 @@ impl Button {
             self.normal_style
         };
 
-        // Use owned String for the span
         (Span::styled(button_text, style), area)
     }
 
     /// Create a complete title line with the button on the right
-    /// Also updates the button's area for click detection
-    /// Returns a Line with 'static lifetime since it owns all its data
     pub fn render_with_title(&mut self, panel_area: Rect, title: &str) -> Line<'static> {
         let (button_span, area) = self.render(panel_area, title);
-
-        // Update the button's area
         self.area = Some(area);
-
-        // Create owned title string to get 'static lifetime
         let title_line = Line::from(vec![Span::raw(title.to_string()), button_span]);
-
         title_line
     }
 
     /// Render button at a specific position (for multiple buttons)
-    /// offset_from_right specifies how many characters from the right edge
     pub fn render_at_offset(
         &self,
         panel_area: Rect,
@@ -136,6 +129,12 @@ impl Button {
     }
 }
 
+impl Default for Button {
+    fn default() -> Self {
+        Self::new("Button")
+    }
+}
+
 /// Helper function to render multiple buttons in a title
 pub fn render_title_with_buttons(
     panel_area: Rect,
@@ -144,27 +143,17 @@ pub fn render_title_with_buttons(
 ) -> Line<'static> {
     let mut spans = vec![Span::raw(title.to_string())];
 
-    // Calculate total width needed for all buttons
     let mut offset = 0u16;
 
-    // Render buttons from right to left
     for button in buttons.iter_mut().rev() {
         let (button_span, area) = button.render_at_offset(panel_area, offset);
         button.area = Some(area);
 
-        // Add button width for next button's offset
         let button_width = format!(" [{}] ", button.text).len() as u16;
         offset += button_width;
 
-        // Insert at position 1 to keep them in order after title
         spans.insert(1, button_span);
     }
 
     Line::from(spans)
-}
-
-impl Default for Button {
-    fn default() -> Self {
-        Self::new("Button")
-    }
 }

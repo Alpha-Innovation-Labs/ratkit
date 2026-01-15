@@ -1,3 +1,7 @@
+//! Dialog component
+//!
+//! Provides modal dialog widgets with customizable buttons and styles.
+
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -7,16 +11,27 @@ use ratatui::{
 };
 
 /// Dialog type
+///
+/// Represents different types of dialogs with associated visual styles.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DialogType {
+    /// Informational dialog (cyan border)
     Info,
+    /// Success dialog (green border)
     Success,
+    /// Warning dialog (yellow border)
     Warning,
+    /// Error dialog (red border)
     Error,
+    /// Confirmation dialog (blue border)
     Confirm,
 }
 
 /// A dialog/modal widget that overlays content
+///
+/// Dialogs are centered modals that display a message and buttons.
+/// They support different visual styles (info, success, warning, error, confirm)
+/// and can handle mouse clicks on buttons.
 pub struct Dialog<'a> {
     /// Dialog title
     title: &'a str,
@@ -43,7 +58,7 @@ pub struct Dialog<'a> {
 }
 
 impl<'a> Dialog<'a> {
-    /// Create a new dialog
+    /// Create a new dialog with default styling
     pub fn new(title: &'a str, message: &'a str) -> Self {
         Self {
             title,
@@ -166,7 +181,6 @@ impl<'a> Dialog<'a> {
 
 impl Widget for Dialog<'_> {
     fn render(mut self, area: Rect, buf: &mut Buffer) {
-        // Calculate centered dialog area
         let dialog_width = (area.width as f32 * self.width_percent) as u16;
         let dialog_height = (area.height as f32 * self.height_percent) as u16;
         let dialog_x = (area.width.saturating_sub(dialog_width)) / 2;
@@ -179,10 +193,8 @@ impl Widget for Dialog<'_> {
             height: dialog_height,
         };
 
-        // Clear the area behind the dialog
         Clear.render(dialog_area, buf);
 
-        // Render dialog block
         let block = Block::default()
             .title(self.title)
             .borders(Borders::ALL)
@@ -193,24 +205,21 @@ impl Widget for Dialog<'_> {
         let inner = block.inner(dialog_area);
         block.render(dialog_area, buf);
 
-        // Layout: message area and button area
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Min(3), Constraint::Length(3)])
             .split(inner);
 
-        // Render message
         let message = Paragraph::new(self.message)
             .style(self.style)
             .alignment(Alignment::Center)
             .wrap(Wrap { trim: true });
         message.render(chunks[0], buf);
 
-        // Render buttons
         self.button_areas.clear();
 
         if !self.buttons.is_empty() {
-            let total_button_width: usize = self.buttons.iter().map(|b| b.len() + 4).sum(); // +4 for spacing
+            let total_button_width: usize = self.buttons.iter().map(|b| b.len() + 4).sum();
             let button_area_width = chunks[1].width as usize;
             let start_x = if total_button_width < button_area_width {
                 chunks[1].x + ((button_area_width - total_button_width) / 2) as u16
@@ -222,7 +231,7 @@ impl Widget for Dialog<'_> {
             let y = chunks[1].y + 1;
 
             for (idx, button_text) in self.buttons.iter().enumerate() {
-                let button_width = button_text.len() as u16 + 2; // +2 for padding
+                let button_width = button_text.len() as u16 + 2;
                 let style = if idx == self.selected_button {
                     self.button_selected_style
                 } else {
@@ -238,7 +247,6 @@ impl Widget for Dialog<'_> {
 
                 self.button_areas.push(button_area);
 
-                // Fill button background
                 for bx in x..x + button_width {
                     if let Some(cell) = buf.cell_mut((bx, y)) {
                         cell.set_style(style);
@@ -249,7 +257,7 @@ impl Widget for Dialog<'_> {
                     Line::from(vec![Span::styled(format!(" {} ", button_text), style)]);
 
                 buf.set_line(x, y, &button_line, button_width);
-                x += button_width + 2; // +2 for spacing between buttons
+                x += button_width + 2;
             }
         }
     }
@@ -268,7 +276,6 @@ impl<'a> DialogWidget<'a> {
 
 impl Widget for DialogWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        // Calculate centered dialog area
         let dialog_width = (area.width as f32 * self.dialog.width_percent) as u16;
         let dialog_height = (area.height as f32 * self.dialog.height_percent) as u16;
         let dialog_x = (area.width.saturating_sub(dialog_width)) / 2;
@@ -281,10 +288,8 @@ impl Widget for DialogWidget<'_> {
             height: dialog_height,
         };
 
-        // Clear the area behind the dialog
         Clear.render(dialog_area, buf);
 
-        // Render dialog block
         let block = Block::default()
             .title(self.dialog.title)
             .borders(Borders::ALL)
@@ -295,20 +300,17 @@ impl Widget for DialogWidget<'_> {
         let inner = block.inner(dialog_area);
         block.render(dialog_area, buf);
 
-        // Layout: message area and button area
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Min(3), Constraint::Length(3)])
             .split(inner);
 
-        // Render message
         let message = Paragraph::new(self.dialog.message)
             .style(self.dialog.style)
             .alignment(Alignment::Center)
             .wrap(Wrap { trim: true });
         message.render(chunks[0], buf);
 
-        // Render buttons
         self.dialog.button_areas.clear();
 
         if !self.dialog.buttons.is_empty() {
@@ -340,7 +342,6 @@ impl Widget for DialogWidget<'_> {
 
                 self.dialog.button_areas.push(button_area);
 
-                // Fill button background
                 for bx in x..x + button_width {
                     if let Some(cell) = buf.cell_mut((bx, y)) {
                         cell.set_style(style);

@@ -1,11 +1,6 @@
-//! Clickable scrollbar with mouse support adapted from rat-salsa's rat-scrolled
+//! Clickable scrollbar with mouse support
 //!
-//! This is a simplified version that provides:
-//! - Click-to-jump functionality
-//! - Drag scrollbar thumb
-//! - Mouse wheel support
-//!
-//! Unlike ratatui's basic Scrollbar, this one handles mouse events.
+//! This wraps ratatui's Scrollbar but adds mouse interaction support.
 
 use crossterm::event::{MouseButton, MouseEvent, MouseEventKind};
 use ratatui::buffer::Buffer;
@@ -25,43 +20,35 @@ pub struct ClickableScrollbar<'a> {
 
 /// State for the clickable scrollbar.
 ///
-/// This manages the scrolling position and handles mouse interactions.
+/// This manages of scrolling position and handles mouse interactions.
 #[derive(Debug, Clone)]
 pub struct ClickableScrollbarState {
-    /// Area where the scrollbar is rendered.
-    /// Updated automatically during rendering.
+    /// Area where scrollbar is rendered
     pub area: Rect,
-
-    /// Orientation of the scrollbar.
+    /// Orientation of scrollbar
     pub orientation: ScrollbarOrientation,
-
-    /// Current scroll offset (position in content).
+    /// Current scroll offset (position in content)
     pub offset: usize,
-
-    /// Length of visible content area.
+    /// Length of visible content area
     pub page_len: usize,
-
-    /// Maximum scroll offset (content_length - page_len).
+    /// Maximum scroll offset (content_length - page_len)
     pub max_offset: usize,
-
-    /// How many lines/columns to scroll per wheel event.
-    /// Defaults to 1/10 of page_len.
+    /// How many lines/columns to scroll per wheel event
     pub scroll_by: Option<usize>,
-
-    /// Track if mouse drag is active.
+    /// Track if mouse drag is active
     drag_active: bool,
 }
 
 /// Result of handling mouse events on the scrollbar.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ScrollbarEvent {
-    /// No event or event not handled.
+    /// No event or event not handled
     None,
-    /// Scroll up by N units.
+    /// Scroll up by N units
     Up(usize),
-    /// Scroll down by N units.
+    /// Scroll down by N units
     Down(usize),
-    /// Jump to absolute position.
+    /// Jump to absolute position
     Position(usize),
 }
 
@@ -73,71 +60,71 @@ impl<'a> ClickableScrollbar<'a> {
         }
     }
 
-    /// Create a vertical scrollbar on the right side.
+    /// Create a vertical scrollbar on right side
     pub fn vertical() -> Self {
         Self::new(ScrollbarOrientation::VerticalRight)
     }
 
-    /// Create a horizontal scrollbar on the bottom.
+    /// Create a horizontal scrollbar on bottom
     pub fn horizontal() -> Self {
         Self::new(ScrollbarOrientation::HorizontalBottom)
     }
 
-    /// Set the scrollbar style.
+    /// Set scrollbar style
     pub fn style(mut self, style: Style) -> Self {
         self.scrollbar = self.scrollbar.style(style);
         self
     }
 
-    /// Set the thumb symbol.
+    /// Set thumb symbol
     pub fn thumb_symbol(mut self, symbol: &'a str) -> Self {
         self.scrollbar = self.scrollbar.thumb_symbol(symbol);
         self
     }
 
-    /// Set the thumb style.
+    /// Set thumb style
     pub fn thumb_style(mut self, style: Style) -> Self {
         self.scrollbar = self.scrollbar.thumb_style(style);
         self
     }
 
-    /// Set the track symbol.
+    /// Set track symbol
     pub fn track_symbol(mut self, symbol: Option<&'a str>) -> Self {
         self.scrollbar = self.scrollbar.track_symbol(symbol);
         self
     }
 
-    /// Set the track style.
+    /// Set track style
     pub fn track_style(mut self, style: Style) -> Self {
         self.scrollbar = self.scrollbar.track_style(style);
         self
     }
 
-    /// Set the begin symbol.
+    /// Set begin symbol
     pub fn begin_symbol(mut self, symbol: Option<&'a str>) -> Self {
         self.scrollbar = self.scrollbar.begin_symbol(symbol);
         self
     }
 
-    /// Set the begin style.
+    /// Set begin style
     pub fn begin_style(mut self, style: Style) -> Self {
         self.scrollbar = self.scrollbar.begin_style(style);
         self
     }
 
-    /// Set the end symbol.
+    /// Set end symbol
     pub fn end_symbol(mut self, symbol: Option<&'a str>) -> Self {
         self.scrollbar = self.scrollbar.end_symbol(symbol);
         self
     }
 
-    /// Set the end style.
+    /// Set end style
     pub fn end_style(mut self, style: Style) -> Self {
         self.scrollbar = self.scrollbar.end_style(style);
         self
     }
 
-    /// Set all symbols at once.
+    /// Set all symbols at once
     pub fn symbols(mut self, symbols: symbols::scrollbar::Set) -> Self {
         self.scrollbar = self.scrollbar.symbols(symbols);
         self
@@ -155,12 +142,10 @@ impl<'a> StatefulWidget for ClickableScrollbar<'a> {
             return;
         }
 
-        // Create ratatui ScrollbarState for rendering
         let mut scrollbar_state = ScrollbarState::new(state.max_offset)
             .position(state.offset)
             .viewport_content_length(state.page_len);
 
-        // Render using ratatui's scrollbar
         self.scrollbar.render(area, buf, &mut scrollbar_state);
     }
 }
@@ -172,7 +157,7 @@ impl Default for ClickableScrollbarState {
 }
 
 impl ClickableScrollbarState {
-    /// Create a new scrollbar state.
+    /// Create a new scrollbar state
     pub fn new() -> Self {
         Self {
             area: Rect::default(),
@@ -185,61 +170,56 @@ impl ClickableScrollbarState {
         }
     }
 
-    /// Set the content length and page length.
-    /// This will calculate max_offset automatically.
+    /// Set content length and page length
     pub fn set_content(mut self, content_len: usize, page_len: usize) -> Self {
         self.page_len = page_len;
         self.max_offset = content_len.saturating_sub(page_len);
         self
     }
 
-    /// Set the position.
+    /// Set position
     pub fn position(mut self, offset: usize) -> Self {
         self.offset = offset.min(self.max_offset);
         self
     }
 
-    /// Get the current offset.
+    /// Get current offset
     pub fn offset(&self) -> usize {
         self.offset
     }
 
-    /// Set the offset.
+    /// Set offset
     pub fn set_offset(&mut self, offset: usize) -> bool {
         let old = self.offset;
         self.offset = offset.min(self.max_offset);
         old != self.offset
     }
 
-    /// Scroll up by N units.
+    /// Scroll up by N units
     pub fn scroll_up(&mut self, n: usize) -> bool {
         let old = self.offset;
         self.offset = self.offset.saturating_sub(n);
         old != self.offset
     }
 
-    /// Scroll down by N units.
+    /// Scroll down by N units
     pub fn scroll_down(&mut self, n: usize) -> bool {
         let old = self.offset;
         self.offset = (self.offset + n).min(self.max_offset);
         old != self.offset
     }
 
-    /// Get the scroll increment for wheel events.
-    /// Defaults to 1/10 of page_len.
+    /// Get scroll increment for wheel events
     pub fn scroll_increment(&self) -> usize {
         self.scroll_by
             .unwrap_or_else(|| (self.page_len / 10).max(1))
     }
 
-    /// Handle a mouse event.
-    /// Returns Some(ScrollbarEvent) if the event was handled.
+    /// Handle a mouse event
     pub fn handle_mouse_event(&mut self, event: &MouseEvent) -> ScrollbarEvent {
         let (col, row) = (event.column, event.row);
 
-        // Check if event is within scrollbar area
         if !self.area.contains((col, row).into()) {
-            // Release drag if we're outside the area
             if self.drag_active {
                 self.drag_active = false;
             }
@@ -247,7 +227,6 @@ impl ClickableScrollbarState {
         }
 
         match event.kind {
-            // Mouse wheel scrolling
             MouseEventKind::ScrollDown => {
                 if self.is_vertical() {
                     ScrollbarEvent::Down(self.scroll_increment())
@@ -262,34 +241,26 @@ impl ClickableScrollbarState {
                     ScrollbarEvent::None
                 }
             }
-
-            // Click to jump to position
             MouseEventKind::Down(MouseButton::Left) => {
                 self.drag_active = true;
                 let pos = self.map_position_to_offset(col, row);
                 ScrollbarEvent::Position(pos)
             }
-
-            // Drag scrollbar thumb
             MouseEventKind::Drag(MouseButton::Left) if self.drag_active => {
                 let pos = self.map_position_to_offset(col, row);
                 ScrollbarEvent::Position(pos)
             }
-
-            // Release drag
             MouseEventKind::Up(MouseButton::Left) => {
                 self.drag_active = false;
                 ScrollbarEvent::None
             }
-
             _ => ScrollbarEvent::None,
         }
     }
 
-    /// Map a mouse position to a scroll offset.
+    /// Map a mouse position to a scroll offset
     fn map_position_to_offset(&self, col: u16, row: u16) -> usize {
         if self.is_vertical() {
-            // Vertical scrollbar
             let pos = row.saturating_sub(self.area.y).saturating_sub(1) as usize;
             let span = self.area.height.saturating_sub(2) as usize;
 
@@ -299,7 +270,6 @@ impl ClickableScrollbarState {
                 0
             }
         } else {
-            // Horizontal scrollbar
             let pos = col.saturating_sub(self.area.x).saturating_sub(1) as usize;
             let span = self.area.width.saturating_sub(2) as usize;
 

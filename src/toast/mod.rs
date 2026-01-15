@@ -1,3 +1,7 @@
+//! Toast notification component
+//!
+//! Provides toast notifications with different levels (success, error, info, warning).
+
 use ratatui::layout::{Alignment, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -15,7 +19,7 @@ pub enum ToastLevel {
 }
 
 impl ToastLevel {
-    /// Get the color for this toast level
+    /// Get color for this toast level
     pub fn color(&self) -> Color {
         match self {
             ToastLevel::Success => Color::Green,
@@ -25,7 +29,7 @@ impl ToastLevel {
         }
     }
 
-    /// Get the icon for this toast level
+    /// Get icon for this toast level
     pub fn icon(&self) -> &'static str {
         match self {
             ToastLevel::Success => "✓",
@@ -75,7 +79,7 @@ impl Toast {
         self.created_at.elapsed() >= self.duration
     }
 
-    /// Get the remaining lifetime as a percentage (0.0 to 1.0)
+    /// Get remaining lifetime as a percentage (0.0 to 1.0)
     pub fn lifetime_percent(&self) -> f32 {
         let elapsed = self.created_at.elapsed().as_secs_f32();
         let total = self.duration.as_secs_f32();
@@ -95,19 +99,16 @@ impl ToastManager {
     pub fn new() -> Self {
         Self {
             toasts: Vec::new(),
-            max_toasts: 5, // Maximum number of toasts to show at once
+            max_toasts: 5,
         }
     }
 
     /// Add a new toast
     pub fn add(&mut self, toast: Toast) {
-        // Remove expired toasts before adding new one
         self.remove_expired();
 
-        // Add the new toast
         self.toasts.push(toast);
 
-        // Keep only the most recent toasts if we exceed max
         if self.toasts.len() > self.max_toasts {
             self.toasts.drain(0..self.toasts.len() - self.max_toasts);
         }
@@ -161,7 +162,7 @@ impl ToastManager {
     }
 }
 
-/// Render toasts in the bottom-right corner of the screen
+/// Render toasts in bottom-right corner of screen
 pub fn render_toasts(frame: &mut Frame, toasts: &ToastManager) {
     let active_toasts = toasts.get_active();
     if active_toasts.is_empty() {
@@ -170,18 +171,14 @@ pub fn render_toasts(frame: &mut Frame, toasts: &ToastManager) {
 
     let area = frame.area();
 
-    // Constants for toast sizing
     const TOAST_WIDTH: u16 = 40;
-    const TOAST_HEIGHT: u16 = 3; // 1 line of text + borders
+    const TOAST_HEIGHT: u16 = 3;
     const TOAST_MARGIN: u16 = 2;
     const TOAST_SPACING: u16 = 1;
 
-    // Calculate position for toasts (bottom-right corner)
     let mut y_offset = area.height.saturating_sub(TOAST_MARGIN);
 
-    // Render toasts from bottom to top (newest at bottom)
     for toast in active_toasts.iter().rev() {
-        // Calculate toast area
         let toast_y = y_offset.saturating_sub(TOAST_HEIGHT);
         let toast_x = area.width.saturating_sub(TOAST_WIDTH + TOAST_MARGIN);
 
@@ -192,27 +189,24 @@ pub fn render_toasts(frame: &mut Frame, toasts: &ToastManager) {
             height: TOAST_HEIGHT,
         };
 
-        // Don't render if toast would be off-screen
         if toast_y == 0 || toast_x == 0 {
             break;
         }
 
-        // Clear the area behind the toast
         frame.render_widget(Clear, toast_area);
 
-        // Create the toast widget
         let color = toast.level.color();
         let icon = toast.level.icon();
 
         let text = Line::from(vec![
-            Span::raw("  "), // Extra left margin
+            Span::raw("  "),
             Span::styled(
                 icon,
                 Style::default().fg(color).add_modifier(Modifier::BOLD),
             ),
-            Span::raw("  "), // Extra space after icon
+            Span::raw("  "),
             Span::raw(&toast.message),
-            Span::raw(" "), // Extra right margin
+            Span::raw(" "),
         ]);
 
         let block = Block::default()
@@ -227,7 +221,6 @@ pub fn render_toasts(frame: &mut Frame, toasts: &ToastManager) {
 
         frame.render_widget(paragraph, toast_area);
 
-        // Move up for the next toast
         y_offset = toast_y.saturating_sub(TOAST_SPACING);
     }
 }
