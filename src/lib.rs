@@ -12,7 +12,7 @@
 //! - **Widgets**: [`TreeView`], [`ClickableScrollbar`], [`FuzzyFinder`] for data display
 //! - **Navigation**: [`MenuBar`], [`HotkeyFooter`], [`StatusBar`] for navigation aids
 //! - **Rendering**: [`render_markdown`] for markdown to ratatui text conversion
-//! - **Terminal**: [`AlacTerm`], [`VT100Term`] for embedded terminal emulation
+//! - **Terminal**: [`AlacTerm`], [`VT100Term`], [`TermTui`] for embedded terminal emulation
 //!
 //! ## Feature Flags
 //!
@@ -121,6 +121,10 @@ pub mod vt100_term;
 #[cfg_attr(docsrs, doc(cfg(feature = "terminal")))]
 pub mod ai_chat;
 
+#[cfg(feature = "terminal")]
+#[cfg_attr(docsrs, doc(cfg(feature = "terminal")))]
+pub mod termtui;
+
 #[cfg(feature = "fuzzy")]
 #[cfg_attr(docsrs, doc(cfg(feature = "fuzzy")))]
 pub mod fuzzy_finder;
@@ -174,13 +178,16 @@ pub use hotkey_modal::{render_hotkey_modal, Hotkey, HotkeyModalConfig, HotkeySec
 pub use markdown_renderer::{render_markdown, render_markdown_with_style, MarkdownStyle};
 
 #[cfg(feature = "terminal")]
-pub use alac_term::AlacTerm;
+pub use alac_term::{AlacTerm, AlacTermKeyBindings, KeyBinding};
 
 #[cfg(feature = "terminal")]
-pub use vt100_term::VT100Term;
+pub use vt100_term::{KeyBinding as VT100KeyBinding, VT100Term, VT100TermKeyBindings};
 
 #[cfg(feature = "terminal")]
 pub use ai_chat::AiChat;
+
+#[cfg(feature = "terminal")]
+pub use termtui::{TermTui, TermTuiKeyBindings};
 
 #[cfg(feature = "fuzzy")]
 pub use fuzzy_finder::FuzzyFinder;
@@ -248,13 +255,16 @@ pub mod prelude {
     };
 
     #[cfg(feature = "terminal")]
-    pub use crate::alac_term::AlacTerm;
+    pub use crate::alac_term::{AlacTerm, AlacTermKeyBindings, KeyBinding};
 
     #[cfg(feature = "terminal")]
-    pub use crate::vt100_term::VT100Term;
+    pub use crate::vt100_term::{KeyBinding as VT100KeyBinding, VT100Term, VT100TermKeyBindings};
 
     #[cfg(feature = "terminal")]
     pub use crate::ai_chat::AiChat;
+
+    #[cfg(feature = "terminal")]
+    pub use crate::termtui::{TermTui, TermTuiKeyBindings};
 
     #[cfg(feature = "fuzzy")]
     pub use crate::fuzzy_finder::FuzzyFinder;

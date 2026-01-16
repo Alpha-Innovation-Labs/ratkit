@@ -1,10 +1,16 @@
+mod key_binding;
+mod keybindings;
 mod widget;
+
+pub use key_binding::KeyBinding;
+pub use keybindings::AlacTermKeyBindings;
 
 use alacritty_terminal::event::{Event, EventListener};
 use alacritty_terminal::grid::Dimensions;
 use alacritty_terminal::term::{Config, Term};
 use alacritty_terminal::vte::ansi::Processor;
 use anyhow::Result;
+use crossterm::event::{KeyCode, KeyModifiers};
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Style};
@@ -96,6 +102,9 @@ pub struct AlacTerm<T: EventListener> {
     selection_end: Option<(u16, u16)>,   // (row, col) relative to terminal grid
     is_selecting: bool,
 
+    /// Configurable key bindings
+    pub keybindings: AlacTermKeyBindings,
+
     // Process management (for spawned processes)
     _master: Option<Arc<Mutex<Box<dyn MasterPty + Send>>>>,
     _child: Option<Box<dyn Child + Send + Sync>>,
@@ -121,11 +130,23 @@ impl<T: EventListener> AlacTerm<T> {
             selection_start: None,
             selection_end: None,
             is_selecting: false,
+            keybindings: AlacTermKeyBindings::default(),
             _master: None,
             _child: None,
             writer: None,
             ready: None,
         }
+    }
+
+    /// Set the key bindings configuration
+    pub fn with_keybindings(mut self, keybindings: AlacTermKeyBindings) -> Self {
+        self.keybindings = keybindings;
+        self
+    }
+
+    /// Set the key bindings configuration (mutable reference version)
+    pub fn set_keybindings(&mut self, keybindings: AlacTermKeyBindings) {
+        self.keybindings = keybindings;
     }
 
     /// Send input to the spawned process
@@ -145,14 +166,10 @@ impl<T: EventListener> AlacTerm<T> {
     /// Handle a key event and send appropriate terminal input
     /// Returns true if the key was handled, false otherwise
     pub fn handle_key(&mut self, key: crossterm::event::KeyEvent) -> bool {
-        use crossterm::event::{KeyCode, KeyModifiers};
+        // Handle configurable keybindings first
 
-        // Handle selection-related keys first
-        // Ctrl+Shift+C: Copy selection to clipboard (standard terminal keybinding)
-        if key.code == KeyCode::Char('c')
-            && key.modifiers.contains(KeyModifiers::CONTROL)
-            && key.modifiers.contains(KeyModifiers::SHIFT)
-        {
+        // Copy selection to clipboard
+        if self.keybindings.copy_selection.matches(&key) {
             if let Some(text) = self.get_selected_text() {
                 if let Ok(mut clipboard) = arboard::Clipboard::new() {
                     let _ = clipboard.set_text(text);
@@ -162,13 +179,36 @@ impl<T: EventListener> AlacTerm<T> {
             return false; // No selection, key not handled
         }
 
-        if key.code == KeyCode::Esc {
-            // Esc: Clear selection if there is one
+        // Paste from clipboard
+        if self.keybindings.paste.matches(&key) {
+            if let Ok(mut clipboard) = arboard::Clipboard::new() {
+                if let Ok(text) = clipboard.get_text() {
+                    self.send_input(&text);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Scroll up
+        if self.keybindings.scroll_up.matches(&key) {
+            self.scroll_up(10);
+            return true;
+        }
+
+        // Scroll down
+        if self.keybindings.scroll_down.matches(&key) {
+            self.scroll_down(10);
+            return true;
+        }
+
+        // Clear selection (check if there's an active selection first)
+        if self.keybindings.clear_selection.matches(&key) {
             if self.has_selection() {
                 self.clear_selection();
                 return true; // Consumed - we cleared a selection
             }
-            // If no selection, fall through to send Esc to terminal
+            // If no selection, fall through to send the key to terminal
         }
 
         // Convert keyevent to text and send to terminal
@@ -707,6 +747,7 @@ impl AlacTerm<DummyListener> {
             selection_start: None,
             selection_end: None,
             is_selecting: false,
+            keybindings: AlacTermKeyBindings::default(),
             _master: Some(master),
             _child: Some(child),
             writer: Some(writer),
@@ -790,6 +831,7 @@ mod tests {
             selection_start: Some((0, 0)), // Start of "Hello, World!"
             selection_end: Some((0, 5)),   // "Hello"
             is_selecting: false,
+            keybindings: AlacTermKeyBindings::default(),
             _master: None,
             _child: None,
             writer: None,

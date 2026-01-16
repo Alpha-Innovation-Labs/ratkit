@@ -1,10 +1,9 @@
 //! Master Layout - Top-level orchestrator for tabs, navigation, and modes
 
+use crate::master_layout::MasterLayoutKeyBindings;
 use super::{InteractionMode, PaneId, Tab};
 use crate::{MenuBar, MenuItem};
-use crossterm::event::{
-    Event, KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
-};
+use crossterm::event::{Event, KeyEvent, MouseButton, MouseEvent, MouseEventKind};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 
 /// Result of event handling
@@ -62,6 +61,7 @@ pub struct MasterLayout {
     mode: InteractionMode,
     global_area: Rect,
     nav_bar_offset: u16,
+    keybindings: MasterLayoutKeyBindings,
 }
 
 impl MasterLayout {
@@ -74,7 +74,36 @@ impl MasterLayout {
             mode: InteractionMode::default(),
             global_area: Rect::default(),
             nav_bar_offset: 0,
+            keybindings: MasterLayoutKeyBindings::default(),
         }
+    }
+
+    /// Set custom keybindings for the layout
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ratatui_toolkit::master_layout::{MasterLayout, MasterLayoutKeyBindings};
+    /// use crossterm::event::{KeyCode, KeyModifiers};
+    ///
+    /// let mut bindings = MasterLayoutKeyBindings::default();
+    /// bindings.quit = vec![(KeyCode::Char('x'), KeyModifiers::empty())];
+    ///
+    /// let layout = MasterLayout::new().with_keybindings(bindings);
+    /// ```
+    pub fn with_keybindings(mut self, keybindings: MasterLayoutKeyBindings) -> Self {
+        self.keybindings = keybindings;
+        self
+    }
+
+    /// Get the current keybindings
+    pub fn keybindings(&self) -> &MasterLayoutKeyBindings {
+        &self.keybindings
+    }
+
+    /// Set the keybindings
+    pub fn set_keybindings(&mut self, keybindings: MasterLayoutKeyBindings) {
+        self.keybindings = keybindings;
     }
 
     /// Set the navigation bar left offset (to make room for other components like IconNavBar)
@@ -287,20 +316,15 @@ impl MasterLayout {
         // Mode-specific handling
         match self.mode.clone() {
             InteractionMode::Layout { selected_pane } => {
-                // In Layout Mode: Q quits the application (case-insensitive: both 'q' and 'Q')
-                if matches!(key.code, KeyCode::Char('q') | KeyCode::Char('Q'))
-                    && key.modifiers.is_empty()
-                {
+                // In Layout Mode: Check quit keybinding
+                if self.keybindings.is_quit(&key) {
                     return EventResult::Quit;
                 }
 
-                // In Layout Mode: Handle Ctrl+Shift+C and Esc for text selection if pane has selection
+                // In Layout Mode: Handle copy_selection and clear_selection for text selection if pane has selection
                 if let Some(pane_id) = selected_pane {
-                    // Handle Ctrl+Shift+C (copy selection) - only if pane has selection
-                    if key.code == KeyCode::Char('c')
-                        && key.modifiers.contains(KeyModifiers::CONTROL)
-                        && key.modifiers.contains(KeyModifiers::SHIFT)
-                    {
+                    // Handle copy selection - only if pane has selection
+                    if self.keybindings.is_copy_selection(&key) {
                         if let Some(tab) = self.active_tab_mut() {
                             if let Some(pane) = tab.pane_container_mut().get_pane_mut(pane_id) {
                                 // Only route to pane if it has a selection
@@ -311,8 +335,8 @@ impl MasterLayout {
                         }
                     }
 
-                    // Handle Esc (clear selection) - only if pane has selection
-                    if key.code == KeyCode::Esc {
+                    // Handle clear_selection (Esc) - only if pane has selection
+                    if self.keybindings.is_clear_selection(&key) {
                         if let Some(tab) = self.active_tab_mut() {
                             if let Some(pane) = tab.pane_container_mut().get_pane_mut(pane_id) {
                                 // Only route to pane if it has a selection to clear
@@ -321,7 +345,7 @@ impl MasterLayout {
                                 }
                             }
                         }
-                        // If no selection to clear, fall through to let Layout Mode handle Esc
+                        // If no selection to clear, fall through to let Layout Mode handle it
                     }
                 }
 
@@ -329,9 +353,9 @@ impl MasterLayout {
                 self.handle_layout_mode_key(key)
             }
             InteractionMode::Focus { focused_pane } => {
-                // ONLY Ctrl-A exits focus mode - EVERYTHING else goes to the pane
+                // Check exit_focus_mode keybinding - EVERYTHING else goes to the pane
                 // This includes 'q', 'h', 'j', 'k', 'l', numbers, etc.
-                if key.code == KeyCode::Char('a') && key.modifiers.contains(KeyModifiers::CONTROL) {
+                if self.keybindings.is_exit_focus_mode(&key) {
                     self.exit_focus_mode();
                     return EventResult::Consumed;
                 }
@@ -352,54 +376,56 @@ impl MasterLayout {
 
     /// Handle keyboard events in Layout Mode
     fn handle_layout_mode_key(&mut self, key: KeyEvent) -> EventResult {
-        match key.code {
-            // Esc: Clear selection (exit command mode)
-            KeyCode::Esc => {
-                self.mode = InteractionMode::Layout {
-                    selected_pane: None,
-                };
-                EventResult::Consumed
-            }
-            // Ctrl-A: Clear selection in Layout Mode (deselect pane)
-            KeyCode::Char('a') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                self.mode = InteractionMode::Layout {
-                    selected_pane: None,
-                };
-                EventResult::Consumed
-            }
-            // 1-9: Switch tabs (only in Layout Mode)
-            KeyCode::Char(c) if c.is_ascii_digit() => {
-                let digit = c.to_digit(10).unwrap() as usize;
-                if digit >= 1 && digit <= self.tab_count() {
-                    self.set_active_tab(digit - 1);
-                    return EventResult::Consumed;
-                }
-                EventResult::NotHandled
-            }
-            // hjkl: Directional navigation (ONLY way to navigate panes)
-            KeyCode::Char('h') => {
-                self.select_left();
-                EventResult::Consumed
-            }
-            KeyCode::Char('j') => {
-                self.select_down();
-                EventResult::Consumed
-            }
-            KeyCode::Char('k') => {
-                self.select_up();
-                EventResult::Consumed
-            }
-            KeyCode::Char('l') => {
-                self.select_right();
-                EventResult::Consumed
-            }
-            // Enter: Focus selected pane
-            KeyCode::Enter => {
-                self.focus_selected();
-                EventResult::Consumed
-            }
-            _ => EventResult::NotHandled,
+        // Clear selection (Esc)
+        if self.keybindings.is_clear_selection(&key) {
+            self.mode = InteractionMode::Layout {
+                selected_pane: None,
+            };
+            return EventResult::Consumed;
         }
+
+        // Deselect pane (Ctrl-A in Layout Mode)
+        if self.keybindings.is_deselect_pane(&key) {
+            self.mode = InteractionMode::Layout {
+                selected_pane: None,
+            };
+            return EventResult::Consumed;
+        }
+
+        // Switch tabs (1-9)
+        if let Some(tab_index) = self.keybindings.get_tab_switch_index(&key) {
+            if tab_index < self.tab_count() {
+                self.set_active_tab(tab_index);
+                return EventResult::Consumed;
+            }
+            return EventResult::NotHandled;
+        }
+
+        // Directional navigation (hjkl)
+        if self.keybindings.is_navigate_left(&key) {
+            self.select_left();
+            return EventResult::Consumed;
+        }
+        if self.keybindings.is_navigate_down(&key) {
+            self.select_down();
+            return EventResult::Consumed;
+        }
+        if self.keybindings.is_navigate_up(&key) {
+            self.select_up();
+            return EventResult::Consumed;
+        }
+        if self.keybindings.is_navigate_right(&key) {
+            self.select_right();
+            return EventResult::Consumed;
+        }
+
+        // Focus selected pane (Enter)
+        if self.keybindings.is_focus_pane(&key) {
+            self.focus_selected();
+            return EventResult::Consumed;
+        }
+
+        EventResult::NotHandled
     }
 
     /// Handle mouse events
@@ -598,7 +624,7 @@ impl Default for MasterLayout {
 mod tests {
     use super::*;
     use crate::master_layout::{Pane, PaneContent};
-    use crossterm::event::{KeyModifiers, MouseButton, MouseEventKind};
+    use crossterm::event::{KeyCode, KeyModifiers, MouseButton, MouseEventKind};
     use ratatui::{backend::TestBackend, buffer::Buffer, widgets::Widget, Terminal};
 
     // Mock PaneContent for testing

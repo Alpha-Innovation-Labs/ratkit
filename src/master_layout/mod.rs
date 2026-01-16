@@ -17,6 +17,7 @@
 
 mod footer;
 mod interaction_mode;
+mod keybindings;
 mod layout;
 mod layout_manager;
 mod navigation_bar;
@@ -27,6 +28,7 @@ mod tab;
 
 pub use footer::{Footer, FooterItem};
 pub use interaction_mode::InteractionMode;
+pub use keybindings::MasterLayoutKeyBindings;
 pub use layout::PaneLayout;
 pub use layout_manager::{EventResult, MasterLayout};
 pub use navigation_bar::{NavigationBar, TabButton};

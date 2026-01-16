@@ -1,3 +1,7 @@
+mod keybindings;
+
+pub use keybindings::TreeKeyBindings;
+
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     buffer::Buffer,
@@ -399,81 +403,6 @@ pub fn get_visible_paths<T>(nodes: &[TreeNode<T>], state: &TreeViewState) -> Vec
 
     traverse(nodes, Vec::new(), state, &mut paths);
     paths
-}
-
-/// Configurable keybindings for tree navigation
-#[derive(Debug, Clone)]
-pub struct TreeKeyBindings {
-    pub next: Vec<KeyCode>,
-    pub previous: Vec<KeyCode>,
-    pub expand: Vec<KeyCode>,
-    pub collapse: Vec<KeyCode>,
-    pub toggle: Vec<KeyCode>,
-    pub goto_top: Vec<KeyCode>,
-    pub goto_bottom: Vec<KeyCode>,
-}
-
-impl Default for TreeKeyBindings {
-    fn default() -> Self {
-        Self {
-            next: vec![KeyCode::Char('j'), KeyCode::Down],
-            previous: vec![KeyCode::Char('k'), KeyCode::Up],
-            expand: vec![KeyCode::Char('l'), KeyCode::Right],
-            collapse: vec![KeyCode::Char('h'), KeyCode::Left],
-            toggle: vec![KeyCode::Enter],
-            goto_top: vec![KeyCode::Char('g')],
-            goto_bottom: vec![KeyCode::Char('G')],
-        }
-    }
-}
-
-impl TreeKeyBindings {
-    /// Create new keybindings with defaults
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set custom keybindings for next item
-    pub fn with_next(mut self, keys: Vec<KeyCode>) -> Self {
-        self.next = keys;
-        self
-    }
-
-    /// Set custom keybindings for previous item
-    pub fn with_previous(mut self, keys: Vec<KeyCode>) -> Self {
-        self.previous = keys;
-        self
-    }
-
-    /// Set custom keybindings for expand
-    pub fn with_expand(mut self, keys: Vec<KeyCode>) -> Self {
-        self.expand = keys;
-        self
-    }
-
-    /// Set custom keybindings for collapse
-    pub fn with_collapse(mut self, keys: Vec<KeyCode>) -> Self {
-        self.collapse = keys;
-        self
-    }
-
-    /// Set custom keybindings for toggle
-    pub fn with_toggle(mut self, keys: Vec<KeyCode>) -> Self {
-        self.toggle = keys;
-        self
-    }
-
-    /// Set custom keybindings for goto top
-    pub fn with_goto_top(mut self, keys: Vec<KeyCode>) -> Self {
-        self.goto_top = keys;
-        self
-    }
-
-    /// Set custom keybindings for goto bottom
-    pub fn with_goto_bottom(mut self, keys: Vec<KeyCode>) -> Self {
-        self.goto_bottom = keys;
-        self
-    }
 }
 
 /// Tree navigator with configurable keybindings

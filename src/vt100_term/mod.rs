@@ -14,12 +14,16 @@
 mod cell;
 mod copy_mode;
 mod grid;
+mod key_binding;
+mod keybindings;
 mod parser;
 mod screen;
 
 pub use cell::{Attrs, Cell};
 pub use copy_mode::{CopyMode, Pos};
 pub use grid::Grid;
+pub use key_binding::KeyBinding;
+pub use keybindings::VT100TermKeyBindings;
 pub use parser::Parser;
 pub use screen::Screen;
 
@@ -49,6 +53,9 @@ pub struct VT100Term {
     /// Copy mode state
     pub copy_mode: CopyMode,
 
+    /// Configurable keybindings
+    pub keybindings: VT100TermKeyBindings,
+
     /// Process management
     _master: Option<Arc<Mutex<Box<dyn MasterPty + Send>>>>,
     _child: Option<Box<dyn Child + Send + Sync>>,
@@ -69,6 +76,7 @@ impl VT100Term {
             title: title.into(),
             focused: false,
             copy_mode: CopyMode::None,
+            keybindings: VT100TermKeyBindings::default(),
             _master: None,
             _child: None,
             writer: None,
@@ -77,9 +85,15 @@ impl VT100Term {
         }
     }
 
+    /// Set custom keybindings
+    pub fn with_keybindings(mut self, keybindings: VT100TermKeyBindings) -> Self {
+        self.keybindings = keybindings;
+        self
+    }
+
     /// Handle keyboard input
     pub fn handle_key(&mut self, key: crossterm::event::KeyEvent) -> bool {
-        use crossterm::event::{KeyCode, KeyEventKind, KeyModifiers};
+        use crossterm::event::KeyEventKind;
 
         eprintln!(
             "[VT100] handle_key called: focused={} key={:?}",
@@ -97,11 +111,8 @@ impl VT100Term {
             return self.handle_copy_mode_key(key);
         }
 
-        // Ctrl+Shift+C: Copy selection
-        if key.code == KeyCode::Char('c')
-            && key.modifiers.contains(KeyModifiers::CONTROL)
-            && key.modifiers.contains(KeyModifiers::SHIFT)
-        {
+        // Copy selection (configurable, default: Ctrl+Shift+C)
+        if self.keybindings.copy_selection.matches(&key) {
             if let Some(text) = self.copy_mode.get_selected_text() {
                 if let Ok(mut clipboard) = arboard::Clipboard::new() {
                     let _ = clipboard.set_text(text);
@@ -110,14 +121,8 @@ impl VT100Term {
             }
         }
 
-        // Esc: Clear selection or exit copy mode
-        if key.code == KeyCode::Esc && self.copy_mode.is_active() {
-            self.copy_mode = CopyMode::None;
-            return true;
-        }
-
-        // Enter copy mode with Ctrl+B (like tmux)
-        if key.code == KeyCode::Char('b') && key.modifiers.contains(KeyModifiers::CONTROL) {
+        // Enter copy mode (configurable, default: Ctrl+B like tmux)
+        if self.keybindings.enter_copy_mode.matches(&key) {
             self.enter_copy_mode();
             return true;
         }
@@ -141,50 +146,61 @@ impl VT100Term {
     /// Handle keyboard in copy mode
     fn handle_copy_mode_key(&mut self, key: crossterm::event::KeyEvent) -> bool {
         use copy_mode::CopyMoveDir;
-        use crossterm::event::KeyCode;
 
-        match key.code {
-            KeyCode::Esc | KeyCode::Char('q') => {
-                self.copy_mode = CopyMode::None;
-                true
-            }
-            KeyCode::Up | KeyCode::Char('k') => {
-                let (dx, dy) = CopyMoveDir::Up.delta();
-                self.copy_mode.move_cursor(dx, dy);
-                true
-            }
-            KeyCode::Down | KeyCode::Char('j') => {
-                let (dx, dy) = CopyMoveDir::Down.delta();
-                self.copy_mode.move_cursor(dx, dy);
-                true
-            }
-            KeyCode::Left | KeyCode::Char('h') => {
-                let (dx, dy) = CopyMoveDir::Left.delta();
-                self.copy_mode.move_cursor(dx, dy);
-                true
-            }
-            KeyCode::Right | KeyCode::Char('l') => {
-                let (dx, dy) = CopyMoveDir::Right.delta();
-                self.copy_mode.move_cursor(dx, dy);
-                true
-            }
-            KeyCode::Char(' ') | KeyCode::Enter => {
-                // Set end position to start range selection
-                self.copy_mode.set_end();
-                true
-            }
-            KeyCode::Char('c') | KeyCode::Char('y') => {
-                // Copy selected text
-                if let Some(text) = self.copy_mode.get_selected_text() {
-                    if let Ok(mut clipboard) = arboard::Clipboard::new() {
-                        let _ = clipboard.set_text(text);
-                    }
-                }
-                self.copy_mode = CopyMode::None;
-                true
-            }
-            _ => false,
+        let code = key.code;
+
+        // Exit copy mode (configurable, default: Esc, q)
+        if self.keybindings.copy_exit.contains(&code) {
+            self.copy_mode = CopyMode::None;
+            return true;
         }
+
+        // Move up (configurable, default: k, Up)
+        if self.keybindings.copy_move_up.contains(&code) {
+            let (dx, dy) = CopyMoveDir::Up.delta();
+            self.copy_mode.move_cursor(dx, dy);
+            return true;
+        }
+
+        // Move down (configurable, default: j, Down)
+        if self.keybindings.copy_move_down.contains(&code) {
+            let (dx, dy) = CopyMoveDir::Down.delta();
+            self.copy_mode.move_cursor(dx, dy);
+            return true;
+        }
+
+        // Move left (configurable, default: h, Left)
+        if self.keybindings.copy_move_left.contains(&code) {
+            let (dx, dy) = CopyMoveDir::Left.delta();
+            self.copy_mode.move_cursor(dx, dy);
+            return true;
+        }
+
+        // Move right (configurable, default: l, Right)
+        if self.keybindings.copy_move_right.contains(&code) {
+            let (dx, dy) = CopyMoveDir::Right.delta();
+            self.copy_mode.move_cursor(dx, dy);
+            return true;
+        }
+
+        // Set selection (configurable, default: Space, Enter)
+        if self.keybindings.copy_set_selection.contains(&code) {
+            self.copy_mode.set_end();
+            return true;
+        }
+
+        // Copy and exit (configurable, default: c, y)
+        if self.keybindings.copy_and_exit.contains(&code) {
+            if let Some(text) = self.copy_mode.get_selected_text() {
+                if let Ok(mut clipboard) = arboard::Clipboard::new() {
+                    let _ = clipboard.set_text(text);
+                }
+            }
+            self.copy_mode = CopyMode::None;
+            return true;
+        }
+
+        false
     }
 
     /// Convert key event to terminal input sequence
@@ -389,6 +405,7 @@ impl VT100Term {
             title: title.into(),
             focused: false,
             copy_mode: CopyMode::None,
+            keybindings: VT100TermKeyBindings::default(),
             _master: None, // Can't store master after taking writer
             _child: Some(child),
             writer: Some(writer),

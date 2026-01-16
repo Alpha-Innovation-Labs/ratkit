@@ -26,6 +26,7 @@ A comprehensive collection of reusable TUI components for [ratatui](https://rata
 | **StatusBar** | Customizable status bar |
 | **StatusLineStacked** | Neovim-style powerline status |
 | **MasterLayout** | Application shell with tabs, panes, vim-like navigation |
+| **TermTui** | Terminal emulator with mprocs-style copy mode |
 | **AlacTerm** | Alacritty-based embedded terminal |
 | **VT100Term** | VT100 terminal emulator with scrollback |
 | **FuzzyFinder** | PTY-based fuzzy search popup |
@@ -58,7 +59,7 @@ ratatui-toolkit = { version = "0.1", default-features = false, features = ["tree
 | `menu` | ✅ | Menu bar component |
 | `statusbar` | ✅ | Status bar components |
 | `hotkey` | ✅ | Hotkey footer and modal |
-| `terminal` | ❌ | Terminal emulators (AlacTerm, VT100) |
+| `terminal` | ✅ | Terminal emulators (TermTui, AlacTerm, VT100) |
 | `fuzzy` | ❌ | Fuzzy finder component |
 | `master-layout` | ❌ | Full application layout framework |
 | `file-tree` | ❌ | File system tree with devicons |
@@ -180,6 +181,93 @@ let text = render_markdown_with_style(markdown_content, &style);
 // Render to frame
 frame.render_widget(Paragraph::new(text), area);
 ```
+
+### Terminal Emulator (TermTui)
+
+```rust
+use ratatui_toolkit::{TermTui, TermTuiKeyBindings};
+
+// Spawn a terminal with default shell
+let shell = std::env::var("SHELL").unwrap_or("/bin/sh".into());
+let mut term = TermTui::spawn_with_command("Terminal", &shell, &[])?;
+
+// Handle input
+term.handle_key(key_event);
+term.handle_mouse(mouse_event, terminal_area);
+
+// Render
+term.render(frame, area);
+```
+
+**Default Keybindings:**
+- `Ctrl+X` - Enter copy mode
+- `Ctrl+Shift+C` - Copy selection
+
+**Copy Mode:**
+- `h/j/k/l` or arrows - Navigate
+- `v` or `Space` - Start selection
+- `y` or `Enter` - Copy and exit
+- `w/b` - Word navigation
+- `0/$` - Line start/end
+- `g/G` - Top/bottom
+- `Esc` or `q` - Exit copy mode
+
+## Customizable Keybindings
+
+All interactive components expose their keybindings through configuration structs, allowing full customization:
+
+### TermTui
+
+```rust
+use ratatui_toolkit::{TermTui, TermTuiKeyBindings};
+use crossterm::event::{KeyCode, KeyModifiers, KeyEvent};
+
+// Create custom keybindings
+let mut bindings = TermTuiKeyBindings::default();
+bindings.enter_copy_mode = KeyEvent::new(KeyCode::Char('b'), KeyModifiers::CONTROL);
+
+let term = TermTui::spawn_with_command("Terminal", "bash", &[])?
+    .with_keybindings(bindings);
+```
+
+### TreeView
+
+```rust
+use ratatui_toolkit::{TreeNavigator, TreeKeyBindings};
+use crossterm::event::KeyCode;
+
+let bindings = TreeKeyBindings::new()
+    .with_next(vec![KeyCode::Char('n'), KeyCode::Down])
+    .with_previous(vec![KeyCode::Char('p'), KeyCode::Up])
+    .with_expand(vec![KeyCode::Char('e'), KeyCode::Right])
+    .with_collapse(vec![KeyCode::Char('c'), KeyCode::Left]);
+
+let navigator = TreeNavigator::with_keybindings(bindings);
+```
+
+### MasterLayout
+
+```rust
+use ratatui_toolkit::{MasterLayout, MasterLayoutKeyBindings};
+use crossterm::event::KeyCode;
+
+let mut bindings = MasterLayoutKeyBindings::default();
+bindings.navigate_left = KeyCode::Char('a');
+bindings.navigate_right = KeyCode::Char('d');
+
+let layout = MasterLayout::new()
+    .with_keybindings(bindings);
+```
+
+### Available Keybinding Configs
+
+| Component | Config Struct | Builder Method |
+|-----------|--------------|----------------|
+| TermTui | `TermTuiKeyBindings` | `.with_keybindings()` |
+| VT100Term | `VT100TermKeyBindings` | `.with_keybindings()` |
+| AlacTerm | `AlacTermKeyBindings` | `.with_keybindings()` |
+| TreeView | `TreeKeyBindings` | `TreeNavigator::with_keybindings()` |
+| MasterLayout | `MasterLayoutKeyBindings` | `.with_keybindings()` |
 
 ## Architecture
 

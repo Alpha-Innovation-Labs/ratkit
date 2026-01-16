@@ -1,6 +1,6 @@
 [package]
 name = "ratatui-toolkit"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 rust-version = "1.70"
 authors = ["Alpha Innovation Labs"]
@@ -15,7 +15,7 @@ readme = "README.md"
 include = ["src/**/*", "examples/**/*", "Cargo.toml", "LICENSE-MIT", "README.md", "CHANGELOG.md"]
 
 [features]
-default = ["markdown", "tree", "dialog", "toast", "split", "menu", "statusbar", "hotkey"]
+default = ["markdown", "tree", "dialog", "toast", "split", "menu", "statusbar", "hotkey", "terminal"]
 full = ["default", "terminal", "fuzzy", "master-layout", "file-tree"]
 
 # Core UI components
@@ -29,7 +29,7 @@ statusbar = []
 hotkey = []
 
 # Advanced components
-terminal = ["dep:alacritty_terminal", "dep:termwiz", "dep:libc", "dep:arboard", "dep:base64"]
+terminal = ["dep:alacritty_terminal", "dep:termwiz", "dep:libc", "dep:arboard", "dep:base64", "dep:portable-pty"]
 fuzzy = ["dep:portable-pty"]
 master-layout = ["split", "menu", "statusbar", "hotkey"]
 file-tree = ["tree", "dep:devicons"]
@@ -77,7 +77,11 @@ tokio-test = "0.4"
 [[example]]
 name = "showcase"
 path = "examples/showcase.rs"
-required-features = ["full"]
+
+[[example]]
+name = "termtui_demo"
+path = "examples/termtui_demo.rs"
+required-features = ["terminal"]
 
 [package.metadata.docs.rs]
 all-features = true

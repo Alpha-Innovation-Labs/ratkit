@@ -1,6 +1,6 @@
 //! Showcase Demo - Demonstrates all ratatui-toolkit components
 //!
-//! Run with: cargo run --example showcase --features full
+//! Run with: cargo run --example showcase
 //! Or: just dev
 
 use crossterm::{
@@ -23,8 +23,8 @@ use ratatui_toolkit::{
     render_hotkey_modal, render_markdown, render_toasts, ClickableScrollbar,
     ClickableScrollbarState, Dialog, DialogType, Hotkey, HotkeyFooter, HotkeyItem,
     HotkeyModalConfig, HotkeySection, MenuBar, MenuItem, ResizableSplit, ScrollbarEvent, StatusBar,
-    StatusItem, StatusLineStacked, Toast, ToastLevel, ToastManager, TreeNavigator, TreeNode,
-    TreeView, TreeViewState, VT100Term, SLANT_BL_TR, SLANT_TL_BR,
+    StatusItem, StatusLineStacked, TermTui, Toast, ToastLevel, ToastManager, TreeNavigator,
+    TreeNode, TreeView, TreeViewState, SLANT_BL_TR, SLANT_TL_BR,
 };
 use std::io;
 use std::time::Instant;
@@ -106,7 +106,7 @@ struct App {
     status_mode: DemoMode,
 
     // Terminal demo
-    terminal: VT100Term,
+    terminal: Option<TermTui>,
 
     // Toast notifications
     toast_manager: ToastManager,
@@ -145,8 +145,9 @@ impl App {
             .set_content(scroll_content.len(), 20)
             .position(0);
 
-        // Create terminal
-        let terminal = VT100Term::new("Demo Terminal");
+        // Create terminal - spawn a shell
+        let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string());
+        let terminal = TermTui::spawn_with_command("Demo Terminal", &shell, &[]).ok();
 
         Self {
             current_tab: DemoTab::Layout,
@@ -200,10 +201,7 @@ impl App {
             ),
             TreeNode::with_children(
                 " Terminal".to_string(),
-                vec![
-                    TreeNode::new(" AlacTerm".to_string()),
-                    TreeNode::new(" VT100Term".to_string()),
-                ],
+                vec![TreeNode::new(" TermTui".to_string())],
             ),
         ]
     }
@@ -513,7 +511,9 @@ fn main() -> io::Result<()> {
                             },
                             DemoTab::Terminal => {
                                 // Forward key to terminal
-                                app.terminal.handle_key(key);
+                                if let Some(ref mut term) = app.terminal {
+                                    term.handle_key(key);
+                                }
                             }
                             _ => {}
                         },
@@ -576,6 +576,20 @@ fn main() -> io::Result<()> {
                                 app.scrollbar_state.set_offset(pos);
                             }
                             ScrollbarEvent::None => {}
+                        }
+                    }
+
+                    // Handle terminal mouse events (scroll, selection, drag)
+                    if app.current_tab == DemoTab::Terminal {
+                        if let Some(ref mut term) = app.terminal {
+                            // Calculate terminal area (60% of content area)
+                            let content_area = Rect {
+                                x: area.x,
+                                y: area.y + 4,
+                                width: (area.width * 60) / 100,
+                                height: area.height.saturating_sub(6),
+                            };
+                            term.handle_mouse(mouse, content_area);
                         }
                     }
 
@@ -928,29 +942,54 @@ fn render_terminal_demo(frame: &mut ratatui::Frame, area: Rect, app: &mut App) {
         .split(area);
 
     // Terminal - render directly in the area
-    app.terminal.render(frame, chunks[0]);
+    if let Some(ref mut term) = app.terminal {
+        term.render(frame, chunks[0]);
+    } else {
+        // Fallback if terminal failed to spawn
+        let fallback = Paragraph::new("Terminal failed to spawn")
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .title(" Terminal "),
+            );
+        frame.render_widget(fallback, chunks[0]);
+    }
+
+    // Copy mode indicator
+    let copy_mode_info = if let Some(ref term) = app.terminal {
+        if term.copy_mode.is_active() {
+            "COPY MODE (hjkl/arrows to move, v to select, y to copy, Esc to exit)"
+        } else {
+            "Press Ctrl+X to enter copy mode"
+        }
+    } else {
+        ""
+    };
 
     // Info panel
     let info = Paragraph::new(vec![
         Line::from(""),
         Line::from(Span::styled(
-            "  VT100Term Features",
+            "  TermTui Features",
             Style::default().add_modifier(Modifier::BOLD),
         )),
         Line::from(""),
-        Line::from("  A VT100-compatible terminal"),
-        Line::from("  emulator widget."),
+        Line::from("  A terminal emulator using"),
+        Line::from("  termwiz + mprocs architecture."),
         Line::from(""),
         Line::from("  Features:"),
-        Line::from("    • ANSI escape sequences"),
-        Line::from("    • Color support (16/256)"),
-        Line::from("    • Scrollback buffer"),
-        Line::from("    • Copy mode (Ctrl+Shift+C)"),
-        Line::from("    • Mouse selection"),
+        Line::from("    • VT100 escape sequences"),
+        Line::from("    • Full color support (256/RGB)"),
+        Line::from("    • VecDeque scrollback buffer"),
+        Line::from("    • Copy mode (Ctrl+X)"),
+        Line::from("    • Vim-style navigation (hjkl)"),
+        Line::from("    • Visual selection (v + y)"),
         Line::from(""),
-        Line::from("  The VT100Term can be connected"),
-        Line::from("  to a real PTY process using"),
-        Line::from("  spawn_with_command()."),
+        Line::from(Span::styled(
+            format!("  {}", copy_mode_info),
+            Style::default().fg(Color::Yellow),
+        )),
     ])
     .block(
         Block::default()
