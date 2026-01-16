@@ -6,7 +6,6 @@ rust-version = "1.70"
 
 [dependencies]
 ratzilla = "0.2.0"
-ratatui = { version = "0.29", default-features = false, features = ["serde"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2", features = ["js"] }

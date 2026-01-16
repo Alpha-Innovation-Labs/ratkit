@@ -2,29 +2,87 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/fira_code.min.css"
     />
     <title>ratatui-toolkit Demo</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #121212;
+        /* Prevent text selection on clicks */
+        user-select: none;
+        -webkit-user-select: none;
+        /* Disable touch gestures */
+        touch-action: none;
+      }
       body {
-        margin: 20px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        background-color: #121212;
       }
       pre {
         font-family: "Fira Code", monospace;
         font-size: 16px;
-        margin: 0px;
+        margin: 0;
+        line-height: 1.2;
+        /* Ensure clicks pass through */
+        pointer-events: auto;
+        cursor: default;
+        /* Prevent selection */
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      /* Make sure the terminal container captures events */
+      #terminal, .ratzilla-terminal {
+        pointer-events: auto;
+        user-select: none;
+        -webkit-user-select: none;
       }
     </style>
   </head>
-  <body>
-    <link data-trunk rel="rust"/>
+  <body tabindex="0">
+    <link data-trunk rel="rust" />
+    <script>
+      // Prevent default browser behavior for ALL keyboard events
+      // This allows Ratzilla to capture Tab, number keys, etc.
+      document.addEventListener('keydown', (e) => {
+        // Allow browser dev tools (F12, Ctrl+Shift+I)
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+          return;
+        }
+        // Allow refresh (F5, Ctrl+R)
+        if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+          return;
+        }
+        // Prevent everything else
+        e.preventDefault();
+      }, { capture: true });
+
+      // Also prevent context menu on right-click if needed
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+      });
+
+      // Auto-focus body on load so it receives keyboard events
+      window.addEventListener('load', () => {
+        document.body.focus();
+      });
+
+      // Re-focus on click anywhere
+      document.addEventListener('click', () => {
+        document.body.focus();
+      });
+    </script>
   </body>
 </html>
