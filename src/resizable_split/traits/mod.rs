@@ -9,6 +9,8 @@ impl Default for ResizableSplit {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::SplitDirection;
+    use ratatui::layout::Rect;
 
     #[test]
     fn test_new_clamps_percentage() {

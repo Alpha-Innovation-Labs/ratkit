@@ -1,6 +1,6 @@
 use ratatui::style::Color;
 
-fn get_ayu_dark_color(filename: &str) -> Color {
+pub(super) fn get_ayu_dark_color(filename: &str) -> Color {
     let lower = filename.to_lowercase();
 
     if lower.ends_with(".sh")

@@ -121,11 +121,7 @@ impl MarkdownScrollManager {
 
     /// Get the maximum valid scroll offset
     pub fn max_scroll_offset(&self) -> usize {
-        if self.total_lines > self.viewport_height {
-            self.total_lines - self.viewport_height
-        } else {
-            0
-        }
+        self.total_lines.saturating_sub(self.viewport_height)
     }
 
     /// Get range of currently visible lines (1-indexed, inclusive)

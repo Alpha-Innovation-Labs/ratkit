@@ -1,7 +1,7 @@
 //! Extension trait for scrolling operations.
 //!
 //! This module defines the trait that extends [`ClickableScrollbarState`] with
-/// scrolling methods.
+//! scrolling methods.
 
 /// Extension trait providing scrolling methods for [`ClickableScrollbarState`].
 pub trait ClickableScrollbarStateScrollExt {

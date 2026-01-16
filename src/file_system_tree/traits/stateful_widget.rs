@@ -1,15 +1,16 @@
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    style::Color,
+    style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, StatefulWidget},
+    widgets::StatefulWidget,
 };
 
 use crate::file_system_tree::FileSystemTree;
 use crate::tree_view::TreeViewState;
 
-use super::{get_ayu_dark_color, get_custom_icon};
+use crate::file_system_tree::traits::get_ayu_dark_color::get_ayu_dark_color;
+use crate::file_system_tree::traits::get_custom_icon::get_custom_icon;
 use devicons::{icon_for_file, Theme as DevIconTheme};
 
 impl<'a> StatefulWidget for FileSystemTree<'a> {
@@ -54,7 +55,7 @@ impl<'a> StatefulWidget for FileSystemTree<'a> {
                     Span::styled(entry.name.clone(), style),
                 ])
             })
-            .highlight_style(Color::default().bg(Color::Rgb(15, 25, 40)));
+            .highlight_style(Style::default().bg(Color::Rgb(15, 25, 40)));
 
         let tree_view = if let Some(block) = block {
             tree_view.block(block)

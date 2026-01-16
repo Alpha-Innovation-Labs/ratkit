@@ -1,9 +1,9 @@
 //! Methods for [`ClickableScrollbar`] and [`ClickableScrollbarState`].
 //!
 //! This module organizes methods into focused files for better maintainability.
-//! Each file contains one impl block following the project's coding standards.
 
 mod mouse_handler;
+mod mouse_handler_helpers;
 mod mouse_handler_trait;
 mod scroll;
 mod scroll_trait;

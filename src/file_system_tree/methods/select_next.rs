@@ -2,7 +2,7 @@ use crate::file_system_tree::FileSystemTree;
 use crate::tree_view::TreeViewState;
 
 impl<'a> FileSystemTree<'a> {
-    pub fn select_next(&self, state: &mut TreeViewState) {
+    pub fn select_next(&mut self, state: &mut TreeViewState) {
         let visible_paths = self.get_visible_paths(state);
         if visible_paths.is_empty() {
             return;

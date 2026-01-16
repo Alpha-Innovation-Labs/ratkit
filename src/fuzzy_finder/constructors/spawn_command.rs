@@ -1,9 +1,9 @@
-use anyhow::{Context, Result};
-use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
-use std::sync::{Arc, Mutex};
-use vt100::Parser;
-
 use crate::fuzzy_finder::{FuzzyFinder, FuzzyFinderTerminal};
+use crate::termtui::Parser;
+use anyhow::{Context, Result};
+use portable_pty::{native_pty_system, CommandBuilder, PtySize};
+use std::io::Write;
+use std::sync::{Arc, Mutex};
 
 impl FuzzyFinder {
     pub fn spawn_command(
@@ -59,7 +59,7 @@ impl FuzzyFinder {
             writer.flush()?;
         }
 
-        let parser = Arc::new(Mutex::new(Parser::new(rows, cols, 0)));
+        let parser = Arc::new(Mutex::new(Parser::new(rows as usize, cols as usize, 0)));
 
         self.terminal = Some(FuzzyFinderTerminal {
             parser,

@@ -48,11 +48,7 @@ pub fn render_content(
             .collect();
 
         let total_width: usize = spans.iter().map(|s| s.content.chars().count()).sum();
-        let padding = if total_width < inner_width {
-            inner_width - total_width
-        } else {
-            0
-        };
+        let padding = inner_width.saturating_sub(total_width);
 
         let border_style = Style::default().fg(Color::DarkGray);
         let bg_style = Style::default().bg(bg_color);

@@ -1,5 +1,4 @@
-use anyhow::{Context, Result};
-use std::path::Path;
+use anyhow::Result;
 
 use crate::file_system_tree::{FileSystemEntry, FileSystemTree, FileSystemTreeConfig};
 use crate::tree_view::TreeNode;

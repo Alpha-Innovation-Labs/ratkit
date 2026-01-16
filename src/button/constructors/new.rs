@@ -16,7 +16,7 @@ impl Button {
     /// # Example
     ///
     /// ```rust
-    /// use crate::button::Button;
+    /// use ratatui_toolkit::Button;
     ///
     /// let button = Button::new("Click Me");
     /// ```

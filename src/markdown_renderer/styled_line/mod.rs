@@ -5,6 +5,7 @@
 
 pub mod code_block_border_kind;
 pub mod methods;
+#[allow(clippy::module_inception)]
 pub mod styled_line;
 pub mod styled_line_kind;
 pub mod table_border_kind;

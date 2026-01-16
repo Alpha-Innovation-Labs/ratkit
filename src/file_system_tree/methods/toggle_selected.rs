@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 use crate::file_system_tree::FileSystemTree;
 use crate::tree_view::TreeViewState;

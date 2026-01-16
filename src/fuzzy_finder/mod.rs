@@ -7,12 +7,10 @@ pub mod functions;
 pub mod methods;
 pub mod traits;
 
-pub use functions::centered_rect;
-
+use crate::termtui::Parser;
+use portable_pty::{Child, MasterPty};
 use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
-
-use vt100::Parser;
 
 /// Terminal state for fuzzy finder
 pub struct FuzzyFinderTerminal {
@@ -24,6 +22,7 @@ pub struct FuzzyFinderTerminal {
 }
 
 /// A generic fuzzy finder widget that spawns a PTY-based fuzzy finder (like fzf)
+#[allow(dead_code)]
 pub struct FuzzyFinder {
     /// PTY terminal state
     terminal: Option<FuzzyFinderTerminal>,

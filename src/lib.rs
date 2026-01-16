@@ -126,8 +126,12 @@ pub mod file_system_tree;
 pub mod master_layout;
 
 // Re-export commonly used types - always available
-pub use button::{render_title_with_buttons, Button};
-pub use clickable_scrollbar::{ClickableScrollbar, ClickableScrollbarState, ScrollbarEvent};
+pub use button::render_title_with_buttons::render_title_with_buttons;
+pub use button::Button;
+pub use clickable_scrollbar::{
+    ClickableScrollbar, ClickableScrollbarState, ClickableScrollbarStateMouseExt,
+    ClickableScrollbarStateScrollExt, ClickableScrollbarStatefulWidgetExt, ScrollbarEvent,
+};
 pub use pane::Pane;
 
 // Feature-gated re-exports
@@ -196,10 +200,11 @@ pub use master_layout::{
 /// ```
 pub mod prelude {
     // Core components
-    pub use crate::button::render_title_with_buttons;
+    pub use crate::button::render_title_with_buttons::render_title_with_buttons;
     pub use crate::button::Button;
     pub use crate::clickable_scrollbar::{
-        ClickableScrollbar, ClickableScrollbarState, ScrollbarEvent,
+        ClickableScrollbar, ClickableScrollbarState, ClickableScrollbarStateMouseExt,
+        ClickableScrollbarStateScrollExt, ClickableScrollbarStatefulWidgetExt, ScrollbarEvent,
     };
     pub use crate::pane::Pane;
 

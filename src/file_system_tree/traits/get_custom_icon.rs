@@ -1,6 +1,6 @@
 use ratatui::style::Color;
 
-fn get_custom_icon(filename: &str) -> Option<(char, Color)> {
+pub(super) fn get_custom_icon(filename: &str) -> Option<(char, Color)> {
     let lower = filename.to_lowercase();
 
     if lower.ends_with(".just") || lower == "justfile" || lower == ".justfile" {

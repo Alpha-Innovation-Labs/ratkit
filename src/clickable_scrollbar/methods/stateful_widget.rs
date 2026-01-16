@@ -25,7 +25,15 @@ impl ClickableScrollbarStatefulWidgetExt for ClickableScrollbar<'_> {
             .position(state.offset)
             .viewport_content_length(state.page_len);
 
-        self.scrollbar.render(area, buf, &mut scrollbar_state);
+        StatefulWidget::render(self.scrollbar, area, buf, &mut scrollbar_state);
+    }
+}
+
+impl StatefulWidget for ClickableScrollbar<'_> {
+    type State = ClickableScrollbarState;
+
+    fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
+        ClickableScrollbarStatefulWidgetExt::render(self, area, buf, state);
     }
 }
 
@@ -42,7 +50,7 @@ mod tests {
         let mut state = ClickableScrollbarState::new();
         let buf = &mut Buffer::empty(Rect::new(0, 0, 10, 10));
 
-        scrollbar.render(Rect::default(), buf, &mut state);
+        StatefulWidget::render(scrollbar, Rect::default(), buf, &mut state);
 
         assert_eq!(state.area, Rect::default());
     }
@@ -54,7 +62,7 @@ mod tests {
         let area = Rect::new(0, 0, 10, 20);
         let buf = &mut Buffer::empty(area);
 
-        scrollbar.render(area, buf, &mut state);
+        StatefulWidget::render(scrollbar, area, buf, &mut state);
 
         assert_eq!(state.area, area);
         assert_eq!(state.orientation, ScrollbarOrientation::VerticalRight);

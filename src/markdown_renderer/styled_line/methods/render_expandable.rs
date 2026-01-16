@@ -7,7 +7,7 @@ use ratatui::text::{Line, Span};
 
 pub fn render_expandable(
     _styled_line: &StyledLine,
-    content_id: &str,
+    _content_id: &str,
     lines: &[StyledLine],
     max_lines: usize,
     collapsed: bool,
@@ -47,13 +47,13 @@ pub fn render_expandable(
 
 pub fn render_expand_toggle(
     _styled_line: &StyledLine,
-    content_id: &str,
+    _content_id: &str,
     expanded: bool,
     hidden_count: usize,
-    width: usize,
+    _width: usize,
 ) -> Vec<Line<'static>> {
     let toggle_text = if expanded {
-        format!("▲ Show less ")
+        "▲ Show less ".to_string()
     } else {
         format!("▼ Show more ({} hidden) ", hidden_count)
     };

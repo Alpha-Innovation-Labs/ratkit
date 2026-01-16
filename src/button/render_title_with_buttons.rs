@@ -23,14 +23,12 @@ use crate::button::Button;
 ///
 /// ```rust
 /// use ratatui::layout::Rect;
-/// use ratatui::text::Line;
-/// use crate::button::{Button, render_title_with_buttons};
+/// use ratatui_toolkit::{Button, render_title_with_buttons};
 ///
 /// let panel_area = Rect::new(0, 0, 80, 1);
-/// let mut buttons: Vec<Button> = vec![
-///     Button::new("Save"),
-///     Button::new("Cancel"),
-/// ];
+/// let mut btn1 = Button::new("Save");
+/// let mut btn2 = Button::new("Cancel");
+/// let mut buttons: Vec<&mut Button> = vec![&mut btn1, &mut btn2];
 /// let line = render_title_with_buttons(panel_area, "My Panel", &mut buttons);
 /// ```
 pub fn render_title_with_buttons(

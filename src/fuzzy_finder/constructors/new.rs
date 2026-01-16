@@ -1,4 +1,4 @@
-use crate::fuzzy_finder::{FuzzyFinder, FuzzyFinderTerminal};
+use crate::fuzzy_finder::FuzzyFinder;
 
 impl FuzzyFinder {
     pub fn new(title: impl Into<String>) -> Self {

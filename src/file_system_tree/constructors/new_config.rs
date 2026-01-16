@@ -1,9 +1,6 @@
-use ratatui::style::Style;
-
 use crate::file_system_tree::FileSystemTreeConfig;
 
-impl FileSystemTreeConfig {
-    pub fn new() -> Self {
-        Self::default()
-    }
+#[allow(dead_code)]
+pub fn new_config() -> FileSystemTreeConfig {
+    FileSystemTreeConfig::default()
 }

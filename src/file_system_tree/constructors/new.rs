@@ -1,7 +1,7 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::path::PathBuf;
 
-use crate::file_system_tree::{FileSystemEntry, FileSystemTree, FileSystemTreeConfig};
+use crate::file_system_tree::{FileSystemTree, FileSystemTreeConfig};
 use ratatui::widgets::Block;
 
 impl<'a> FileSystemTree<'a> {

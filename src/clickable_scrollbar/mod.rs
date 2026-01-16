@@ -15,7 +15,7 @@
 //! ```rust,no_run
 //! use ratatui::layout::Rect;
 //! use ratatui::widgets::ScrollbarOrientation;
-//! use crate::clickable_scrollbar::{ClickableScrollbar, ClickableScrollbarState};
+//! use ratatui_toolkit::{ClickableScrollbar, ClickableScrollbarState, ClickableScrollbarStateScrollExt};
 //!
 //! let scrollbar = ClickableScrollbar::vertical();
 //! let mut state = ClickableScrollbarState::new()
@@ -26,6 +26,8 @@
 pub mod constructors;
 pub mod methods;
 pub mod traits;
+
+pub use methods::*;
 
 use ratatui::layout::Rect;
 use ratatui::widgets::Scrollbar;
@@ -45,7 +47,7 @@ use ratatui::widgets::ScrollbarOrientation;
 /// # Example
 ///
 /// ```rust
-/// use crate::clickable_scrollbar::ClickableScrollbar;
+/// use ratatui_toolkit::ClickableScrollbar;
 /// use ratatui::widgets::ScrollbarOrientation;
 ///
 /// let scrollbar = ClickableScrollbar::vertical();
@@ -77,7 +79,7 @@ pub struct ClickableScrollbar<'a> {
 /// # Example
 ///
 /// ```rust
-/// use crate::clickable_scrollbar::ClickableScrollbarState;
+/// use ratatui_toolkit::{ClickableScrollbarState, ClickableScrollbarStateScrollExt};
 ///
 /// let mut state = ClickableScrollbarState::new()
 ///     .set_content(100, 10)  // 100 total items, 10 visible
@@ -117,17 +119,17 @@ pub struct ClickableScrollbarState {
 /// # Example
 ///
 /// ```rust,no_run
-/// use crate::clickable_scrollbar::{ClickableScrollbarState, ScrollbarEvent};
+/// use ratatui_toolkit::{ClickableScrollbarState, ClickableScrollbarStateScrollExt, ClickableScrollbarStateMouseExt, ScrollbarEvent};
 /// use crossterm::event::MouseEvent;
 ///
 /// let mut state = ClickableScrollbarState::new().set_content(100, 10);
-/// let event = MouseEvent { /* ... */ };
-/// match state.handle_mouse_event(&event) {
-///     ScrollbarEvent::Up(n) => { /* scroll up by n */ }
-///     ScrollbarEvent::Down(n) => { /* scroll down by n */ }
-///     ScrollbarEvent::Position(pos) => { /* jump to position */ }
-///     ScrollbarEvent::None => {}
-/// }
+/// // In real code, you'd get a MouseEvent from crossterm::event::read()
+/// // match state.handle_mouse_event(&event) {
+/// //     ScrollbarEvent::Up(n) => { /* scroll up by n */ }
+/// //     ScrollbarEvent::Down(n) => { /* scroll down by n */ }
+/// //     ScrollbarEvent::Position(pos) => { /* jump to position */ }
+/// //     ScrollbarEvent::None => {}
+/// // }
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ScrollbarEvent {

@@ -59,14 +59,15 @@ impl CopyMoveDir {
 }
 
 /// Copy mode state
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum CopyMode {
     /// Not in copy mode
+    #[default]
     None,
     /// Active copy mode with frozen screen
     Active {
         /// Frozen screen snapshot
-        frozen_screen: Screen,
+        frozen_screen: Box<Screen>,
         /// Current cursor position
         cursor: CopyPos,
         /// Selection anchor (start of selection)
@@ -78,12 +79,6 @@ pub enum CopyMode {
         /// Scrollback available
         scrollback_available: i32,
     },
-}
-
-impl Default for CopyMode {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 impl CopyMode {
@@ -98,7 +93,7 @@ impl CopyMode {
         let scrollback = screen.primary_grid().scrollback_available() as i32;
 
         CopyMode::Active {
-            frozen_screen: screen,
+            frozen_screen: Box::new(screen),
             cursor: start,
             anchor: None,
             screen_height: size.rows as i32,

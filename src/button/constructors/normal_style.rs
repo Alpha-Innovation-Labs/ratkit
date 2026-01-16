@@ -17,7 +17,7 @@ impl Button {
     ///
     /// ```rust
     /// use ratatui::style::{Color, Style};
-    /// use crate::button::Button;
+    /// use ratatui_toolkit::Button;
     ///
     /// let button = Button::new("Click Me")
     ///     .normal_style(Style::default().fg(Color::White));

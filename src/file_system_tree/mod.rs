@@ -8,9 +8,10 @@ pub mod traits;
 
 use std::path::PathBuf;
 
-use crate::tree_view::{TreeNode, TreeView, TreeViewState};
+use crate::tree_view::TreeNode;
 
 use ratatui::style::Style;
+use ratatui::widgets::Block;
 
 /// Represents a file system entry (file or directory)
 #[derive(Debug, Clone)]

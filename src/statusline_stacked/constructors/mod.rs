@@ -5,7 +5,14 @@ use crate::statusline_stacked::{OperationalMode, StatusLineStacked, StyledStatus
 
 impl<'a> StatusLineStacked<'a> {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            style: Style::default(),
+            left: Vec::new(),
+            center_margin: 0,
+            center: Line::default(),
+            right: Vec::new(),
+            phantom: std::marker::PhantomData,
+        }
     }
 
     pub fn style(mut self, style: Style) -> Self {

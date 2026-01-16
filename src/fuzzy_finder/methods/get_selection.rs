@@ -1,20 +1,36 @@
 use crate::fuzzy_finder::FuzzyFinder;
 
 impl FuzzyFinder {
-    pub fn get_selection(&mut self) -> Option<String> {
-        if let Some(terminal) = &self.terminal {
+    pub fn get_selection(&self) -> Option<String> {
+        self.terminal.as_ref().and_then(|terminal| {
             let parser = terminal.parser.lock().unwrap();
             let screen = parser.screen();
-            let contents_bytes = screen.contents_formatted();
-            let contents_str = String::from_utf8_lossy(&contents_bytes);
+            let size = screen.size();
+            let rows = size.rows as usize;
 
-            for line in contents_str.lines().rev() {
-                let trimmed = line.trim();
-                if !trimmed.is_empty() {
-                    return Some(trimmed.to_string());
+            if rows == 0 {
+                return None;
+            }
+
+            let last_row = screen.primary_grid().visible_row((rows - 1) as u16)?;
+            let cols = last_row.width();
+
+            if cols == 0 {
+                return None;
+            }
+
+            let mut result = String::new();
+            for col in 0..cols {
+                if let Some(cell) = last_row.get(col) {
+                    result.push_str(cell.text());
                 }
             }
-        }
-        None
+
+            if result.is_empty() {
+                None
+            } else {
+                Some(result.trim().to_string())
+            }
+        })
     }
 }

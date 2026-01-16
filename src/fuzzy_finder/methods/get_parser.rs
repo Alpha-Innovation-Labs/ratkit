@@ -1,7 +1,6 @@
-use std::sync::{Arc, Mutex};
-use vt100::Parser;
-
 use crate::fuzzy_finder::FuzzyFinder;
+use crate::termtui::Parser;
+use std::sync::{Arc, Mutex};
 
 impl FuzzyFinder {
     pub fn get_parser(&self) -> Option<Arc<Mutex<Parser>>> {

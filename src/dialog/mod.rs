@@ -7,6 +7,8 @@ pub mod methods;
 pub mod traits;
 pub mod widget;
 
+pub use widget::DialogWidget;
+
 use ratatui::layout::Rect;
 use ratatui::style::Style;
 
@@ -32,6 +34,7 @@ pub enum DialogType {
 /// Dialogs are centered modals that display a message and buttons.
 /// They support different visual styles (info, success, warning, error, confirm)
 /// and can handle mouse clicks on buttons.
+#[allow(dead_code)]
 pub struct Dialog<'a> {
     /// Dialog title
     title: &'a str,

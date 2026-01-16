@@ -6,16 +6,11 @@
 use ratatui::text::{Line, Text};
 
 /// Theme variant for syntax highlighting
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SyntaxThemeVariant {
+    #[default]
     Dark,
     Light,
-}
-
-impl Default for SyntaxThemeVariant {
-    fn default() -> Self {
-        Self::Dark
-    }
 }
 
 /// Highlighter for code blocks using syntect.

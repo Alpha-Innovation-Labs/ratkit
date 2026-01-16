@@ -1,10 +1,19 @@
-use ratatui::style::Style;
+use crate::file_system_tree::{FileSystemTree, FileSystemTreeConfig};
 
-use crate::file_system_tree::FileSystemTreeConfig;
-
-impl FileSystemTreeConfig {
-    pub fn with_dir_style(mut self, style: Style) -> Self {
-        self.dir_style = style;
+impl<'a> FileSystemTree<'a> {
+    pub fn with_dir_style(mut self, style: ratatui::style::Style) -> Self {
+        self.config.dir_style = style;
         self
+    }
+}
+
+#[allow(dead_code)]
+pub fn with_dir_style(tree: FileSystemTree, style: ratatui::style::Style) -> FileSystemTree {
+    FileSystemTree {
+        config: FileSystemTreeConfig {
+            dir_style: style,
+            ..tree.config
+        },
+        ..tree
     }
 }

@@ -21,11 +21,11 @@ use ratatui::{
 };
 use ratatui_toolkit::{
     handle_mouse_event, render_hotkey_modal, render_toasts, ClickableScrollbar,
-    ClickableScrollbarState, Dialog, DialogType, Hotkey, HotkeyFooter, HotkeyItem,
-    HotkeyModalConfig, HotkeySection, MarkdownScrollManager, MarkdownWidget, MenuBar, MenuItem,
-    ResizableSplit, ScrollbarEvent, StatusBar, StatusItem, StatusLineStacked, TermTui, Toast,
-    ToastLevel, ToastManager, TreeNavigator, TreeNode, TreeView, TreeViewState, SLANT_BL_TR,
-    SLANT_TL_BR,
+    ClickableScrollbarState, ClickableScrollbarStateMouseExt, ClickableScrollbarStateScrollExt,
+    Dialog, DialogType, DialogWidget, Hotkey, HotkeyFooter, HotkeyItem, HotkeyModalConfig,
+    HotkeySection, MarkdownScrollManager, MarkdownWidget, MenuBar, MenuItem, ResizableSplit,
+    ScrollbarEvent, StatusBar, StatusItem, StatusLineStacked, TermTui, Toast, ToastLevel,
+    ToastManager, TreeNavigator, TreeNode, TreeView, TreeViewState, SLANT_BL_TR, SLANT_TL_BR,
 };
 use std::io;
 use std::time::Instant;
@@ -330,11 +330,12 @@ fn main() -> io::Result<()> {
                     DialogType::Error => ("Error", "Something went wrong!"),
                     DialogType::Confirm => ("Confirm", "Do you want to proceed?"),
                 };
-                let dialog = Dialog::new(title, message)
+                let mut dialog = Dialog::new(title, message)
                     .dialog_type(app.dialog_type)
                     .width_percent(0.5)
                     .height_percent(0.35);
-                frame.render_widget(dialog, area);
+                let dialog_widget = DialogWidget::new(&mut dialog);
+                frame.render_widget(dialog_widget, area);
             }
 
             // Hotkey modal overlay

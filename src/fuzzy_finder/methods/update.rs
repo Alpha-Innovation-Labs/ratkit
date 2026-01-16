@@ -1,21 +1,24 @@
 use anyhow::Result;
+use std::io::Read;
 
 use crate::fuzzy_finder::FuzzyFinder;
 
 impl FuzzyFinder {
     pub fn update(&mut self) -> Result<()> {
-        if let Some(terminal) = &self.terminal {
-            let mut buf = [0u8; 8192];
+        if let Some(ref terminal) = self.terminal {
             let mut reader = terminal.reader.lock().unwrap();
+            let mut parser = terminal.parser.lock().unwrap();
 
-            match reader.read(&mut buf) {
-                Ok(0) => {}
-                Ok(n) => {
-                    let mut parser = terminal.parser.lock().unwrap();
-                    parser.process(&buf[..n]);
+            let mut buf = [0u8; 1024];
+            loop {
+                match reader.read(&mut buf) {
+                    Ok(0) => break,
+                    Ok(n) => {
+                        parser.process(&buf[..n]);
+                    }
+                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
+                    Err(_) => break,
                 }
-                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {}
-                Err(e) => return Err(e.into()),
             }
         }
         Ok(())

@@ -6,7 +6,7 @@ use crate::file_system_tree::{FileSystemEntry, FileSystemTree, FileSystemTreeCon
 use crate::tree_view::TreeNode;
 
 impl<'a> FileSystemTree<'a> {
-    fn load_directory(
+    pub(crate) fn load_directory(
         path: &Path,
         config: &FileSystemTreeConfig,
     ) -> Result<Vec<TreeNode<FileSystemEntry>>> {

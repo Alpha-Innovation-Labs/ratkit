@@ -13,7 +13,8 @@
 //! # Example
 //!
 //! ```rust
-//! use crate::button::Button;
+//! use ratatui::style::{Color, Style};
+//! use ratatui_toolkit::Button;
 //!
 //! let button = Button::new("Click Me")
 //!     .normal_style(Style::default().fg(Color::White))

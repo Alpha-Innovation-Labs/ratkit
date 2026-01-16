@@ -93,7 +93,7 @@ pub fn render_markdown_interactive(
 /// Check if a line should be rendered based on collapse state.
 fn should_render_line(
     styled_line: &StyledLine,
-    idx: usize,
+    _idx: usize,
     scroll: &MarkdownScrollManager,
 ) -> bool {
     match &styled_line.kind {
@@ -101,19 +101,9 @@ fn should_render_line(
             section_id,
             collapsed,
             ..
-        } => {
-            if *collapsed && scroll.is_section_collapsed(*section_id) {
-                false
-            } else {
-                true
-            }
-        }
+        } => !(*collapsed && scroll.is_section_collapsed(*section_id)),
         StyledLineKind::Frontmatter { collapsed, .. } => {
-            if *collapsed && scroll.is_section_collapsed(0) {
-                false
-            } else {
-                true
-            }
+            !(*collapsed && scroll.is_section_collapsed(0))
         }
         _ => true,
     }
@@ -152,7 +142,7 @@ pub fn handle_mouse_event(
 }
 
 /// Handle click event at the given position.
-fn handle_click(x: usize, y: usize, content: &str, scroll: &mut MarkdownScrollManager) -> bool {
+fn handle_click(_x: usize, y: usize, content: &str, scroll: &mut MarkdownScrollManager) -> bool {
     let styled_lines = super::render_markdown_to_styled_lines(content);
     let mut line_idx = 0;
 
@@ -196,6 +186,7 @@ fn is_in_area(x: u16, y: u16, area: Rect) -> bool {
 }
 
 /// Render markdown to styled lines with scroll state applied.
+#[allow(dead_code)]
 pub fn render_markdown_scrollable(
     content: &str,
     scroll: &MarkdownScrollManager,
@@ -215,6 +206,7 @@ pub fn render_markdown_scrollable(
 }
 
 /// Find the styled line at the given screen position.
+#[allow(dead_code)]
 pub fn find_line_at_position(
     content: &str,
     screen_y: usize,
@@ -240,9 +232,10 @@ pub fn find_line_at_position(
 }
 
 /// Check if a position is on a clickable element.
+#[allow(dead_code)]
 pub fn is_clickable_at_position(
     content: &str,
-    x: usize,
+    _x: usize,
     y: usize,
     scroll: &MarkdownScrollManager,
 ) -> bool {

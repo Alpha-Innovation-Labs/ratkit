@@ -37,7 +37,7 @@ impl ColorPalette {
 }
 
 /// Markdown theme configuration
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 pub struct MarkdownTheme {
     #[serde(default)]
     pub name: Option<String>,
@@ -59,23 +59,6 @@ pub struct MarkdownTheme {
     pub markdown_hr: Option<ColorMapping>,
     #[serde(default)]
     pub markdown_table: Option<ColorMapping>,
-}
-
-impl Default for MarkdownTheme {
-    fn default() -> Self {
-        Self {
-            name: None,
-            markdown_text: None,
-            markdown_heading: None,
-            markdown_code: None,
-            markdown_block_quote: None,
-            markdown_emph: None,
-            markdown_strong: None,
-            markdown_link: None,
-            markdown_hr: None,
-            markdown_table: None,
-        }
-    }
 }
 
 /// Color mapping for light/dark modes
@@ -191,17 +174,12 @@ pub mod palettes {
 }
 
 /// Theme variant selection
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ThemeVariant {
+    #[default]
     Dark,
     Light,
     Auto, // Detect from terminal
-}
-
-impl Default for ThemeVariant {
-    fn default() -> Self {
-        Self::Dark
-    }
 }
 
 /// Load a markdown theme from JSON string
@@ -210,6 +188,7 @@ pub fn load_theme_from_json(json: &str) -> Result<MarkdownTheme, serde_json::Err
 }
 
 /// Get the effective color scheme based on variant and terminal detection
+#[allow(unexpected_cfgs)]
 pub fn get_effective_theme_variant(variant: ThemeVariant) -> ThemeVariant {
     match variant {
         ThemeVariant::Auto => {
