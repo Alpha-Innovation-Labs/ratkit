@@ -111,7 +111,8 @@ pub fn render_with_options(
             vec![render_horizontal_rule::render(styled_line, width)]
         }
         StyledLineKind::Empty => {
-            vec![Line::from("")]
+            // Use a space so the line can receive highlight styling
+            vec![Line::from(" ")]
         }
         StyledLineKind::Frontmatter { fields, collapsed } => {
             render_frontmatter::render(styled_line, fields, *collapsed, width)
