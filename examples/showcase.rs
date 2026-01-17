@@ -818,7 +818,7 @@ fn main() -> io::Result<()> {
                             let content = app.markdown_scroll.content().unwrap_or("").to_string();
 
                             // Handle selection with mouse drag
-                            let handled = handle_mouse_event_with_selection(
+                            let result = handle_mouse_event_with_selection(
                                 &mouse,
                                 inner_area,
                                 &content,
@@ -827,8 +827,16 @@ fn main() -> io::Result<()> {
                                 &app.markdown_rendered_lines,
                             );
 
+                            // Show toast if text was auto-copied
+                            if result.copied {
+                                app.toast_manager.add(Toast::new(
+                                    "Copied to clipboard!",
+                                    ToastLevel::Success,
+                                ));
+                            }
+
                             // If not a drag/selection event, check for double-click
-                            if !handled || mouse.kind == MouseEventKind::Down(MouseButton::Left) {
+                            if !result.handled || mouse.kind == MouseEventKind::Down(MouseButton::Left) {
                                 let (_handled, double_click_event) = handle_mouse_event_with_double_click(
                                     &mouse,
                                     inner_area,
