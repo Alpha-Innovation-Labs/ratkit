@@ -25,23 +25,23 @@ impl<'a> Widget for MarkdownWidget<'a> {
             (area, None)
         };
 
-        // Reserve space for minimap if enabled
-        let minimap_width = self.minimap_config.width;
-        let (content_area, minimap_area) = if self.show_minimap && main_area.width > minimap_width + 2
-        {
-            (
-                Rect {
-                    width: main_area.width.saturating_sub(minimap_width + 1), // +1 for gap
-                    ..main_area
-                },
-                Some(Rect {
-                    x: main_area.x + main_area.width.saturating_sub(minimap_width),
-                    width: minimap_width,
-                    ..main_area
-                }),
-            )
+        // Calculate minimap overlay area (small box in top-right corner, overlays content)
+        // When hovered, expand the minimap for better visibility
+        let hover_scale: u16 = if self.minimap_hovered { 2 } else { 1 };
+        let minimap_width = self.minimap_config.width * hover_scale;
+        let minimap_height = (self.minimap_config.height * hover_scale).min(main_area.height.saturating_sub(1));
+        let padding_right: u16 = 2;
+        let padding_top: u16 = 1;
+        let content_area = main_area;
+        let minimap_area = if self.show_minimap && main_area.width > minimap_width + padding_right + 2 {
+            Some(Rect {
+                x: main_area.x + main_area.width.saturating_sub(minimap_width + padding_right),
+                y: main_area.y + padding_top,
+                width: minimap_width,
+                height: minimap_height,
+            })
         } else {
-            (main_area, None)
+            None
         };
 
         self.scroll.update_viewport(content_area);

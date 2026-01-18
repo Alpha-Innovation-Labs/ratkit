@@ -1,9 +1,15 @@
 //! Methods for Minimap.
 
-mod line_density;
+mod click_to_line;
+pub mod helpers;
+mod is_in_viewport;
+mod line_densities;
+mod max_line_width;
 mod render_to_lines;
-mod text_to_braille;
 
-pub use line_density::*;
+pub use click_to_line::*;
+pub use helpers::*;
+pub use is_in_viewport::*;
+pub use line_densities::*;
+pub use max_line_width::*;
 pub use render_to_lines::*;
-pub use text_to_braille::*;

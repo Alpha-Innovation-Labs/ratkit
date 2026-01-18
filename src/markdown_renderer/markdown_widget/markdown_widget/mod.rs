@@ -67,6 +67,8 @@ pub struct MarkdownWidget<'a> {
     pub(crate) show_minimap: bool,
     /// Configuration for the minimap.
     pub(crate) minimap_config: MinimapConfig,
+    /// Whether the minimap is currently hovered.
+    pub(crate) minimap_hovered: bool,
     /// Cached rendered lines for selection text extraction.
     pub(crate) rendered_lines: Vec<ratatui::text::Line<'static>>,
 }

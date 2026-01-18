@@ -1,11 +1,9 @@
 //! Render minimap content to styled lines.
-//!
-//! Converts document content into Braille-based visual representation.
 
 use ratatui::text::{Line, Span};
 
 use super::super::Minimap;
-use super::density_pair_to_braille;
+use super::helpers::density_pair_to_braille;
 
 impl<'a> Minimap<'a> {
     /// Render the minimap to a vector of styled Lines.
@@ -76,25 +74,6 @@ impl<'a> Minimap<'a> {
 
         result
     }
-
-    /// Calculate which source line corresponds to a minimap click.
-    ///
-    /// # Arguments
-    ///
-    /// * `minimap_y` - The y coordinate clicked within the minimap
-    /// * `minimap_height` - Total height of the minimap
-    ///
-    /// # Returns
-    ///
-    /// The source line number that should be scrolled to.
-    pub fn click_to_line(&self, minimap_y: usize, minimap_height: usize) -> usize {
-        if minimap_height == 0 {
-            return 0;
-        }
-
-        let ratio = minimap_y as f32 / minimap_height as f32;
-        ((ratio * self.total_lines as f32) as usize).min(self.total_lines.saturating_sub(1))
-    }
 }
 
 #[cfg(test)]
@@ -115,20 +94,5 @@ mod tests {
         let lines = minimap.render_to_lines(3);
 
         assert_eq!(lines.len(), 3);
-    }
-
-    #[test]
-    fn test_click_to_line() {
-        let content = "a\nb\nc\nd\ne\nf\ng\nh\ni\nj"; // 10 lines
-        let minimap = Minimap::new(content);
-
-        // Click at top should go to line 0
-        assert_eq!(minimap.click_to_line(0, 10), 0);
-
-        // Click at middle should go to middle
-        assert_eq!(minimap.click_to_line(5, 10), 5);
-
-        // Click at bottom should go to end
-        assert_eq!(minimap.click_to_line(9, 10), 9);
     }
 }

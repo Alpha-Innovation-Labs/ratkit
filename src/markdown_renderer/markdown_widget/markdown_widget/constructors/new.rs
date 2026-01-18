@@ -37,6 +37,7 @@ impl<'a> MarkdownWidget<'a> {
             git_stats: None,
             show_minimap: false,
             minimap_config: MinimapConfig::default(),
+            minimap_hovered: false,
             rendered_lines: Vec::new(),
         }
     }
@@ -80,6 +81,20 @@ impl<'a> MarkdownWidget<'a> {
     /// Self for method chaining.
     pub fn minimap_width(mut self, width: u16) -> Self {
         self.minimap_config.width = width;
+        self
+    }
+
+    /// Set the minimap height.
+    ///
+    /// # Arguments
+    ///
+    /// * `height` - Height in terminal rows
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    pub fn minimap_height(mut self, height: u16) -> Self {
+        self.minimap_config.height = height;
         self
     }
 }

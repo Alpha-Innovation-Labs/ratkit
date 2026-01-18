@@ -1,13 +1,13 @@
-//! Render markdown to styled lines with scroll state applied.
+//! Render markdown to visual lines with scroll state applied.
 
 use ratatui::text::Line;
 
-use crate::markdown_renderer::render_styled_line;
+use crate::markdown_renderer::render_element;
 use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
 
 use super::helpers::should_render_line;
 
-/// Render markdown to styled lines with scroll state applied.
+/// Render markdown to visual lines with scroll state applied.
 ///
 /// # Arguments
 ///
@@ -24,12 +24,12 @@ pub fn render_markdown_scrollable(
     scroll: &MarkdownScrollManager,
     width: usize,
 ) -> Vec<Line<'static>> {
-    let styled_lines = crate::markdown_renderer::render_markdown_to_styled_lines(content);
+    let elements = crate::markdown_renderer::render_markdown_to_elements(content, true);
     let mut result = Vec::new();
 
-    for (idx, styled_line) in styled_lines.iter().enumerate() {
-        if should_render_line(styled_line, idx, scroll) {
-            let rendered = render_styled_line(styled_line, width);
+    for (idx, element) in elements.iter().enumerate() {
+        if should_render_line(element, idx, scroll) {
+            let rendered = render_element(element, width);
             result.extend(rendered);
         }
     }

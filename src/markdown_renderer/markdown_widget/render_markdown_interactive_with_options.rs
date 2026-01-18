@@ -7,8 +7,8 @@ use ratatui::{
 };
 
 use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
-use crate::markdown_renderer::styled_line::methods::render::RenderOptions;
-use crate::markdown_renderer::styled_line::StyledLineKind;
+use crate::markdown_renderer::markdown_elements::methods::render::RenderOptions;
+use crate::markdown_renderer::markdown_elements::ElementKind;
 
 use super::helpers::{hash_content, should_render_line};
 
@@ -65,15 +65,15 @@ pub fn render_markdown_interactive_with_options(
             .map(|c| c.content_hash == content_hash)
             .unwrap_or(false);
 
-        let mut styled_lines = if parsed_cache_valid {
-            // Use cached parsed lines - skip expensive parsing
-            scroll.parsed_cache.as_ref().unwrap().styled_lines.clone()
+        let mut elements = if parsed_cache_valid {
+            // Use cached parsed elements - skip expensive parsing
+            scroll.parsed_cache.as_ref().unwrap().elements.clone()
         } else {
             // Parse markdown and cache
-            let parsed = crate::markdown_renderer::render_markdown_to_styled_lines(content);
+            let parsed = crate::markdown_renderer::render_markdown_to_elements(content, true);
             scroll.parsed_cache = Some(crate::markdown_renderer::scroll_manager::ParsedCache {
                 content_hash,
-                styled_lines: parsed.clone(),
+                elements: parsed.clone(),
             });
             parsed
         };
@@ -84,10 +84,10 @@ pub fn render_markdown_interactive_with_options(
             // Stack of (level, section_id) for tracking parent sections
             let mut section_stack: Vec<(u8, usize)> = Vec::new();
 
-            for styled_line in &styled_lines {
-                if let StyledLineKind::Heading {
+            for element in &elements {
+                if let ElementKind::Heading {
                     level, section_id, ..
-                } = &styled_line.kind
+                } = &element.kind
                 {
                     // Pop sections with level >= current level (they can't be parents)
                     while section_stack
@@ -111,26 +111,26 @@ pub fn render_markdown_interactive_with_options(
         }
 
         // Update collapse states from scroll manager before rendering
-        for styled_line in &mut styled_lines {
-            match &mut styled_line.kind {
-                StyledLineKind::Heading {
+        for element in &mut elements {
+            match &mut element.kind {
+                ElementKind::Heading {
                     section_id,
                     collapsed,
                     ..
                 } => {
                     *collapsed = scroll.is_section_collapsed(*section_id);
                 }
-                StyledLineKind::Frontmatter { collapsed, .. } => {
+                ElementKind::Frontmatter { collapsed, .. } => {
                     *collapsed = scroll.is_section_collapsed(0);
                 }
-                StyledLineKind::FrontmatterStart { collapsed, .. } => {
+                ElementKind::FrontmatterStart { collapsed, .. } => {
                     *collapsed = scroll.is_section_collapsed(0);
                 }
                 _ => {}
             }
         }
 
-        // Render from styled lines (this is the part that depends on width)
+        // Render from markdown elements (this is the part that depends on width)
         let render_options = RenderOptions {
             show_line_numbers,
             theme,
@@ -140,15 +140,15 @@ pub fn render_markdown_interactive_with_options(
         let mut boundaries = Vec::new(); // (start_idx, line_count) for each logical line
         let mut max_source_line: usize = 0;
 
-        for (idx, styled_line) in styled_lines.iter().enumerate() {
+        for (idx, element) in elements.iter().enumerate() {
             // Track max source line for accurate total count
-            max_source_line = max_source_line.max(styled_line.source_line);
+            max_source_line = max_source_line.max(element.source_line);
 
-            if should_render_line(styled_line, idx, scroll) {
+            if should_render_line(element, idx, scroll) {
                 let start_idx = lines.len();
                 let rendered =
-                    crate::markdown_renderer::styled_line::methods::render::render_with_options(
-                        styled_line,
+                    crate::markdown_renderer::markdown_elements::methods::render::render_with_options(
+                        element,
                         width,
                         render_options,
                     );

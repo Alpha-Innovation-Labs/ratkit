@@ -1,9 +1,9 @@
 //! Check for file change events.
 
-use notify::{event::ModifyKind, Event, EventKind};
 use std::sync::mpsc::TryRecvError;
 
 use super::super::MarkdownFileWatcher;
+use super::helpers::is_relevant_event;
 
 impl MarkdownFileWatcher {
     /// Check if there are any pending file change events.
@@ -34,20 +34,6 @@ impl MarkdownFileWatcher {
 
         has_changes
     }
-}
-
-/// Check if an event is relevant for triggering a reload.
-///
-/// Filters for data modification events (content changes) and ignores
-/// metadata-only changes.
-fn is_relevant_event(event: &Event) -> bool {
-    matches!(
-        event.kind,
-        EventKind::Modify(ModifyKind::Data(_))
-            | EventKind::Modify(ModifyKind::Any)
-            | EventKind::Create(_)
-            | EventKind::Remove(_)
-    )
 }
 
 #[cfg(test)]

@@ -3,6 +3,7 @@
 mod cache;
 mod clear;
 mod expandable;
+mod git_stats;
 mod scroll;
 mod section_collapse;
 mod settings;
@@ -12,6 +13,7 @@ mod viewport;
 pub use cache::*;
 pub use clear::*;
 pub use expandable::*;
+pub use git_stats::*;
 pub use scroll::*;
 pub use section_collapse::*;
 pub use settings::*;

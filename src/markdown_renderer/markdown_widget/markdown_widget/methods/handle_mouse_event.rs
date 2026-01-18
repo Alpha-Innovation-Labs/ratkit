@@ -3,7 +3,7 @@
 use crossterm::event::{MouseButton, MouseEvent, MouseEventKind};
 use ratatui::layout::Rect;
 
-use crate::markdown_renderer::render_styled_line;
+use crate::markdown_renderer::render_element;
 
 use super::super::super::helpers::{is_in_area, should_render_line};
 use super::super::super::markdown_event::MarkdownEvent;
@@ -188,41 +188,41 @@ impl<'a> MarkdownWidget<'a> {
     ///
     /// Returns `true` if a collapsible element was toggled.
     fn handle_click_collapse(&mut self, _x: usize, y: usize, width: usize) -> bool {
-        use crate::markdown_renderer::styled_line::StyledLineKind;
+        use crate::markdown_renderer::markdown_elements::ElementKind;
 
-        let styled_lines = crate::markdown_renderer::render_markdown_to_styled_lines(self.content);
+        let elements = crate::markdown_renderer::render_markdown_to_elements(self.content, true);
 
         // Account for scroll offset - y is relative to visible area
         let document_y = y + self.scroll.scroll_offset;
         let mut line_idx = 0;
 
-        for (idx, styled_line) in styled_lines.iter().enumerate() {
-            // Skip lines that shouldn't be rendered (collapsed sections)
-            if !should_render_line(styled_line, idx, self.scroll) {
+        for (idx, element) in elements.iter().enumerate() {
+            // Skip elements that shouldn't be rendered (collapsed sections)
+            if !should_render_line(element, idx, self.scroll) {
                 continue;
             }
 
-            let rendered = render_styled_line(styled_line, width);
+            let rendered = render_element(element, width);
             let line_count = rendered.len();
 
             if document_y >= line_idx && document_y < line_idx + line_count {
-                match &styled_line.kind {
-                    StyledLineKind::Heading { section_id, .. } => {
+                match &element.kind {
+                    ElementKind::Heading { section_id, .. } => {
                         self.scroll.toggle_section_collapse(*section_id);
                         self.scroll.invalidate_cache();
                         return true;
                     }
-                    StyledLineKind::Frontmatter { .. } => {
+                    ElementKind::Frontmatter { .. } => {
                         self.scroll.toggle_section_collapse(0);
                         self.scroll.invalidate_cache();
                         return true;
                     }
-                    StyledLineKind::FrontmatterStart { .. } => {
+                    ElementKind::FrontmatterStart { .. } => {
                         self.scroll.toggle_section_collapse(0);
                         self.scroll.invalidate_cache();
                         return true;
                     }
-                    StyledLineKind::ExpandToggle { content_id, .. } => {
+                    ElementKind::ExpandToggle { content_id, .. } => {
                         self.scroll.toggle_expandable(content_id);
                         self.scroll.invalidate_cache();
                         return true;
@@ -245,46 +245,46 @@ impl<'a> MarkdownWidget<'a> {
         y: usize,
         width: usize,
     ) -> Option<(usize, String, String)> {
-        use crate::markdown_renderer::styled_line::StyledLineKind;
+        use crate::markdown_renderer::markdown_elements::ElementKind;
 
-        let styled_lines = crate::markdown_renderer::render_markdown_to_styled_lines(self.content);
+        let elements = crate::markdown_renderer::render_markdown_to_elements(self.content, true);
         let document_y = y + self.scroll.scroll_offset;
         let mut visual_line_idx = 0;
         let mut logical_line_num = 0;
 
-        for (idx, styled_line) in styled_lines.iter().enumerate() {
-            if !should_render_line(styled_line, idx, self.scroll) {
+        for (idx, element) in elements.iter().enumerate() {
+            if !should_render_line(element, idx, self.scroll) {
                 continue;
             }
 
             logical_line_num += 1;
 
-            let rendered = render_styled_line(styled_line, width);
+            let rendered = render_element(element, width);
             let line_count = rendered.len();
 
             if document_y >= visual_line_idx && document_y < visual_line_idx + line_count {
-                let line_kind = match &styled_line.kind {
-                    StyledLineKind::Heading { .. } => "Heading",
-                    StyledLineKind::Paragraph(_) => "Paragraph",
-                    StyledLineKind::CodeBlockHeader { .. } => "CodeBlockHeader",
-                    StyledLineKind::CodeBlockContent { .. } => "CodeBlockContent",
-                    StyledLineKind::CodeBlockBorder { .. } => "CodeBlockBorder",
-                    StyledLineKind::ListItem { .. } => "ListItem",
-                    StyledLineKind::Blockquote { .. } => "Blockquote",
-                    StyledLineKind::Empty => "Empty",
-                    StyledLineKind::HorizontalRule => "HorizontalRule",
-                    StyledLineKind::Frontmatter { .. } => "Frontmatter",
-                    StyledLineKind::FrontmatterStart { .. } => "FrontmatterStart",
-                    StyledLineKind::FrontmatterField { .. } => "FrontmatterField",
-                    StyledLineKind::FrontmatterEnd => "FrontmatterEnd",
-                    StyledLineKind::Expandable { .. } => "Expandable",
-                    StyledLineKind::ExpandToggle { .. } => "ExpandToggle",
-                    StyledLineKind::TableRow { .. } => "TableRow",
-                    StyledLineKind::TableBorder(_) => "TableBorder",
-                    StyledLineKind::HeadingBorder { .. } => "HeadingBorder",
+                let line_kind = match &element.kind {
+                    ElementKind::Heading { .. } => "Heading",
+                    ElementKind::Paragraph(_) => "Paragraph",
+                    ElementKind::CodeBlockHeader { .. } => "CodeBlockHeader",
+                    ElementKind::CodeBlockContent { .. } => "CodeBlockContent",
+                    ElementKind::CodeBlockBorder { .. } => "CodeBlockBorder",
+                    ElementKind::ListItem { .. } => "ListItem",
+                    ElementKind::Blockquote { .. } => "Blockquote",
+                    ElementKind::Empty => "Empty",
+                    ElementKind::HorizontalRule => "HorizontalRule",
+                    ElementKind::Frontmatter { .. } => "Frontmatter",
+                    ElementKind::FrontmatterStart { .. } => "FrontmatterStart",
+                    ElementKind::FrontmatterField { .. } => "FrontmatterField",
+                    ElementKind::FrontmatterEnd => "FrontmatterEnd",
+                    ElementKind::Expandable { .. } => "Expandable",
+                    ElementKind::ExpandToggle { .. } => "ExpandToggle",
+                    ElementKind::TableRow { .. } => "TableRow",
+                    ElementKind::TableBorder(_) => "TableBorder",
+                    ElementKind::HeadingBorder { .. } => "HeadingBorder",
                 };
 
-                let text_content = self.get_styled_line_text(&styled_line.kind);
+                let text_content = self.get_element_text(&element.kind);
 
                 return Some((logical_line_num, line_kind.to_string(), text_content));
             }
@@ -295,9 +295,9 @@ impl<'a> MarkdownWidget<'a> {
         None
     }
 
-    /// Extract plain text from a StyledLineKind.
-    fn get_styled_line_text(&self, kind: &crate::markdown_renderer::styled_line::StyledLineKind) -> String {
-        use crate::markdown_renderer::styled_line::{StyledLineKind, TextSegment};
+    /// Extract plain text from an ElementKind.
+    fn get_element_text(&self, kind: &crate::markdown_renderer::markdown_elements::ElementKind) -> String {
+        use crate::markdown_renderer::markdown_elements::{ElementKind, TextSegment};
 
         fn segment_to_text(seg: &TextSegment) -> &str {
             match seg {
@@ -314,25 +314,25 @@ impl<'a> MarkdownWidget<'a> {
         }
 
         match kind {
-            StyledLineKind::Heading { text, .. } => {
+            ElementKind::Heading { text, .. } => {
                 text.iter().map(segment_to_text).collect()
             }
-            StyledLineKind::Paragraph(segments) => {
+            ElementKind::Paragraph(segments) => {
                 segments.iter().map(segment_to_text).collect()
             }
-            StyledLineKind::CodeBlockContent { content, .. } => content.clone(),
-            StyledLineKind::CodeBlockHeader { language, .. } => language.clone(),
-            StyledLineKind::ListItem { content, .. } => {
+            ElementKind::CodeBlockContent { content, .. } => content.clone(),
+            ElementKind::CodeBlockHeader { language, .. } => language.clone(),
+            ElementKind::ListItem { content, .. } => {
                 content.iter().map(segment_to_text).collect()
             }
-            StyledLineKind::Blockquote { content, .. } => {
+            ElementKind::Blockquote { content, .. } => {
                 content.iter().map(segment_to_text).collect()
             }
-            StyledLineKind::Frontmatter { fields, .. } => {
+            ElementKind::Frontmatter { fields, .. } => {
                 fields.iter().map(|(k, v)| format!("{}: {}", k, v)).collect::<Vec<_>>().join(", ")
             }
-            StyledLineKind::FrontmatterField { key, value } => format!("{}: {}", key, value),
-            StyledLineKind::TableRow { cells, .. } => cells.join(" | "),
+            ElementKind::FrontmatterField { key, value } => format!("{}: {}", key, value),
+            ElementKind::TableRow { cells, .. } => cells.join(" | "),
             _ => String::new(),
         }
     }

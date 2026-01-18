@@ -1,12 +1,12 @@
-//! Find the styled line at a given screen position.
+//! Find the markdown element at a given screen position.
 
-use crate::markdown_renderer::render_styled_line;
+use crate::markdown_renderer::render_element;
 use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
-use crate::markdown_renderer::styled_line::StyledLine;
+use crate::markdown_renderer::markdown_elements::MarkdownElement;
 
 use super::helpers::should_render_line;
 
-/// Find the styled line at the given screen position.
+/// Find the markdown element at the given screen position.
 ///
 /// # Arguments
 ///
@@ -16,23 +16,23 @@ use super::helpers::should_render_line;
 ///
 /// # Returns
 ///
-/// The index and styled line at the position, if found.
+/// The index and element at the position, if found.
 #[allow(dead_code)]
 pub fn find_line_at_position(
     content: &str,
     screen_y: usize,
     scroll: &MarkdownScrollManager,
-) -> Option<(usize, StyledLine)> {
-    let styled_lines = crate::markdown_renderer::render_markdown_to_styled_lines(content);
+) -> Option<(usize, MarkdownElement)> {
+    let elements = crate::markdown_renderer::render_markdown_to_elements(content, true);
     let mut current_y = 0;
 
-    for (idx, styled_line) in styled_lines.iter().enumerate() {
-        if should_render_line(styled_line, idx, scroll) {
-            let rendered = render_styled_line(styled_line, 80);
+    for (idx, element) in elements.iter().enumerate() {
+        if should_render_line(element, idx, scroll) {
+            let rendered = render_element(element, 80);
             let line_count = rendered.len();
 
             if screen_y >= current_y && screen_y < current_y + line_count {
-                return Some((idx, styled_line.clone()));
+                return Some((idx, element.clone()));
             }
 
             current_y += line_count;

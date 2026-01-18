@@ -8,9 +8,11 @@ mod methods;
 mod traits;
 
 use super::markdown_source::MarkdownSource;
-use super::styled_line::{CodeBlockTheme, StyledLine};
+use super::markdown_widget::GitStats;
+use super::markdown_elements::{CodeBlockTheme, MarkdownElement};
 use ratatui::text::Line;
 use std::collections::HashMap;
+use std::time::Instant;
 
 pub use constructors::*;
 pub use methods::*;
@@ -35,7 +37,7 @@ pub struct MarkdownScrollManager {
     pub expandable_content: HashMap<String, ExpandableState>,
     /// Default max lines for expandable content.
     pub default_max_lines: usize,
-    /// Cache for parsed styled lines (doesn't depend on width).
+    /// Cache for parsed markdown elements (doesn't depend on width).
     pub(crate) parsed_cache: Option<ParsedCache>,
     /// Cache for rendered lines (depends on width).
     pub(crate) render_cache: Option<RenderCache>,
@@ -49,6 +51,14 @@ pub struct MarkdownScrollManager {
     source: Option<MarkdownSource>,
     /// Source file line count (for accurate status bar display).
     pub source_line_count: usize,
+    /// Whether to show git stats in the statusline.
+    pub show_git_stats: bool,
+    /// Cached git stats for the source file.
+    pub(crate) git_stats_cache: Option<GitStats>,
+    /// Last time git stats were updated.
+    pub(crate) git_stats_last_update: Option<Instant>,
+    /// Pending 'g' keypress time for vim-style gg (go to top).
+    pub(crate) pending_g_time: Option<Instant>,
 }
 
 /// Cache for parsed markdown (doesn't depend on width).
@@ -56,8 +66,8 @@ pub struct MarkdownScrollManager {
 pub struct ParsedCache {
     /// Hash of the content that was parsed.
     pub content_hash: u64,
-    /// Parsed styled lines.
-    pub styled_lines: Vec<StyledLine>,
+    /// Parsed markdown elements.
+    pub elements: Vec<MarkdownElement>,
 }
 
 /// Cache for rendered markdown lines (depends on width).

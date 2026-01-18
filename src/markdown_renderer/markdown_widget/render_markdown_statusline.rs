@@ -10,6 +10,7 @@ use ratatui::{
 use unicode_width::UnicodeWidthStr;
 
 use super::markdown_widget::{GitStats, MarkdownWidgetMode};
+use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
 use crate::statusline_stacked::{StatusLineStacked, SLANT_BL_TR, SLANT_TL_BR};
 
 /// Render a markdown statusline with powerline style.
@@ -143,4 +144,51 @@ pub fn render_markdown_statusline(
         x += 1;
         buf.set_string(x, area.y, &del_num, red);
     }
+}
+
+/// Render a markdown statusline directly from a scroll manager.
+///
+/// This is a convenience function that extracts all needed information from
+/// the scroll manager and renders the statusline. Use this when you have
+/// a `MarkdownScrollManager` and want the simplest API.
+///
+/// # Arguments
+///
+/// * `area` - The area to render the statusline in
+/// * `buf` - The buffer to render to
+/// * `scroll` - The scroll manager containing all state
+/// * `selection_active` - Whether text selection mode is active
+pub fn render_markdown_statusline_from_scroll(
+    area: Rect,
+    buf: &mut Buffer,
+    scroll: &MarkdownScrollManager,
+    selection_active: bool,
+) {
+    let mode = if selection_active {
+        MarkdownWidgetMode::Drag
+    } else {
+        MarkdownWidgetMode::Normal
+    };
+
+    let filename = scroll
+        .source_path()
+        .and_then(|p| p.file_name())
+        .and_then(|n| n.to_str());
+
+    // Use source_line_count for accurate display (falls back to total_lines if 0)
+    let display_total = if scroll.source_line_count > 0 {
+        scroll.source_line_count
+    } else {
+        scroll.total_lines
+    };
+
+    render_markdown_statusline(
+        area,
+        buf,
+        mode,
+        filename,
+        scroll.git_stats(),
+        scroll.current_line,
+        display_total,
+    );
 }

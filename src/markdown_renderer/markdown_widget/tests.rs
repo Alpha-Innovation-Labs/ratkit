@@ -1,9 +1,9 @@
 //! Tests for markdown widget.
 
-use crate::markdown_renderer::styled_line::StyledLine;
+use crate::markdown_renderer::markdown_elements::MarkdownElement;
 use crate::markdown_renderer::{
-    render_markdown_to_styled_lines, scroll_manager::MarkdownScrollManager,
-    styled_line::StyledLineKind, TextSegment,
+    render_markdown_to_elements, scroll_manager::MarkdownScrollManager,
+    markdown_elements::ElementKind, TextSegment,
 };
 use ratatui::layout::Rect;
 
@@ -14,8 +14,8 @@ const TEST_WIDTH: usize = 80;
 #[test]
 fn test_should_render_heading_when_not_collapsed() {
     let scroll = MarkdownScrollManager::new();
-    let styled_line = StyledLine {
-        kind: StyledLineKind::Heading {
+    let element = MarkdownElement {
+        kind: ElementKind::Heading {
             level: 1,
             text: vec![TextSegment::Plain("Test".to_string())],
             section_id: 1,
@@ -24,7 +24,7 @@ fn test_should_render_heading_when_not_collapsed() {
         section_id: None, // Headings don't have a parent section
         source_line: 1,
     };
-    assert!(should_render_line(&styled_line, 0, &scroll));
+    assert!(should_render_line(&element, 0, &scroll));
 }
 
 #[test]
@@ -33,12 +33,12 @@ fn test_should_not_render_content_when_section_collapsed() {
     scroll.collapse_section(1);
 
     // Content in section 1 should be hidden
-    let styled_line = StyledLine {
-        kind: StyledLineKind::Paragraph(vec![TextSegment::Plain("Test".to_string())]),
+    let element = MarkdownElement {
+        kind: ElementKind::Paragraph(vec![TextSegment::Plain("Test".to_string())]),
         section_id: Some(1),
         source_line: 1,
     };
-    assert!(!should_render_line(&styled_line, 0, &scroll));
+    assert!(!should_render_line(&element, 0, &scroll));
 }
 
 #[test]
@@ -47,8 +47,8 @@ fn test_heading_always_visible_even_when_collapsed() {
     scroll.collapse_section(1);
 
     // The heading itself should still be visible
-    let styled_line = StyledLine {
-        kind: StyledLineKind::Heading {
+    let element = MarkdownElement {
+        kind: ElementKind::Heading {
             level: 1,
             text: vec![TextSegment::Plain("Test".to_string())],
             section_id: 1,
@@ -57,7 +57,7 @@ fn test_heading_always_visible_even_when_collapsed() {
         section_id: None,
         source_line: 1,
     };
-    assert!(should_render_line(&styled_line, 0, &scroll));
+    assert!(should_render_line(&element, 0, &scroll));
 }
 
 #[test]
@@ -102,13 +102,13 @@ fn test_content_hidden_when_section_collapsed() {
     let content = "# Heading 1\n\nParagraph under heading 1.\n\n## Heading 2\n\nParagraph under heading 2.";
     let mut scroll = MarkdownScrollManager::new();
 
-    let styled_lines = render_markdown_to_styled_lines(content);
+    let elements = render_markdown_to_elements(content, true);
 
     // Find the paragraph under heading 1
-    let paragraph_line = styled_lines
+    let paragraph_line = elements
         .iter()
         .find(|line| {
-            matches!(&line.kind, StyledLineKind::Paragraph(segments)
+            matches!(&line.kind, ElementKind::Paragraph(segments)
                 if segments.iter().any(|s| matches!(s, TextSegment::Plain(t) if t.contains("Paragraph under heading 1"))))
         })
         .expect("Should find paragraph under heading 1");
@@ -134,12 +134,12 @@ fn test_heading_remains_visible_when_collapsed() {
     let content = "# Heading 1\n\nSome content.";
     let mut scroll = MarkdownScrollManager::new();
 
-    let styled_lines = render_markdown_to_styled_lines(content);
+    let elements = render_markdown_to_elements(content, true);
 
     // Find the heading
-    let heading_line = styled_lines
+    let heading_line = elements
         .iter()
-        .find(|line| matches!(&line.kind, StyledLineKind::Heading { level: 1, .. }))
+        .find(|line| matches!(&line.kind, ElementKind::Heading { level: 1, .. }))
         .expect("Should find H1 heading");
 
     // Collapse the section
@@ -157,14 +157,14 @@ fn test_multiple_sections_collapse_independently() {
     let content = "# Section 1\n\nContent 1.\n\n# Section 2\n\nContent 2.\n\n# Section 3\n\nContent 3.";
     let mut scroll = MarkdownScrollManager::new();
 
-    let styled_lines = render_markdown_to_styled_lines(content);
+    let elements = render_markdown_to_elements(content, true);
 
     // Find paragraphs for each section
     let find_paragraph_with_text = |text: &str| {
-        styled_lines
+        elements
             .iter()
             .find(|line| {
-                matches!(&line.kind, StyledLineKind::Paragraph(segments)
+                matches!(&line.kind, ElementKind::Paragraph(segments)
                     if segments.iter().any(|s| matches!(s, TextSegment::Plain(t) if t.contains(text))))
             })
             .expect(&format!("Should find paragraph containing '{}'", text))
@@ -216,12 +216,12 @@ fn test_multiple_sections_collapse_independently() {
 #[test]
 fn test_section_ids_assigned_correctly_to_content() {
     let content = "# Heading 1\n\nPara 1.\n\n## Heading 2\n\nPara 2.";
-    let styled_lines = render_markdown_to_styled_lines(content);
+    let elements = render_markdown_to_elements(content, true);
 
     // H1 heading should have section_id: None (headings are always visible)
-    let h1 = styled_lines
+    let h1 = elements
         .iter()
-        .find(|line| matches!(&line.kind, StyledLineKind::Heading { level: 1, .. }))
+        .find(|line| matches!(&line.kind, ElementKind::Heading { level: 1, .. }))
         .expect("Should find H1");
     assert_eq!(
         h1.section_id, None,
@@ -229,10 +229,10 @@ fn test_section_ids_assigned_correctly_to_content() {
     );
 
     // Paragraph under H1 should have section_id: Some(1)
-    let para1 = styled_lines
+    let para1 = elements
         .iter()
         .find(|line| {
-            matches!(&line.kind, StyledLineKind::Paragraph(segments)
+            matches!(&line.kind, ElementKind::Paragraph(segments)
                 if segments.iter().any(|s| matches!(s, TextSegment::Plain(t) if t.contains("Para 1"))))
         })
         .expect("Should find Para 1");
@@ -243,9 +243,9 @@ fn test_section_ids_assigned_correctly_to_content() {
     );
 
     // H2 heading should have section_id: None
-    let h2 = styled_lines
+    let h2 = elements
         .iter()
-        .find(|line| matches!(&line.kind, StyledLineKind::Heading { level: 2, .. }))
+        .find(|line| matches!(&line.kind, ElementKind::Heading { level: 2, .. }))
         .expect("Should find H2");
     assert_eq!(
         h2.section_id, None,
@@ -253,10 +253,10 @@ fn test_section_ids_assigned_correctly_to_content() {
     );
 
     // Paragraph under H2 should have section_id: Some(2)
-    let para2 = styled_lines
+    let para2 = elements
         .iter()
         .find(|line| {
-            matches!(&line.kind, StyledLineKind::Paragraph(segments)
+            matches!(&line.kind, ElementKind::Paragraph(segments)
                 if segments.iter().any(|s| matches!(s, TextSegment::Plain(t) if t.contains("Para 2"))))
         })
         .expect("Should find Para 2");
@@ -272,12 +272,12 @@ fn test_code_block_collapses_with_section() {
     let content = "# Code Section\n\n```rust\nfn main() {}\n```";
     let mut scroll = MarkdownScrollManager::new();
 
-    let styled_lines = render_markdown_to_styled_lines(content);
+    let elements = render_markdown_to_elements(content, true);
 
     // Find the code block content
-    let code_line = styled_lines
+    let code_line = elements
         .iter()
-        .find(|line| matches!(&line.kind, StyledLineKind::CodeBlockContent { .. }))
+        .find(|line| matches!(&line.kind, ElementKind::CodeBlockContent { .. }))
         .expect("Should find code block content");
 
     // Should be visible initially
@@ -301,12 +301,12 @@ fn test_list_collapses_with_section() {
     let content = "# List Section\n\n- Item 1\n- Item 2\n- Item 3";
     let mut scroll = MarkdownScrollManager::new();
 
-    let styled_lines = render_markdown_to_styled_lines(content);
+    let elements = render_markdown_to_elements(content, true);
 
     // Find a list item
-    let list_item = styled_lines
+    let list_item = elements
         .iter()
-        .find(|line| matches!(&line.kind, StyledLineKind::ListItem { .. }))
+        .find(|line| matches!(&line.kind, ElementKind::ListItem { .. }))
         .expect("Should find list item");
 
     // Should be visible initially

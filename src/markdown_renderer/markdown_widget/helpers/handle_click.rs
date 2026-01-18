@@ -1,8 +1,8 @@
 //! Handle click event at the given position.
 
-use crate::markdown_renderer::render_styled_line;
+use crate::markdown_renderer::render_element;
 use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
-use crate::markdown_renderer::styled_line::StyledLineKind;
+use crate::markdown_renderer::markdown_elements::ElementKind;
 
 use super::should_render_line::should_render_line;
 
@@ -26,24 +26,24 @@ pub(crate) fn handle_click(
     content: &str,
     scroll: &mut MarkdownScrollManager,
 ) -> bool {
-    let styled_lines = crate::markdown_renderer::render_markdown_to_styled_lines(content);
+    let elements = crate::markdown_renderer::render_markdown_to_elements(content, true);
 
     // Account for scroll offset - y is relative to visible area
     let document_y = y + scroll.scroll_offset;
     let mut line_idx = 0;
 
-    for (idx, styled_line) in styled_lines.iter().enumerate() {
-        // Skip lines that shouldn't be rendered (collapsed sections)
-        if !should_render_line(styled_line, idx, scroll) {
+    for (idx, element) in elements.iter().enumerate() {
+        // Skip elements that shouldn't be rendered (collapsed sections)
+        if !should_render_line(element, idx, scroll) {
             continue;
         }
 
-        let rendered = render_styled_line(styled_line, width);
+        let rendered = render_element(element, width);
         let line_count = rendered.len();
 
         if document_y >= line_idx && document_y < line_idx + line_count {
-            match &styled_line.kind {
-                StyledLineKind::Heading {
+            match &element.kind {
+                ElementKind::Heading {
                     section_id,
                     collapsed: _,
                     ..
@@ -52,17 +52,17 @@ pub(crate) fn handle_click(
                     scroll.invalidate_cache(); // Invalidate cache after toggle
                     return true;
                 }
-                StyledLineKind::Frontmatter { .. } => {
+                ElementKind::Frontmatter { .. } => {
                     scroll.toggle_section_collapse(0);
                     scroll.invalidate_cache();
                     return true;
                 }
-                StyledLineKind::FrontmatterStart { .. } => {
+                ElementKind::FrontmatterStart { .. } => {
                     scroll.toggle_section_collapse(0);
                     scroll.invalidate_cache();
                     return true;
                 }
-                StyledLineKind::ExpandToggle { content_id, .. } => {
+                ElementKind::ExpandToggle { content_id, .. } => {
                     scroll.toggle_expandable(content_id);
                     scroll.invalidate_cache();
                     return true;

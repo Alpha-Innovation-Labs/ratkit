@@ -1,0 +1,20 @@
+//! Toggle theme method for SyntaxHighlighter.
+
+use crate::markdown_renderer::syntax_highlighter::{SyntaxHighlighter, SyntaxThemeVariant};
+
+#[cfg(feature = "markdown")]
+impl SyntaxHighlighter {
+    /// Switch between light and dark themes.
+    pub fn toggle_theme(&mut self) {
+        match self.theme_variant {
+            SyntaxThemeVariant::Dark => self.set_light_theme(),
+            SyntaxThemeVariant::Light => self.set_dark_theme(),
+        }
+    }
+}
+
+#[cfg(not(feature = "markdown"))]
+impl SyntaxHighlighter {
+    /// Toggle theme (no-op when markdown feature is disabled).
+    pub fn toggle_theme(&mut self) {}
+}

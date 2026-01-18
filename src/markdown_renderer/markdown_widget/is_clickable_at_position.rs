@@ -1,7 +1,7 @@
 //! Check if a position is on a clickable element.
 
 use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
-use crate::markdown_renderer::styled_line::StyledLineKind;
+use crate::markdown_renderer::markdown_elements::ElementKind;
 
 use super::find_line_at_position;
 
@@ -24,12 +24,12 @@ pub fn is_clickable_at_position(
     y: usize,
     scroll: &MarkdownScrollManager,
 ) -> bool {
-    if let Some((_, styled_line)) = find_line_at_position(content, y, scroll) {
+    if let Some((_, element)) = find_line_at_position(content, y, scroll) {
         matches!(
-            styled_line.kind,
-            StyledLineKind::Heading { .. }
-                | StyledLineKind::Frontmatter { .. }
-                | StyledLineKind::ExpandToggle { .. }
+            element.kind,
+            ElementKind::Heading { .. }
+                | ElementKind::Frontmatter { .. }
+                | ElementKind::ExpandToggle { .. }
         )
     } else {
         false

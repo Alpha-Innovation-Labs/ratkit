@@ -1,7 +1,7 @@
 //! Constructor for MarkdownScrollManager.
 
 use std::collections::HashMap;
-use crate::markdown_renderer::styled_line::CodeBlockTheme;
+use crate::markdown_renderer::markdown_elements::CodeBlockTheme;
 use super::super::MarkdownScrollManager;
 
 impl MarkdownScrollManager {
@@ -23,6 +23,10 @@ impl MarkdownScrollManager {
             code_block_theme: CodeBlockTheme::default(),
             source: None,
             source_line_count: 0,
+            show_git_stats: false,
+            git_stats_cache: None,
+            git_stats_last_update: None,
+            pending_g_time: None,
         }
     }
 }
