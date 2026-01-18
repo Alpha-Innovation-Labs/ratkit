@@ -27,8 +27,9 @@
 2. **`methods/`** - Instance methods that do work (`&self`, `&mut self`)
 3. **`constructors/`** - Constructors and builders (`new`, `builder`, `with_*`)
 4. **`traits/`** - Standard library and custom trait implementations
-5. **NO EXCEPTIONS for structs** - Even simple data holders with 1-2 methods must follow this structure
-6. **Complex enums only** - Enums with multiple impl blocks, methods, or traits use this structure; simple enums use single file
+5. **`enums/`** - Related enums that belong to this type (each enum in its own file)
+6. **NO EXCEPTIONS for structs** - Even simple data holders with 1-2 methods must follow this structure
+7. **Complex enums only** - Enums with multiple impl blocks, methods, or traits use this structure; simple enums use single file
 
 ## Implementation Style
 
@@ -44,7 +45,7 @@
 
 **Use single file for:**
 - Standalone functions (not in an impl block)
-- Simple enums (enums with only variants, no impl blocks or minimal implementation)
+- Simple enums (placed in parent type's `enums/` folder, one file per enum)
 - Type aliases (`type Result<T> = std::result::Result<T, Error>;`)
 - Constants (group related constants in files like `src/constants.rs` or `src/config/constants.rs`)
 
@@ -75,10 +76,15 @@ src/components/
     │   ├── default.rs                  # impl Default for NavigationTree
     │   └── from_vec.rs                 # impl From<Vec<TreeItem>> for NavigationTree
     │
-    └── constructors/
-        ├── mod.rs                      # Re-exports all constructor functions
-        ├── new.rs                      # impl NavigationTree { pub fn new() } + inline tests
-        └── with_items.rs               # impl NavigationTree { pub fn with_items() } + inline tests
+    ├── constructors/
+    │   ├── mod.rs                      # Re-exports all constructor functions
+    │   ├── new.rs                      # impl NavigationTree { pub fn new() } + inline tests
+    │   └── with_items.rs               # impl NavigationTree { pub fn with_items() } + inline tests
+    │
+    └── enums/
+        ├── mod.rs                      # Re-exports all enums
+        ├── tree_node_kind.rs           # pub enum TreeNodeKind { ... }
+        └── expand_state.rs             # pub enum ExpandState { ... }
 ```
 
 ## Example: Even Simple Types
