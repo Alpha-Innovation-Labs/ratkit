@@ -6,6 +6,7 @@ mod methods;
 #[derive(Clone, Copy, PartialEq)]
 pub enum DemoTab {
     Markdown,
+    CodeDiff,
     Tree,
     Dialogs,
     Scrollbar,

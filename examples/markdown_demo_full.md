@@ -5,6 +5,12 @@ author: ratatui-toolkit
 description: A comprehensive demonstration of markdown rendering features
 ---
 
+#  asd
+
+## asd
+
+### asd
+
 # Markdown Renderer Showcase
 
 This document demonstrates all features supported by the **MarkdownRenderer**.
@@ -202,8 +208,3 @@ cargo build --release
 ##### Heading Level 5
 ###### Heading Level 6
 ---
-
-## 9. Horizontal Rules
-
----
-

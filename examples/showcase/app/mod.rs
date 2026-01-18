@@ -5,8 +5,8 @@ mod methods;
 
 use ratatui::layout::Rect;
 use ratatui_toolkit::{
-    ClickableScrollbarState, DoubleClickState, MarkdownScrollManager, MenuBar, ResizableSplit,
-    SelectionState, TermTui, ToastManager, TreeNavigator, TreeViewState,
+    AppTheme, ClickableScrollbarState, CodeDiff, DoubleClickState, MarkdownScrollManager, MenuBar,
+    ResizableSplit, SelectionState, TermTui, ToastManager, TreeNavigator, TreeViewState,
 };
 use std::time::Instant;
 
@@ -19,6 +19,9 @@ pub struct App {
     // Navigation
     pub current_tab: DemoTab,
     pub menu_bar: MenuBar,
+
+    // Code diff demo - now just a single CodeDiff widget with integrated sidebar
+    pub code_diff: CodeDiff,
 
     // Tree demo
     pub tree_state: TreeViewState,
@@ -43,10 +46,22 @@ pub struct App {
     pub markdown_inner_area: Rect,
     /// Show theme picker popup
     pub show_theme_picker: bool,
-    /// Currently selected theme index for the picker
+    /// Currently selected theme index for the picker (within filtered list)
     pub theme_picker_index: usize,
-    /// Whether the minimap is currently hovered
-    pub minimap_hovered: bool,
+    /// Filter text for theme search
+    pub theme_filter: String,
+    /// Index of the currently saved/active theme (in full list)
+    pub saved_theme_index: usize,
+    /// Current application theme
+    pub current_theme: AppTheme,
+    /// Original theme to restore if theme picker is cancelled
+    pub original_theme: Option<AppTheme>,
+    /// Whether the TOC is currently hovered (expands when hovered)
+    pub toc_hovered: bool,
+    /// Index of the currently hovered TOC entry
+    pub toc_hovered_entry: Option<usize>,
+    /// Scroll offset for the TOC list
+    pub toc_scroll_offset: usize,
 
     // Scrollbar demo
     pub scrollbar_state: ClickableScrollbarState,
@@ -57,6 +72,8 @@ pub struct App {
 
     // Terminal demo
     pub terminal: Option<TermTui>,
+    pub terminal2: Option<TermTui>,
+    pub terminal_split: ResizableSplit,
 
     // Toast notifications
     pub toast_manager: ToastManager,

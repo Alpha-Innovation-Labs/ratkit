@@ -21,25 +21,25 @@ use crossterm::{
 use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
-    text::Line,
-    widgets::Tabs,
     Terminal,
 };
+use ratatui_toolkit::theme::loader::load_builtin_theme;
+use ratatui_toolkit::theme::persistence::save_theme;
 use ratatui_toolkit::{
     render_hotkey_modal, render_toasts, ClickableScrollbarStateMouseExt,
     ClickableScrollbarStateScrollExt, Dialog, DialogType, DialogWidget, Hotkey, HotkeyFooter,
     HotkeyItem, HotkeyModalConfig, HotkeySection, MarkdownEvent, MarkdownWidget, ScrollbarEvent,
-    StatusBar, StatusItem, Toast, ToastLevel,
+    StatusBar, StatusItem, ThemeVariant, Toast, ToastLevel,
 };
 use std::io;
 
 use app::App;
 use demo_tab::DemoTab;
-use helpers::{all_themes, get_theme_name};
+use helpers::{all_app_themes, get_app_theme_display_name, get_theme_name};
 use render::{
-    render_dialogs_demo, render_markdown_demo, render_scrollbar_demo, render_statusline_demo,
-    render_terminal_demo, render_theme_picker, render_tree_demo,
+    get_filtered_themes, render_code_diff_demo, render_dialogs_demo, render_markdown_demo,
+    render_scrollbar_demo, render_statusline_demo, render_terminal_demo, render_theme_picker,
+    render_tree_demo,
 };
 
 fn main() -> io::Result<()> {
@@ -66,7 +66,6 @@ fn main() -> io::Result<()> {
                 .direction(Direction::Vertical)
                 .constraints([
                     Constraint::Length(3), // Menu bar
-                    Constraint::Length(1), // Tab bar
                     Constraint::Min(0),    // Content
                     Constraint::Length(1), // Status bar
                     Constraint::Length(1), // Hotkey footer
@@ -76,43 +75,25 @@ fn main() -> io::Result<()> {
             // Menu bar
             app.menu_bar.render(frame, main_chunks[0]);
 
-            // Tab bar
-            let tabs: Vec<Line> = DemoTab::all()
-                .iter()
-                .map(|t| {
-                    let style = if *t == app.current_tab {
-                        Style::default()
-                            .fg(Color::Cyan)
-                            .add_modifier(Modifier::BOLD)
-                    } else {
-                        Style::default().fg(Color::DarkGray)
-                    };
-                    Line::styled(t.name(), style)
-                })
-                .collect();
-            let tab_widget = Tabs::new(tabs)
-                .select(
-                    DemoTab::all()
-                        .iter()
-                        .position(|t| *t == app.current_tab)
-                        .unwrap_or(0),
-                )
-                .divider(" │ ");
-            frame.render_widget(tab_widget, main_chunks[1]);
-
             // Content area based on selected tab
-            let content_area = main_chunks[2];
+            let content_area = main_chunks[1];
 
+            let theme = app.current_theme.clone();
             match app.current_tab {
-                DemoTab::Markdown => render_markdown_demo(frame, content_area, &mut app),
-                DemoTab::Tree => render_tree_demo(frame, content_area, &mut app, &tree_nodes),
-                DemoTab::Dialogs => render_dialogs_demo(frame, content_area, &mut app),
+                DemoTab::Markdown => render_markdown_demo(frame, content_area, &mut app, &theme),
+                DemoTab::CodeDiff => render_code_diff_demo(frame, content_area, &app),
+                DemoTab::Tree => {
+                    render_tree_demo(frame, content_area, &mut app, &tree_nodes, &theme)
+                }
+                DemoTab::Dialogs => render_dialogs_demo(frame, content_area, &mut app, &theme),
                 DemoTab::Scrollbar => render_scrollbar_demo(frame, content_area, &mut app),
-                DemoTab::StatusLine => render_statusline_demo(frame, content_area, &mut app),
-                DemoTab::Terminal => render_terminal_demo(frame, content_area, &mut app),
+                DemoTab::StatusLine => {
+                    render_statusline_demo(frame, content_area, &mut app, &theme)
+                }
+                DemoTab::Terminal => render_terminal_demo(frame, content_area, &mut app, &theme),
             }
 
-            // Status bar
+            // Status bar with theme
             let elapsed = app.start_time.elapsed().as_secs();
             let status = if app.current_tab == DemoTab::Markdown {
                 // Use source_line_count for accurate display (falls back to total_lines if 0)
@@ -121,43 +102,39 @@ fn main() -> io::Result<()> {
                 } else {
                     app.markdown_scroll.total_lines
                 };
-                let line_info = format!(
-                    "Ln {}/{}",
-                    app.markdown_scroll.current_line, display_total
-                );
+                let line_info =
+                    format!("Ln {}/{}", app.markdown_scroll.current_line, display_total);
                 let theme_name = get_theme_name(app.markdown_scroll.code_block_theme);
                 StatusBar::new()
+                    .with_theme(&app.current_theme)
                     .add_left(StatusItem::bold(format!(" {}", app.current_tab.name())))
                     .add_center(StatusItem::new(line_info))
                     .add_right(StatusItem::new(format!(" {} [T]", theme_name)))
             } else {
                 StatusBar::new()
+                    .with_theme(&app.current_theme)
                     .add_left(StatusItem::bold(format!(" {}", app.current_tab.name())))
                     .add_center(StatusItem::new("ratatui-toolkit v0.1.0"))
                     .add_right(StatusItem::dimmed(format!("{}s", elapsed)))
             };
-            frame.render_widget(status, main_chunks[3]);
+            frame.render_widget(status, main_chunks[2]);
 
-            // Hotkey footer
-            let mut footer_items = vec![
+            // Hotkey footer with theme
+            let footer_items = vec![
                 HotkeyItem::new("Tab", "switch"),
-                HotkeyItem::new("1-6", "tabs"),
-            ];
-            if app.current_tab == DemoTab::Markdown {
-                footer_items.push(HotkeyItem::new("T", "theme"));
-            }
-            footer_items.extend([
+                HotkeyItem::new("1-7", "tabs"),
+                HotkeyItem::new("T", "theme"),
                 HotkeyItem::new("t", "toast"),
                 HotkeyItem::new("?", "help"),
                 HotkeyItem::new("q", "quit"),
-            ]);
-            let footer = HotkeyFooter::new(footer_items);
-            frame.render_widget(&footer, main_chunks[4]);
+            ];
+            let footer = HotkeyFooter::new(footer_items).with_theme(&app.current_theme);
+            frame.render_widget(&footer, main_chunks[3]);
 
             // Toasts
             render_toasts(frame, &app.toast_manager);
 
-            // Dialog overlay
+            // Dialog overlay with theme
             if app.show_dialog {
                 let (title, message) = match app.dialog_type {
                     DialogType::Info => (
@@ -172,7 +149,8 @@ fn main() -> io::Result<()> {
                 let mut dialog = Dialog::new(title, message)
                     .dialog_type(app.dialog_type)
                     .width_percent(0.5)
-                    .height_percent(0.35);
+                    .height_percent(0.35)
+                    .with_theme(&app.current_theme);
                 let dialog_widget = DialogWidget::new(&mut dialog);
                 frame.render_widget(dialog_widget, area);
             }
@@ -265,7 +243,10 @@ fn main() -> io::Result<()> {
         }
 
         // Adaptive polling: fast during drag for smooth resize, slower otherwise to save CPU
-        let poll_timeout = if app.markdown_split.is_dragging {
+        let poll_timeout = if app.markdown_split.is_dragging
+            || app.terminal_split.is_dragging
+            || app.code_diff.is_sidebar_dragging()
+        {
             std::time::Duration::from_millis(8) // ~120fps for smooth dragging
         } else {
             std::time::Duration::from_millis(50) // Normal rate
@@ -285,29 +266,94 @@ fn main() -> io::Result<()> {
                     }
                     // Handle theme picker
                     if app.show_theme_picker {
-                        let themes = all_themes();
+                        let filtered = get_filtered_themes(&app.theme_filter);
                         match key.code {
-                            KeyCode::Esc | KeyCode::Char('T') => {
+                            KeyCode::Esc => {
+                                // Cancel: restore original theme and clear filter
+                                if let Some(original) = app.original_theme.take() {
+                                    app.current_theme = original;
+                                }
                                 app.show_theme_picker = false;
+                                app.theme_filter.clear();
+                                app.theme_picker_index = 0;
                             }
                             KeyCode::Char('j') | KeyCode::Down => {
-                                app.theme_picker_index = (app.theme_picker_index + 1) % themes.len();
+                                if !filtered.is_empty() {
+                                    app.theme_picker_index =
+                                        (app.theme_picker_index + 1) % filtered.len();
+                                    // Apply theme live for preview using original index
+                                    if let Some((original_idx, _)) =
+                                        filtered.get(app.theme_picker_index)
+                                    {
+                                        apply_theme_at_index(&mut app, *original_idx);
+                                    }
+                                }
                             }
                             KeyCode::Char('k') | KeyCode::Up => {
-                                app.theme_picker_index = if app.theme_picker_index == 0 {
-                                    themes.len() - 1
-                                } else {
-                                    app.theme_picker_index - 1
-                                };
+                                if !filtered.is_empty() {
+                                    app.theme_picker_index = if app.theme_picker_index == 0 {
+                                        filtered.len() - 1
+                                    } else {
+                                        app.theme_picker_index - 1
+                                    };
+                                    // Apply theme live for preview using original index
+                                    if let Some((original_idx, _)) =
+                                        filtered.get(app.theme_picker_index)
+                                    {
+                                        apply_theme_at_index(&mut app, *original_idx);
+                                    }
+                                }
                             }
                             KeyCode::Enter => {
-                                let selected_theme = themes[app.theme_picker_index];
-                                app.markdown_scroll.set_code_block_theme(selected_theme);
-                                app.show_theme_picker = false;
-                                app.toast_manager.add(Toast::new(
-                                    &format!("Theme: {}", get_theme_name(selected_theme)),
-                                    ToastLevel::Success,
-                                ));
+                                if let Some((original_idx, theme_name)) =
+                                    filtered.get(app.theme_picker_index)
+                                {
+                                    // Confirm: keep current theme, clear original, save to disk
+                                    app.original_theme = None;
+                                    app.show_theme_picker = false;
+                                    app.saved_theme_index = *original_idx;
+                                    // Save the selected theme for persistence
+                                    if let Err(e) = save_theme(theme_name, None) {
+                                        app.toast_manager.add(Toast::new(
+                                            &format!("Failed to save theme: {}", e),
+                                            ToastLevel::Warning,
+                                        ));
+                                    }
+                                    app.toast_manager.add(Toast::new(
+                                        &format!(
+                                            "Theme: {}",
+                                            get_app_theme_display_name(theme_name)
+                                        ),
+                                        ToastLevel::Success,
+                                    ));
+                                    app.theme_filter.clear();
+                                    app.theme_picker_index = 0;
+                                }
+                            }
+                            KeyCode::Backspace => {
+                                // Delete last character from filter
+                                app.theme_filter.pop();
+                                // Reset selection to first match
+                                app.theme_picker_index = 0;
+                                // Apply first filtered theme for preview
+                                let new_filtered = get_filtered_themes(&app.theme_filter);
+                                if let Some((original_idx, _)) = new_filtered.first() {
+                                    apply_theme_at_index(&mut app, *original_idx);
+                                }
+                            }
+                            KeyCode::Char(c) => {
+                                // Add character to filter (except j/k which are navigation)
+                                // Only filter on alphanumeric and space
+                                if c.is_alphanumeric() || c == ' ' || c == '-' {
+                                    app.theme_filter.push(c);
+                                    // Reset selection to first match
+                                    app.theme_picker_index = 0;
+                                    // Apply first filtered theme for preview
+                                    let new_filtered = get_filtered_themes(&app.theme_filter);
+                                    if let Some((original_idx, _)) = new_filtered.first() {
+                                        apply_theme_at_index(&mut app, *original_idx);
+                                    }
+                                }
                             }
                             _ => {}
                         }
@@ -329,11 +375,12 @@ fn main() -> io::Result<()> {
                             app.select_tab(tabs[prev]);
                         }
                         KeyCode::Char('1') => app.select_tab(DemoTab::Markdown),
-                        KeyCode::Char('2') => app.select_tab(DemoTab::Tree),
-                        KeyCode::Char('3') => app.select_tab(DemoTab::Dialogs),
-                        KeyCode::Char('4') => app.select_tab(DemoTab::Scrollbar),
-                        KeyCode::Char('5') => app.select_tab(DemoTab::StatusLine),
-                        KeyCode::Char('6') => app.select_tab(DemoTab::Terminal),
+                        KeyCode::Char('2') => app.select_tab(DemoTab::CodeDiff),
+                        KeyCode::Char('3') => app.select_tab(DemoTab::Tree),
+                        KeyCode::Char('4') => app.select_tab(DemoTab::Dialogs),
+                        KeyCode::Char('5') => app.select_tab(DemoTab::Scrollbar),
+                        KeyCode::Char('6') => app.select_tab(DemoTab::StatusLine),
+                        KeyCode::Char('7') => app.select_tab(DemoTab::Terminal),
                         KeyCode::Char('t') => {
                             let messages = [
                                 ("Info toast", ToastLevel::Info),
@@ -350,25 +397,50 @@ fn main() -> io::Result<()> {
                             app.show_hotkey_modal = !app.show_hotkey_modal;
                         }
                         KeyCode::Char('T') => {
-                            if app.current_tab == DemoTab::Markdown {
-                                app.show_theme_picker = true;
-                                // Set picker index to current theme
-                                let themes = all_themes();
-                                app.theme_picker_index = themes
-                                    .iter()
-                                    .position(|t| *t == app.markdown_scroll.code_block_theme)
-                                    .unwrap_or(0);
-                            }
+                            // Open theme picker and store original theme for cancel
+                            app.original_theme = Some(app.current_theme.clone());
+                            app.show_theme_picker = true;
+                            app.theme_filter.clear();
+                            app.theme_picker_index = 0;
                         }
                         // Tab-specific keys
                         _ => match app.current_tab {
+                            DemoTab::CodeDiff => {
+                                // Delegate all key handling to the CodeDiff widget
+                                // It handles: [=toggle sidebar, h/l=focus, j/k=nav, g/G=top/bottom, H/L=resize
+                                app.code_diff.handle_key(key.code);
+                            }
                             DemoTab::Tree => {
-                                let tree_nodes = app.build_tree();
-                                app.tree_navigator.handle_key(
-                                    key,
-                                    &tree_nodes,
-                                    &mut app.tree_state,
-                                );
+                                // Check if in filter mode first
+                                if app.tree_state.is_filter_mode() {
+                                    // Handle filter mode keys
+                                    match key.code {
+                                        KeyCode::Esc => {
+                                            app.tree_state.clear_filter();
+                                        }
+                                        KeyCode::Enter => {
+                                            app.tree_state.exit_filter_mode();
+                                        }
+                                        KeyCode::Backspace => {
+                                            app.tree_state.backspace_filter();
+                                        }
+                                        KeyCode::Char(c) => {
+                                            app.tree_state.append_to_filter(c);
+                                        }
+                                        _ => {}
+                                    }
+                                } else if key.code == KeyCode::Char('/') {
+                                    // Enter filter mode
+                                    app.tree_state.enter_filter_mode();
+                                } else {
+                                    // Normal tree navigation
+                                    let tree_nodes = app.build_tree();
+                                    app.tree_navigator.handle_key(
+                                        key,
+                                        &tree_nodes,
+                                        &mut app.tree_state,
+                                    );
+                                }
                             }
                             DemoTab::Dialogs => match key.code {
                                 KeyCode::Char('i') => {
@@ -457,7 +529,15 @@ fn main() -> io::Result<()> {
                     // Handle menu bar clicks
                     if mouse.kind == MouseEventKind::Down(MouseButton::Left) {
                         if let Some(idx) = app.menu_bar.handle_click(mouse.column, mouse.row) {
-                            app.select_tab(DemoTab::all()[idx]);
+                            if idx == 7 {
+                                // Theme button clicked - open theme picker
+                                app.original_theme = Some(app.current_theme.clone());
+                                app.show_theme_picker = true;
+                                app.theme_filter.clear();
+                                app.theme_picker_index = 0;
+                            } else if idx < DemoTab::all().len() {
+                                app.select_tab(DemoTab::all()[idx]);
+                            }
                         }
                     }
 
@@ -477,6 +557,24 @@ fn main() -> io::Result<()> {
                         }
                     }
 
+                    // Handle code diff mouse events (sidebar resize)
+                    if app.current_tab == DemoTab::CodeDiff {
+                        // Calculate the content area for the code diff
+                        let main_chunks = Layout::default()
+                            .direction(Direction::Vertical)
+                            .constraints([
+                                Constraint::Length(3), // Menu bar
+                                Constraint::Min(0),    // Content
+                                Constraint::Length(1), // Status bar
+                                Constraint::Length(1), // Hotkey footer
+                            ])
+                            .split(area);
+                        let content_area = main_chunks[1];
+
+                        // Delegate mouse handling to CodeDiff
+                        app.code_diff.handle_mouse(mouse, content_area);
+                    }
+
                     // Handle markdown widget interactions
                     if app.current_tab == DemoTab::Markdown {
                         // Calculate the same area as render_markdown_demo receives
@@ -484,21 +582,21 @@ fn main() -> io::Result<()> {
                             .direction(Direction::Vertical)
                             .constraints([
                                 Constraint::Length(3), // Menu bar
-                                Constraint::Length(1), // Tab bar
                                 Constraint::Min(0),    // Content
                                 Constraint::Length(1), // Status bar
                                 Constraint::Length(1), // Hotkey footer
                             ])
                             .split(area);
-                        let content_area = main_chunks[2];
+                        let content_area = main_chunks[1];
 
                         // Handle split divider first
                         match mouse.kind {
                             MouseEventKind::Down(MouseButton::Left) => {
-                                if app
-                                    .markdown_split
-                                    .is_on_divider(mouse.column, mouse.row, content_area)
-                                {
+                                if app.markdown_split.is_on_divider(
+                                    mouse.column,
+                                    mouse.row,
+                                    content_area,
+                                ) {
                                     app.markdown_split.start_drag();
                                 }
                             }
@@ -519,11 +617,13 @@ fn main() -> io::Result<()> {
                                 }
                             }
                             MouseEventKind::Moved => {
-                                app.markdown_split.is_hovering = app
-                                    .markdown_split
-                                    .is_on_divider(mouse.column, mouse.row, content_area);
+                                app.markdown_split.is_hovering = app.markdown_split.is_on_divider(
+                                    mouse.column,
+                                    mouse.row,
+                                    content_area,
+                                );
 
-                                // Handle minimap hover
+                                // Handle TOC hover
                                 let left_width = (content_area.width as u32
                                     * app.markdown_split.split_percent as u32
                                     / 100) as u16;
@@ -548,11 +648,12 @@ fn main() -> io::Result<()> {
                                     &mut app.markdown_selection,
                                     &mut app.markdown_double_click,
                                 )
-                                .show_minimap(true);
-                                widget.set_minimap_hovered(app.minimap_hovered);
+                                .show_toc(true);
+                                widget.set_toc_hovered(app.toc_hovered);
 
-                                if widget.handle_minimap_hover(&mouse, inner_area) {
-                                    app.minimap_hovered = widget.is_minimap_hovered();
+                                if widget.handle_toc_hover(&mouse, inner_area) {
+                                    app.toc_hovered = widget.is_toc_hovered();
+                                    app.toc_hovered_entry = widget.get_toc_hovered_entry();
                                 }
                             }
                             _ => {}
@@ -583,8 +684,24 @@ fn main() -> io::Result<()> {
                             app.markdown_inner_area = inner_area;
 
                             // Get content before mutable borrows
-                            let content =
-                                app.markdown_scroll.content().unwrap_or("").to_string();
+                            let content = app.markdown_scroll.content().unwrap_or("").to_string();
+
+                            // Handle TOC click first (for scroll-to-heading navigation)
+                            if mouse.kind == MouseEventKind::Down(MouseButton::Left) {
+                                let mut widget = MarkdownWidget::new(
+                                    &content,
+                                    &mut app.markdown_scroll,
+                                    &mut app.markdown_selection,
+                                    &mut app.markdown_double_click,
+                                )
+                                .show_toc(true);
+                                widget.set_toc_hovered(app.toc_hovered);
+
+                                if widget.handle_toc_click(&mouse, inner_area) {
+                                    // TOC click handled - heading was scrolled to
+                                    continue;
+                                }
+                            }
 
                             // Use widget's unified mouse event handler
                             let mut widget = MarkdownWidget::new(
@@ -592,10 +709,18 @@ fn main() -> io::Result<()> {
                                 &mut app.markdown_scroll,
                                 &mut app.markdown_selection,
                                 &mut app.markdown_double_click,
-                            );
+                            )
+                            .show_toc(true);
                             widget.set_rendered_lines(app.markdown_rendered_lines.clone());
+                            widget.set_toc_hovered(app.toc_hovered);
+                            widget.set_toc_scroll_offset(app.toc_scroll_offset);
 
-                            match widget.handle_mouse_event(&mouse, inner_area) {
+                            let event = widget.handle_mouse_event(&mouse, inner_area);
+
+                            // Update app's TOC scroll offset after handling
+                            app.toc_scroll_offset = widget.get_toc_scroll_offset();
+
+                            match event {
                                 MarkdownEvent::Copied { .. } => {
                                     app.toast_manager.add(Toast::new(
                                         "Copied to clipboard!",
@@ -628,15 +753,76 @@ fn main() -> io::Result<()> {
 
                     // Handle terminal mouse events (scroll, selection, drag)
                     if app.current_tab == DemoTab::Terminal {
-                        if let Some(ref mut term) = app.terminal {
-                            // Calculate terminal area (60% of content area)
-                            let content_area = Rect {
-                                x: area.x,
-                                y: area.y + 4,
-                                width: (area.width * 60) / 100,
-                                height: area.height.saturating_sub(6),
-                            };
-                            term.handle_mouse(mouse, content_area);
+                        // Calculate split areas
+                        let main_chunks = Layout::default()
+                            .direction(Direction::Vertical)
+                            .constraints([
+                                Constraint::Length(3), // Menu bar
+                                Constraint::Min(0),    // Content
+                                Constraint::Length(1), // Status bar
+                                Constraint::Length(1), // Hotkey footer
+                            ])
+                            .split(area);
+                        let content_area = main_chunks[1];
+
+                        let left_width = (content_area.width as u32
+                            * app.terminal_split.split_percent as u32
+                            / 100) as u16;
+
+                        let left_terminal_area = Rect {
+                            x: content_area.x,
+                            y: content_area.y,
+                            width: left_width,
+                            height: content_area.height,
+                        };
+
+                        let _right_terminal_area = Rect {
+                            x: content_area.x + left_width,
+                            y: content_area.y,
+                            width: content_area.width.saturating_sub(left_width),
+                            height: content_area.height,
+                        };
+
+                        // Handle split divider first
+                        match mouse.kind {
+                            MouseEventKind::Down(MouseButton::Left) => {
+                                if app.terminal_split.is_on_divider(
+                                    mouse.column,
+                                    mouse.row,
+                                    content_area,
+                                ) {
+                                    app.terminal_split.start_drag();
+                                }
+                            }
+                            MouseEventKind::Drag(MouseButton::Left) => {
+                                if app.terminal_split.is_dragging {
+                                    app.terminal_split.update_from_mouse(
+                                        mouse.column,
+                                        mouse.row,
+                                        content_area,
+                                    );
+                                }
+                            }
+                            MouseEventKind::Up(MouseButton::Left) => {
+                                if app.terminal_split.is_dragging {
+                                    app.terminal_split.stop_drag();
+                                }
+                            }
+                            MouseEventKind::Moved => {
+                                app.terminal_split.is_hovering = app.terminal_split.is_on_divider(
+                                    mouse.column,
+                                    mouse.row,
+                                    content_area,
+                                );
+                            }
+                            _ => {}
+                        }
+
+                        // Only handle terminal events when NOT dragging divider
+                        if !app.terminal_split.is_dragging {
+                            if let Some(ref mut term) = app.terminal {
+                                term.handle_mouse(mouse, left_terminal_area);
+                            }
                         }
                     }
 
@@ -656,4 +842,26 @@ fn main() -> io::Result<()> {
     terminal.show_cursor()?;
 
     Ok(())
+}
+
+/// Apply the theme at the given index to the application.
+///
+/// Loads the theme from builtin themes and applies it live for preview.
+/// Also updates the menu bar to use the new theme colors.
+///
+/// # Arguments
+///
+/// * `app` - The application state to update
+/// * `index` - The index in the builtin themes list
+fn apply_theme_at_index(app: &mut App, index: usize) {
+    let themes = all_app_themes();
+    if let Some(theme_name) = themes.get(index) {
+        if let Ok(theme) = load_builtin_theme(theme_name, ThemeVariant::Dark) {
+            app.current_theme = theme;
+            // Update menu bar to use the new theme
+            app.menu_bar.apply_theme(&app.current_theme);
+            // Update code diff to use the new theme
+            app.code_diff.apply_theme(&app.current_theme);
+        }
+    }
 }

@@ -7,6 +7,7 @@ impl DemoTab {
     pub fn all() -> Vec<Self> {
         vec![
             Self::Markdown,
+            Self::CodeDiff,
             Self::Tree,
             Self::Dialogs,
             Self::Scrollbar,
@@ -19,6 +20,7 @@ impl DemoTab {
     pub fn name(&self) -> &'static str {
         match self {
             Self::Markdown => "Markdown",
+            Self::CodeDiff => "Code Diff",
             Self::Tree => "Tree View",
             Self::Dialogs => "Dialogs",
             Self::Scrollbar => "Scrollbar",
