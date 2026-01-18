@@ -1,9 +1,9 @@
 //! Widget trait implementation for MarkdownWidget.
 
-use ratatui::{layout::Rect, widgets::Widget};
+use ratatui::{layout::Rect, widgets::{Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget}};
 
 use super::super::MarkdownWidget;
-use crate::markdown_renderer::markdown_widget::render_markdown_interactive_with_options;
+use crate::markdown_renderer::markdown_widget::render_markdown_interactive_with_selection::render_markdown_interactive_with_selection_themed;
 use crate::markdown_renderer::minimap::Minimap;
 use crate::markdown_renderer::toc::Toc;
 
@@ -34,14 +34,14 @@ impl<'a> Widget for MarkdownWidget<'a> {
         let overlay_area = if self.show_toc {
             // TOC: compact when not hovered, expanded when hovered
             // Dynamic width based on content for expanded mode
-            let toc_width = if self.scroll.toc_hovered {
+            let toc_width = if self.toc_hovered {
                 Toc::required_expanded_width(self.content, self.toc_config.show_border)
                     .min(main_area.width.saturating_sub(padding_right + 4))
             } else {
                 self.toc_config.compact_width
             };
             // Dynamic height based on content
-            let toc_height = if self.scroll.toc_hovered {
+            let toc_height = if self.toc_hovered {
                 // Expanded: one row per entry
                 Toc::required_height(self.content, self.toc_config.show_border)
                     .min(main_area.height.saturating_sub(1))
@@ -91,11 +91,13 @@ impl<'a> Widget for MarkdownWidget<'a> {
 
         self.scroll.update_viewport(content_area);
 
-        let text = render_markdown_interactive_with_options(
+        // Render markdown with selection highlighting
+        let (text, _all_lines) = render_markdown_interactive_with_selection_themed(
             self.content,
             self.scroll,
             content_area,
             self.is_resizing,
+            self.selection,
             self.app_theme,
         );
 
@@ -114,6 +116,17 @@ impl<'a> Widget for MarkdownWidget<'a> {
             }
         }
 
+        // Render scrollbar if enabled
+        if self.show_scrollbar && self.scroll.total_lines > content_area.height as usize {
+            let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
+                .begin_symbol(None)
+                .end_symbol(None);
+            let mut scrollbar_state = ScrollbarState::new(self.scroll.total_lines)
+                .position(self.scroll.scroll_offset)
+                .viewport_content_length(content_area.height as usize);
+            StatefulWidget::render(scrollbar, content_area, buf, &mut scrollbar_state);
+        }
+
         // Render TOC or minimap overlay
         if let Some(ov_area) = overlay_area {
             if self.show_toc {
@@ -123,10 +136,10 @@ impl<'a> Widget for MarkdownWidget<'a> {
                 let total_lines = self.scroll.total_lines;
 
                 let toc = Toc::new(self.content)
-                    .expanded(self.scroll.toc_hovered)
+                    .expanded(self.toc_hovered)
                     .viewport(viewport_start, viewport_height, total_lines)
-                    .hovered(self.scroll.toc_hovered_entry)
-                    .toc_scroll(self.scroll.toc_scroll_offset)
+                    .hovered(self.toc_hovered_entry)
+                    .toc_scroll(self.toc_scroll_offset)
                     .config(self.toc_config.clone());
 
                 toc.render(ov_area, buf);

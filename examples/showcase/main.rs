@@ -650,6 +650,7 @@ fn main() -> io::Result<()> {
                                 )
                                 .show_toc(true);
                                 widget.set_toc_hovered(app.toc_hovered);
+                                widget.set_toc_scroll_offset(app.toc_scroll_offset);
 
                                 if widget.handle_toc_hover(&mouse, inner_area) {
                                     app.toc_hovered = widget.is_toc_hovered();
@@ -696,9 +697,11 @@ fn main() -> io::Result<()> {
                                 )
                                 .show_toc(true);
                                 widget.set_toc_hovered(app.toc_hovered);
+                                widget.set_toc_scroll_offset(app.toc_scroll_offset);
 
                                 if widget.handle_toc_click(&mouse, inner_area) {
-                                    // TOC click handled - heading was scrolled to
+                                    // TOC click handled - sync hovered entry from widget
+                                    app.toc_hovered_entry = widget.get_toc_hovered_entry();
                                     continue;
                                 }
                             }

@@ -62,6 +62,10 @@ pub struct MarkdownWidget<'a> {
     pub(crate) mode: MarkdownWidgetMode,
     /// Whether to show the statusline.
     pub(crate) show_statusline: bool,
+    /// Whether to show the scrollbar.
+    pub(crate) show_scrollbar: bool,
+    /// Whether selection mode is active (affects statusline mode display).
+    pub(crate) selection_active: bool,
     /// Git statistics for the file (optional).
     pub(crate) git_stats: Option<GitStats>,
     /// Whether to show the minimap.
@@ -74,6 +78,12 @@ pub struct MarkdownWidget<'a> {
     pub(crate) show_toc: bool,
     /// Configuration for the TOC.
     pub(crate) toc_config: TocConfig,
+    /// Whether the TOC is currently hovered (expands to show text).
+    pub(crate) toc_hovered: bool,
+    /// Index of the hovered TOC entry.
+    pub(crate) toc_hovered_entry: Option<usize>,
+    /// Scroll offset for the TOC list.
+    pub(crate) toc_scroll_offset: usize,
     /// Cached rendered lines for selection text extraction.
     pub(crate) rendered_lines: Vec<ratatui::text::Line<'static>>,
     /// Optional application theme for styling.

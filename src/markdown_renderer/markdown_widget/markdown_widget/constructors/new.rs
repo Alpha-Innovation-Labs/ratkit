@@ -35,12 +35,17 @@ impl<'a> MarkdownWidget<'a> {
             is_resizing: false,
             mode: MarkdownWidgetMode::Normal,
             show_statusline: true,
+            show_scrollbar: false,
+            selection_active: false,
             git_stats: None,
             show_minimap: false,
             minimap_config: MinimapConfig::default(),
             minimap_hovered: false,
             show_toc: false,
             toc_config: TocConfig::default(),
+            toc_hovered: false,
+            toc_hovered_entry: None,
+            toc_scroll_offset: 0,
             rendered_lines: Vec::new(),
             app_theme: None,
         }
@@ -130,6 +135,96 @@ impl<'a> MarkdownWidget<'a> {
     /// Self for method chaining.
     pub fn toc_config(mut self, config: TocConfig) -> Self {
         self.toc_config = config;
+        self
+    }
+
+    /// Enable or disable the scrollbar.
+    ///
+    /// # Arguments
+    ///
+    /// * `show` - Whether to show the scrollbar
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    pub fn show_scrollbar(mut self, show: bool) -> Self {
+        self.show_scrollbar = show;
+        self
+    }
+
+    /// Set whether selection mode is active.
+    ///
+    /// This affects the mode displayed in the statusline (Normal vs Drag).
+    ///
+    /// # Arguments
+    ///
+    /// * `active` - Whether selection is active
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    pub fn selection_active(mut self, active: bool) -> Self {
+        self.selection_active = active;
+        self
+    }
+
+    /// Set the TOC hovered state.
+    ///
+    /// When hovered, the TOC expands to show heading text.
+    ///
+    /// # Arguments
+    ///
+    /// * `hovered` - Whether the TOC is hovered
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    pub fn toc_hovered(mut self, hovered: bool) -> Self {
+        self.toc_hovered = hovered;
+        self
+    }
+
+    /// Set the hovered TOC entry index.
+    ///
+    /// # Arguments
+    ///
+    /// * `index` - The index of the hovered entry, or None
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    pub fn toc_hovered_entry(mut self, index: Option<usize>) -> Self {
+        self.toc_hovered_entry = index;
+        self
+    }
+
+    /// Set the TOC scroll offset.
+    ///
+    /// # Arguments
+    ///
+    /// * `offset` - The scroll offset for the TOC list
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    pub fn toc_scroll_offset(mut self, offset: usize) -> Self {
+        self.toc_scroll_offset = offset;
+        self
+    }
+
+    /// Set the minimap hovered state.
+    ///
+    /// When hovered, the minimap scales up.
+    ///
+    /// # Arguments
+    ///
+    /// * `hovered` - Whether the minimap is hovered
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    pub fn minimap_hovered(mut self, hovered: bool) -> Self {
+        self.minimap_hovered = hovered;
         self
     }
 }

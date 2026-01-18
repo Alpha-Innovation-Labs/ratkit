@@ -37,12 +37,8 @@ pub use markdown_elements::{
 pub use markdown_source::MarkdownSource;
 pub use markdown_style::MarkdownStyle;
 pub use markdown_widget::{
-    copy_selection_to_clipboard, handle_mouse_event, handle_mouse_event_with_double_click,
-    handle_mouse_event_with_selection, render_markdown_interactive,
-    render_markdown_interactive_with_selection, render_markdown_statusline,
-    render_markdown_statusline_from_scroll, render_markdown_with_minimap, DoubleClickState,
-    GitStats, MarkdownDoubleClickEvent, MarkdownEvent, MarkdownRenderOptions, MarkdownWidget,
-    MarkdownWidgetMode, SelectionMouseResult, SelectionState,
+    DoubleClickState, GitStats, MarkdownDoubleClickEvent, MarkdownEvent, MarkdownWidget,
+    MarkdownWidgetMode, SelectionPos, SelectionState,
 };
 pub use minimap::{Minimap, MinimapConfig};
 pub use render_markdown_to_lines::render_markdown_to_elements;

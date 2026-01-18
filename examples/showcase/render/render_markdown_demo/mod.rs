@@ -48,13 +48,15 @@ pub fn render_markdown_demo(
     block.render(areas.left, frame.buffer_mut());
 
     // Render markdown content with TOC and statusline using the current theme
+    let content = app.markdown_scroll.content().unwrap_or("").to_string();
     app.markdown_rendered_lines = render_markdown_content(
-        &app.markdown_scroll.content().unwrap_or("").to_string(),
+        &content,
         &mut app.markdown_scroll,
+        &mut app.markdown_selection,
+        &mut app.markdown_double_click,
         inner_area,
         frame.buffer_mut(),
         app.markdown_split.is_dragging,
-        &app.markdown_selection,
         selection_active,
         app.toc_hovered,
         app.toc_hovered_entry,

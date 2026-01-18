@@ -42,11 +42,12 @@ impl<'a> MarkdownWidget<'a> {
             None => return false,
         };
 
-        // Check if click is within TOC area
+        // Check horizontal bounds and if above TOC
+        // Don't check lower vertical bound - let entry_at_position handle that
+        // based on actual entry count
         if event.column < toc_area.x
             || event.column >= toc_area.x + toc_area.width
             || event.row < toc_area.y
-            || event.row >= toc_area.y + toc_area.height
         {
             return false;
         }
@@ -79,6 +80,9 @@ impl<'a> MarkdownWidget<'a> {
                 // Update current line
                 self.scroll.current_line = target_line.saturating_add(1); // 1-indexed
 
+                // Update hovered entry to match the clicked entry
+                self.scroll.toc_hovered_entry = Some(entry_idx);
+
                 return true;
             }
         }
@@ -102,11 +106,11 @@ impl<'a> MarkdownWidget<'a> {
             return false;
         }
 
-        // Check if click is within TOC area
+        // Check horizontal bounds and if above TOC
+        // Don't check lower vertical bound - let entry_at_position handle that
         if event.column < toc_area.x
             || event.column >= toc_area.x + toc_area.width
             || event.row < toc_area.y
-            || event.row >= toc_area.y + toc_area.height
         {
             return false;
         }
@@ -134,6 +138,9 @@ impl<'a> MarkdownWidget<'a> {
                     .saturating_sub(self.scroll.viewport_height);
                 self.scroll.scroll_offset = new_offset.min(max_offset);
                 self.scroll.current_line = target_line.saturating_add(1);
+
+                // Update hovered entry to match the clicked entry
+                self.scroll.toc_hovered_entry = Some(entry_idx);
 
                 return true;
             }

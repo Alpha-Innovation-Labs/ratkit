@@ -183,13 +183,9 @@ pub use hotkey_modal::{functions::render_hotkey_modal, Hotkey, HotkeyModalConfig
 
 #[cfg(feature = "markdown")]
 pub use markdown_renderer::{
-    copy_selection_to_clipboard, handle_mouse_event, handle_mouse_event_with_double_click,
-    handle_mouse_event_with_selection, render_markdown, render_markdown_interactive,
-    render_markdown_interactive_with_selection, render_markdown_statusline,
-    render_markdown_statusline_from_scroll, render_markdown_with_minimap,
-    render_markdown_with_style, DoubleClickState, GitStats, MarkdownDoubleClickEvent,
-    MarkdownEvent, MarkdownRenderOptions, MarkdownScrollManager, MarkdownStyle, MarkdownWidget,
-    MarkdownWidgetMode, SelectionMouseResult, SelectionState,
+    render_markdown, render_markdown_with_style, DoubleClickState, GitStats,
+    MarkdownDoubleClickEvent, MarkdownEvent, MarkdownScrollManager, MarkdownStyle, MarkdownWidget,
+    MarkdownWidgetMode, SelectionPos, SelectionState,
 };
 
 #[cfg(feature = "terminal")]
@@ -274,8 +270,8 @@ pub mod prelude {
 
     #[cfg(feature = "markdown")]
     pub use crate::markdown_renderer::{
-        handle_mouse_event, render_markdown, render_markdown_interactive,
-        render_markdown_with_style, MarkdownScrollManager, MarkdownStyle, MarkdownWidget,
+        render_markdown, render_markdown_with_style, DoubleClickState, MarkdownScrollManager,
+        MarkdownStyle, MarkdownWidget, SelectionState,
     };
 
     #[cfg(feature = "terminal")]

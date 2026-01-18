@@ -55,32 +55,37 @@ impl<'a> MarkdownWidget<'a> {
             }
         };
 
-        // Check if mouse is within TOC area
-        let is_over_toc = event.column >= toc_area.x
+        // Check if mouse is within TOC area horizontally and at or below top
+        // Don't check lower vertical bound - let entry_at_position handle that
+        // based on actual entry count
+        let is_potentially_over_toc = event.column >= toc_area.x
             && event.column < toc_area.x + toc_area.width
-            && event.row >= toc_area.y
-            && event.row < toc_area.y + toc_area.height;
+            && event.row >= toc_area.y;
 
         let prev_hovered = self.scroll.toc_hovered;
         let prev_entry = self.scroll.toc_hovered_entry;
 
-        if is_over_toc {
-            self.scroll.toc_hovered = true;
+        if is_potentially_over_toc {
+            // Try to find an entry at this position
+            let viewport_start = self.scroll.scroll_offset;
+            let viewport_height = toc_area.height as usize;
+            let total_lines = self.scroll.total_lines;
 
-            // Find which entry is being hovered
-            if self.scroll.toc_hovered {
-                let viewport_start = self.scroll.scroll_offset;
-                let viewport_height = toc_area.height as usize;
-                let total_lines = self.scroll.total_lines;
+            let toc = Toc::new(self.content)
+                .expanded(true) // Use expanded mode for entry detection
+                .viewport(viewport_start, viewport_height, total_lines)
+                .toc_scroll(self.scroll.toc_scroll_offset)
+                .config(self.toc_config.clone());
 
-                let toc = Toc::new(self.content)
-                    .expanded(true) // Use expanded mode for entry detection
-                    .viewport(viewport_start, viewport_height, total_lines)
-                    .toc_scroll(self.scroll.toc_scroll_offset)
-                    .config(self.toc_config.clone());
+            let entry = toc.entry_at_position(event.column, event.row, toc_area);
 
-                self.scroll.toc_hovered_entry =
-                    toc.entry_at_position(event.column, event.row, toc_area);
+            // Only consider hovering if we found an entry
+            if entry.is_some() {
+                self.scroll.toc_hovered = true;
+                self.scroll.toc_hovered_entry = entry;
+            } else {
+                self.scroll.toc_hovered = false;
+                self.scroll.toc_hovered_entry = None;
             }
         } else {
             self.scroll.toc_hovered = false;
