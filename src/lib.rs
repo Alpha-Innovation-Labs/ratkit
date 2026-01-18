@@ -13,6 +13,7 @@
 //! - **Navigation**: [`MenuBar`], [`HotkeyFooter`], [`StatusBar`] for navigation aids
 //! - **Rendering**: [`render_markdown`] for markdown to ratatui text conversion
 //! - **Terminal**: [`TermTui`] for embedded terminal emulation
+//! - **Theming**: [`theme`] module with 33 builtin themes and JSON loader
 //!
 //! ## Feature Flags
 //!
@@ -32,6 +33,7 @@
 //! | `fuzzy` | No | Fuzzy finder component |
 //! | `master-layout` | No | Full application layout framework |
 //! | `file-tree` | No | File system tree with devicons |
+//! | `theme` | No | Theme system with 33 builtin themes |
 //! | `full` | No | Enable all features |
 //!
 //! ## Quick Start
@@ -66,6 +68,8 @@
 // Core components - always available
 pub mod button;
 pub mod clickable_scrollbar;
+pub mod code_diff;
+pub mod diff_file_tree;
 pub mod pane;
 
 // Feature-gated components
@@ -125,6 +129,10 @@ pub mod file_system_tree;
 #[cfg_attr(docsrs, doc(cfg(feature = "master-layout")))]
 pub mod master_layout;
 
+#[cfg(feature = "theme")]
+#[cfg_attr(docsrs, doc(cfg(feature = "theme")))]
+pub mod theme;
+
 // Re-export commonly used types - always available
 pub use button::render_title_with_buttons::render_title_with_buttons;
 pub use button::Button;
@@ -132,6 +140,8 @@ pub use clickable_scrollbar::{
     ClickableScrollbar, ClickableScrollbarState, ClickableScrollbarStateMouseExt,
     ClickableScrollbarStateScrollExt, ClickableScrollbarStatefulWidgetExt, ScrollbarEvent,
 };
+pub use code_diff::{CodeDiff, DiffConfig, DiffHunk, DiffLine, DiffLineKind, DiffStyle};
+pub use diff_file_tree::{DiffFileTree, FileStatus};
 pub use pane::Pane;
 
 // Feature-gated re-exports
@@ -150,8 +160,8 @@ pub use resizable_split::{ResizableSplit, SplitDirection};
 
 #[cfg(feature = "tree")]
 pub use tree_view::{
-    get_visible_paths, NodeState, TreeKeyBindings, TreeNavigator, TreeNode, TreeView,
-    TreeViewRef, TreeViewState,
+    get_visible_paths, matches_filter, NodeState, TreeKeyBindings, TreeNavigator, TreeNode,
+    TreeView, TreeViewRef, TreeViewState,
 };
 
 #[cfg(feature = "menu")]
@@ -176,9 +186,10 @@ pub use markdown_renderer::{
     copy_selection_to_clipboard, handle_mouse_event, handle_mouse_event_with_double_click,
     handle_mouse_event_with_selection, render_markdown, render_markdown_interactive,
     render_markdown_interactive_with_selection, render_markdown_statusline,
-    render_markdown_with_minimap, render_markdown_with_style, DoubleClickState, GitStats,
-    MarkdownDoubleClickEvent, MarkdownEvent, MarkdownRenderOptions, MarkdownScrollManager,
-    MarkdownStyle, MarkdownWidget, MarkdownWidgetMode, SelectionMouseResult, SelectionState,
+    render_markdown_statusline_from_scroll, render_markdown_with_minimap,
+    render_markdown_with_style, DoubleClickState, GitStats, MarkdownDoubleClickEvent,
+    MarkdownEvent, MarkdownRenderOptions, MarkdownScrollManager, MarkdownStyle, MarkdownWidget,
+    MarkdownWidgetMode, SelectionMouseResult, SelectionState,
 };
 
 #[cfg(feature = "terminal")]
@@ -196,6 +207,9 @@ pub use master_layout::{
     Tab, TabButton,
 };
 
+#[cfg(feature = "theme")]
+pub use theme::{AppTheme, DiffColors, MarkdownColors, SyntaxColors, ThemeVariant};
+
 /// Prelude module for convenient imports
 ///
 /// # Example
@@ -211,6 +225,8 @@ pub mod prelude {
         ClickableScrollbar, ClickableScrollbarState, ClickableScrollbarStateMouseExt,
         ClickableScrollbarStateScrollExt, ClickableScrollbarStatefulWidgetExt, ScrollbarEvent,
     };
+    pub use crate::code_diff::{CodeDiff, DiffConfig, DiffHunk, DiffLine, DiffLineKind, DiffStyle};
+    pub use crate::diff_file_tree::{DiffFileTree, FileStatus};
     pub use crate::pane::Pane;
 
     // Feature-gated components
@@ -229,8 +245,8 @@ pub mod prelude {
 
     #[cfg(feature = "tree")]
     pub use crate::tree_view::{
-        get_visible_paths, NodeState, TreeKeyBindings, TreeNavigator, TreeNode, TreeView,
-        TreeViewRef, TreeViewState,
+        get_visible_paths, matches_filter, NodeState, TreeKeyBindings, TreeNavigator, TreeNode,
+        TreeView, TreeViewRef, TreeViewState,
     };
 
     #[cfg(feature = "menu")]
@@ -276,6 +292,9 @@ pub mod prelude {
         EventResult, InteractionMode, MasterLayout, NavigationBar, PaneContent, PaneId, PaneLayout,
         Tab, TabButton,
     };
+
+    #[cfg(feature = "theme")]
+    pub use crate::theme::{AppTheme, DiffColors, MarkdownColors, SyntaxColors, ThemeVariant};
 }
 
 /// Error types for the crate

@@ -15,8 +15,8 @@ readme = "README.md"
 include = ["src/**/*", "examples/**/*", "Cargo.toml", "LICENSE-MIT", "README.md", "CHANGELOG.md"]
 
 [features]
-default = ["markdown", "tree", "dialog", "toast", "split", "menu", "statusbar", "hotkey", "terminal"]
-full = ["default", "terminal", "fuzzy", "master-layout", "file-tree"]
+default = ["markdown", "tree", "dialog", "toast", "split", "menu", "statusbar", "hotkey", "terminal", "theme"]
+full = ["default", "terminal", "fuzzy", "master-layout", "file-tree", "theme"]
 
 # Core UI components
 markdown = ["dep:pulldown-cmark", "dep:syntect", "dep:syntect-tui", "dep:serde", "dep:serde_json", "dep:notify", "dep:arboard"]
@@ -33,6 +33,7 @@ terminal = ["dep:termwiz", "dep:libc", "dep:arboard", "dep:base64", "dep:portabl
 fuzzy = ["dep:portable-pty"]
 master-layout = ["split", "menu", "statusbar", "hotkey"]
 file-tree = ["tree", "dep:devicons"]
+theme = ["dep:serde", "dep:serde_json", "dep:dirs"]
 
 [dependencies]
 # Core TUI framework
@@ -71,13 +72,16 @@ portable-pty = { version = "0.8", optional = true }
 # File icons (feature-gated)
 devicons = { version = "0.6", optional = true }
 
+# Directory paths (feature-gated)
+dirs = { version = "5", optional = true }
+
 [dev-dependencies]
 tempfile = "3"
 tokio-test = "0.4"
 
 [[example]]
 name = "showcase"
-path = "examples/showcase.rs"
+path = "examples/showcase/main.rs"
 
 [[example]]
 name = "termtui_demo"
