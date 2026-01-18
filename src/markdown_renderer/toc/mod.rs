@@ -17,10 +17,12 @@ mod enums;
 mod methods;
 mod traits;
 
-pub use constructors::*;
-pub use enums::*;
+#[cfg(test)]
+mod tests;
 
-use ratatui::style::{Color, Style};
+pub use constructors::*;
+
+use ratatui::style::Style;
 
 /// A single entry in the table of contents.
 #[derive(Debug, Clone)]
@@ -56,6 +58,17 @@ pub struct TocConfig {
     pub line_style: Style,
     /// Style for the active line in compact mode.
     pub active_line_style: Style,
+    /// Whether to show a border around the TOC (only in expanded mode).
+    pub show_border: bool,
+    /// Style for the border.
+    pub border_style: Style,
+    /// Style for the title text in the border.
+    pub title_style: Style,
+    /// Title text to show in the border header.
+    pub title: String,
+    /// Spacing between lines in compact mode (in 1/8 cell units).
+    /// 1 = tightest (8 lines per row), 8 = one line per row.
+    pub line_spacing: u8,
 }
 
 /// Table of Contents widget for markdown navigation.
@@ -80,4 +93,6 @@ pub struct Toc<'a> {
     pub(crate) scroll_offset: usize,
     /// Total lines in the document.
     pub(crate) total_lines: usize,
+    /// Scroll offset for the TOC list itself (when expanded).
+    pub(crate) toc_scroll_offset: usize,
 }
