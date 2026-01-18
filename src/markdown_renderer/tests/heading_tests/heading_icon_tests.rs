@@ -28,11 +28,7 @@ fn test_h1_has_correct_icon() {
         "H1 should have collapse indicator, got: {}",
         collapse_indicator
     );
-    assert!(
-        icon.contains("󰲡"),
-        "H1 should have icon '󰲡', got: {}",
-        icon
-    );
+    assert!(icon.contains("󰲡"), "H1 should have icon '󰲡', got: {}", icon);
 }
 
 #[test]
@@ -52,11 +48,7 @@ fn test_h2_has_correct_icon() {
         "H2 should have collapse indicator, got: {}",
         collapse_indicator
     );
-    assert!(
-        icon.contains("󰲣"),
-        "H2 should have icon '󰲣', got: {}",
-        icon
-    );
+    assert!(icon.contains("󰲣"), "H2 should have icon '󰲣', got: {}", icon);
 }
 
 #[test]
@@ -76,9 +68,5 @@ fn test_h3_has_correct_icon() {
         "H3 should have collapse indicator, got: {}",
         collapse_indicator
     );
-    assert!(
-        icon.contains("󰲥"),
-        "H3 should have icon '󰲥', got: {}",
-        icon
-    );
+    assert!(icon.contains("󰲥"), "H3 should have icon '󰲥', got: {}", icon);
 }

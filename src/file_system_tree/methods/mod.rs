@@ -1,7 +1,9 @@
 mod expand_directory;
+mod filter;
 mod get_entry_at_path;
 mod get_selected_entry;
 mod get_visible_paths;
+mod handle_filter_key;
 mod load_directory;
 mod select_next;
 mod select_previous;

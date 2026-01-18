@@ -15,6 +15,7 @@ pub fn render(
     number: Option<usize>,
     content: &[super::super::TextSegment],
     width: usize,
+    app_theme: Option<&crate::theme::AppTheme>,
 ) -> Vec<Line<'static>> {
     let indent = "  ".repeat(depth);
 
@@ -24,8 +25,10 @@ pub fn render(
         _ => (None, content),
     };
 
-    // Yellow bullet color for all list items
-    let bullet_color = Color::Yellow;
+    // Use theme color for bullets or fall back to yellow
+    let bullet_color = app_theme
+        .map(|t| t.markdown.list_item)
+        .unwrap_or(Color::Yellow);
 
     let marker = if ordered {
         format!("{}. ", number.unwrap_or(1))

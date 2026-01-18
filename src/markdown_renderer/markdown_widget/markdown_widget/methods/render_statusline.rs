@@ -18,21 +18,50 @@ impl<'a> MarkdownWidget<'a> {
     /// - Filename with git stats (no background on git icons)
     /// - Scroll position (percentage/total lines) on the right
     ///
+    /// If an app theme is set, uses theme colors. Otherwise falls back to defaults.
+    ///
     /// # Arguments
     ///
     /// * `area` - The area to render the statusline in
     /// * `buf` - The buffer to render to
     pub(crate) fn render_statusline(&self, area: Rect, buf: &mut ratatui::buffer::Buffer) {
-        // Mode colors and text
+        // Get theme-based or default colors
         let (mode_text, mode_color) = match self.mode {
-            MarkdownWidgetMode::Normal => (" NORMAL ", Color::Rgb(97, 175, 239)), // blue
-            MarkdownWidgetMode::Drag => (" DRAG ", Color::Rgb(229, 192, 123)),    // yellow/orange
+            MarkdownWidgetMode::Normal => {
+                let color = self
+                    .app_theme
+                    .map(|t| t.info)
+                    .unwrap_or(Color::Rgb(97, 175, 239)); // blue
+                (" NORMAL ", color)
+            }
+            MarkdownWidgetMode::Drag => {
+                let color = self
+                    .app_theme
+                    .map(|t| t.warning)
+                    .unwrap_or(Color::Rgb(229, 192, 123)); // yellow/orange
+                (" DRAG ", color)
+            }
         };
 
-        let file_bg = Color::Rgb(58, 58, 58); // slightly darker than #686868
+        // File segment background - use theme background_panel or default
+        let file_bg = self
+            .app_theme
+            .map(|t| t.background_panel)
+            .unwrap_or(Color::Rgb(58, 58, 58));
+
+        // Mode text foreground - use theme background or default black
+        let mode_fg = self
+            .app_theme
+            .map(|t| t.background)
+            .unwrap_or(Color::Black);
+
+        // File text color - use theme text or default white
+        let file_fg = self.app_theme.map(|t| t.text).unwrap_or(Color::White);
 
         // Get filename from source path
-        let filename = self.scroll.source_path()
+        let filename = self
+            .scroll
+            .source_path()
             .and_then(|p| p.file_name())
             .and_then(|n| n.to_str());
 
@@ -49,14 +78,29 @@ impl<'a> MarkdownWidget<'a> {
             (current_line * 100) / display_total.max(1)
         };
         let position_text = format!(" {}%/{} ", percentage, display_total);
-        let position_bg = Color::Rgb(171, 178, 191);
+
+        // Position segment background - use theme text_muted or default
+        let position_bg = self
+            .app_theme
+            .map(|t| t.text_muted)
+            .unwrap_or(Color::Rgb(171, 178, 191));
+
+        // Position text foreground - use theme background or default black
+        let position_fg = self
+            .app_theme
+            .map(|t| t.background)
+            .unwrap_or(Color::Black);
 
         // Build the statusline
         let mut statusline = StatusLineStacked::new()
             // Mode segment (left)
             .start(
-                Span::from(mode_text)
-                    .style(Style::new().fg(Color::Black).bg(mode_color).add_modifier(Modifier::BOLD)),
+                Span::from(mode_text).style(
+                    Style::new()
+                        .fg(mode_fg)
+                        .bg(mode_color)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::from(SLANT_TL_BR).style(Style::new().fg(mode_color).bg(file_bg)),
             );
 
@@ -64,7 +108,7 @@ impl<'a> MarkdownWidget<'a> {
         if let Some(name) = filename {
             let file_segment = format!(" {} ", name);
             statusline = statusline.start(
-                Span::from(file_segment).style(Style::new().fg(Color::White).bg(file_bg)),
+                Span::from(file_segment).style(Style::new().fg(file_fg).bg(file_bg)),
                 Span::from(SLANT_TL_BR).style(Style::new().fg(file_bg)),
             );
         }
@@ -78,7 +122,7 @@ impl<'a> MarkdownWidget<'a> {
 
         // Position segment (right)
         statusline = statusline.end(
-            Span::from(position_text).style(Style::new().fg(Color::Black).bg(position_bg)),
+            Span::from(position_text).style(Style::new().fg(position_fg).bg(position_bg)),
             Span::from(SLANT_BL_TR).style(Style::new().fg(position_bg)),
         );
 
@@ -88,10 +132,27 @@ impl<'a> MarkdownWidget<'a> {
         // Now render git stats with colored icons (no background)
         // Icons from lvim: LineAdded (U+EADC), LineModified (U+EADE), LineRemoved (U+EADF)
         if let Some(stats) = &self.git_stats {
-            let green = Style::new().fg(Color::Rgb(152, 195, 121));  // green for adds
-            let yellow = Style::new().fg(Color::Rgb(229, 192, 123)); // yellow for modified
-            let red = Style::new().fg(Color::Rgb(224, 108, 117));    // red for deletions
-            let dim = Style::new().fg(Color::Rgb(92, 99, 112));      // dim for separators
+            // Use theme colors for git stats or fall back to defaults
+            let green = Style::new().fg(
+                self.app_theme
+                    .map(|t| t.success)
+                    .unwrap_or(Color::Rgb(152, 195, 121)),
+            );
+            let yellow = Style::new().fg(
+                self.app_theme
+                    .map(|t| t.warning)
+                    .unwrap_or(Color::Rgb(229, 192, 123)),
+            );
+            let red = Style::new().fg(
+                self.app_theme
+                    .map(|t| t.error)
+                    .unwrap_or(Color::Rgb(224, 108, 117)),
+            );
+            let dim = Style::new().fg(
+                self.app_theme
+                    .map(|t| t.text_muted)
+                    .unwrap_or(Color::Rgb(92, 99, 112)),
+            );
 
             let mut x = git_stats_start_x;
 

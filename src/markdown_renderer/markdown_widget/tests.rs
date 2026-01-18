@@ -2,8 +2,8 @@
 
 use crate::markdown_renderer::markdown_elements::MarkdownElement;
 use crate::markdown_renderer::{
-    render_markdown_to_elements, scroll_manager::MarkdownScrollManager,
-    markdown_elements::ElementKind, TextSegment,
+    markdown_elements::ElementKind, render_markdown_to_elements,
+    scroll_manager::MarkdownScrollManager, TextSegment,
 };
 use ratatui::layout::Rect;
 
@@ -99,7 +99,8 @@ fn test_clicking_heading_toggles_collapse_state() {
 
 #[test]
 fn test_content_hidden_when_section_collapsed() {
-    let content = "# Heading 1\n\nParagraph under heading 1.\n\n## Heading 2\n\nParagraph under heading 2.";
+    let content =
+        "# Heading 1\n\nParagraph under heading 1.\n\n## Heading 2\n\nParagraph under heading 2.";
     let mut scroll = MarkdownScrollManager::new();
 
     let elements = render_markdown_to_elements(content, true);
@@ -154,7 +155,8 @@ fn test_heading_remains_visible_when_collapsed() {
 
 #[test]
 fn test_multiple_sections_collapse_independently() {
-    let content = "# Section 1\n\nContent 1.\n\n# Section 2\n\nContent 2.\n\n# Section 3\n\nContent 3.";
+    let content =
+        "# Section 1\n\nContent 1.\n\n# Section 2\n\nContent 2.\n\n# Section 3\n\nContent 3.";
     let mut scroll = MarkdownScrollManager::new();
 
     let elements = render_markdown_to_elements(content, true);
@@ -392,6 +394,7 @@ fn test_cache_invalidated_after_collapse_toggle() {
         width: 80,
         show_line_numbers: false,
         theme: scroll.code_block_theme,
+        app_theme_hash: 0,
         lines: vec![],
         line_boundaries: vec![],
     });

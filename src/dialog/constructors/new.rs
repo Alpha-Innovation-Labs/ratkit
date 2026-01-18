@@ -17,6 +17,11 @@ impl<'a> Dialog<'a> {
                 .add_modifier(ratatui::style::Modifier::BOLD),
             button_style: ratatui::style::Style::default(),
             button_areas: Vec::new(),
+            theme_info_color: None,
+            theme_success_color: None,
+            theme_warning_color: None,
+            theme_error_color: None,
+            theme_confirm_color: None,
         }
     }
 }

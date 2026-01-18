@@ -10,7 +10,7 @@ pub mod widget;
 pub use widget::DialogWidget;
 
 use ratatui::layout::Rect;
-use ratatui::style::Style;
+use ratatui::style::{Color, Style};
 
 /// Dialog type
 ///
@@ -58,4 +58,14 @@ pub struct Dialog<'a> {
     button_style: Style,
     /// Areas for buttons (for click detection)
     button_areas: Vec<Rect>,
+    /// Theme color for info dialogs (overrides default when set)
+    theme_info_color: Option<Color>,
+    /// Theme color for success dialogs (overrides default when set)
+    theme_success_color: Option<Color>,
+    /// Theme color for warning dialogs (overrides default when set)
+    theme_warning_color: Option<Color>,
+    /// Theme color for error dialogs (overrides default when set)
+    theme_error_color: Option<Color>,
+    /// Theme color for confirm dialogs (overrides default when set)
+    theme_confirm_color: Option<Color>,
 }

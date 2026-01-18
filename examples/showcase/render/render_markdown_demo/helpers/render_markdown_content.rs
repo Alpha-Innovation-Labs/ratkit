@@ -1,11 +1,12 @@
-//! Render markdown content with minimap and statusline.
+//! Render markdown content with TOC and statusline.
 
 use ratatui::{buffer::Buffer, layout::Rect, text::Line};
 use ratatui_toolkit::{
-    render_markdown_with_minimap, MarkdownRenderOptions, MarkdownScrollManager, SelectionState,
+    render_markdown_with_minimap, AppTheme, MarkdownRenderOptions, MarkdownScrollManager,
+    SelectionState,
 };
 
-/// Render the markdown content with minimap and statusline.
+/// Render the markdown content with TOC and statusline.
 ///
 /// # Arguments
 ///
@@ -16,7 +17,10 @@ use ratatui_toolkit::{
 /// * `is_dragging` - Whether the divider is being dragged.
 /// * `selection` - The selection state.
 /// * `selection_active` - Whether selection mode is active.
-/// * `minimap_hovered` - Whether the minimap is being hovered.
+/// * `toc_hovered` - Whether the TOC is being hovered (expands to show text).
+/// * `toc_hovered_entry` - Index of the hovered TOC entry.
+/// * `toc_scroll_offset` - Scroll offset for the TOC list.
+/// * `app_theme` - The current application theme.
 ///
 /// # Returns
 ///
@@ -29,14 +33,27 @@ pub fn render_markdown_content(
     is_dragging: bool,
     selection: &SelectionState,
     selection_active: bool,
-    minimap_hovered: bool,
+    toc_hovered: bool,
+    toc_hovered_entry: Option<usize>,
+    toc_scroll_offset: usize,
+    app_theme: &AppTheme,
 ) -> Vec<Line<'static>> {
     let render_options = MarkdownRenderOptions::default()
-        .show_minimap(true)
-        .minimap_width(12)
+        .show_toc(true)
         .show_statusline(true)
         .selection_active(selection_active)
-        .minimap_hovered(minimap_hovered);
+        .toc_hovered(toc_hovered)
+        .toc_hovered_entry(toc_hovered_entry)
+        .toc_scroll_offset(toc_scroll_offset)
+        .with_theme(app_theme);
 
-    render_markdown_with_minimap(content, scroll, area, buf, is_dragging, selection, &render_options)
+    render_markdown_with_minimap(
+        content,
+        scroll,
+        area,
+        buf,
+        is_dragging,
+        selection,
+        &render_options,
+    )
 }

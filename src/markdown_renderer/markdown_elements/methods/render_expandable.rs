@@ -13,8 +13,12 @@ pub fn render_expandable(
     collapsed: bool,
     total_lines: usize,
     width: usize,
+    app_theme: Option<&crate::theme::AppTheme>,
 ) -> Vec<Line<'static>> {
     let mut result = Vec::new();
+
+    // Use theme color for toggle buttons or fall back to blue
+    let toggle_color = app_theme.map(|t| t.info).unwrap_or(Color::Blue);
 
     if collapsed {
         let visible_lines = lines.iter().take(max_lines);
@@ -26,7 +30,7 @@ pub fn render_expandable(
         let hidden_count = total_lines.saturating_sub(max_lines);
         let toggle_text = format!("▼ Show more ({} hidden) ", hidden_count);
         let toggle_style = Style::default()
-            .fg(Color::Blue)
+            .fg(toggle_color)
             .add_modifier(Modifier::UNDERLINED);
         result.push(Line::from(vec![Span::styled(toggle_text, toggle_style)]));
     } else {
@@ -37,7 +41,7 @@ pub fn render_expandable(
 
         let toggle_text = "▲ Show less ";
         let toggle_style = Style::default()
-            .fg(Color::Blue)
+            .fg(toggle_color)
             .add_modifier(Modifier::UNDERLINED);
         result.push(Line::from(vec![Span::styled(toggle_text, toggle_style)]));
     }
@@ -51,6 +55,7 @@ pub fn render_expand_toggle(
     expanded: bool,
     hidden_count: usize,
     _width: usize,
+    app_theme: Option<&crate::theme::AppTheme>,
 ) -> Vec<Line<'static>> {
     let toggle_text = if expanded {
         "▲ Show less ".to_string()
@@ -58,8 +63,11 @@ pub fn render_expand_toggle(
         format!("▼ Show more ({} hidden) ", hidden_count)
     };
 
+    // Use theme color for toggle buttons or fall back to blue
+    let toggle_color = app_theme.map(|t| t.info).unwrap_or(Color::Blue);
+
     let toggle_style = Style::default()
-        .fg(Color::Blue)
+        .fg(toggle_color)
         .add_modifier(Modifier::UNDERLINED);
 
     vec![Line::from(vec![Span::styled(toggle_text, toggle_style)])]

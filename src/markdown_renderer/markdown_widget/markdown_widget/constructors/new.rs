@@ -2,6 +2,7 @@
 
 use crate::markdown_renderer::minimap::MinimapConfig;
 use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
+use crate::markdown_renderer::toc::TocConfig;
 
 use super::super::super::double_click_state::DoubleClickState;
 use super::super::super::selection_state::SelectionState;
@@ -38,7 +39,10 @@ impl<'a> MarkdownWidget<'a> {
             show_minimap: false,
             minimap_config: MinimapConfig::default(),
             minimap_hovered: false,
+            show_toc: false,
+            toc_config: TocConfig::default(),
             rendered_lines: Vec::new(),
+            app_theme: None,
         }
     }
 
@@ -95,6 +99,37 @@ impl<'a> MarkdownWidget<'a> {
     /// Self for method chaining.
     pub fn minimap_height(mut self, height: u16) -> Self {
         self.minimap_config.height = height;
+        self
+    }
+
+    /// Enable or disable the TOC (Table of Contents).
+    ///
+    /// When enabled, shows heading navigation in the top-right corner.
+    /// Compact mode shows lines, expanded mode (on hover) shows text.
+    ///
+    /// # Arguments
+    ///
+    /// * `show` - Whether to show the TOC
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    pub fn show_toc(mut self, show: bool) -> Self {
+        self.show_toc = show;
+        self
+    }
+
+    /// Set the TOC configuration.
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - The TOC configuration
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    pub fn toc_config(mut self, config: TocConfig) -> Self {
+        self.toc_config = config;
         self
     }
 }

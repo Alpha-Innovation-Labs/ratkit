@@ -1,7 +1,7 @@
 //! Check if a position is on a clickable element.
 
-use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
 use crate::markdown_renderer::markdown_elements::ElementKind;
+use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
 
 use super::find_line_at_position;
 

@@ -25,9 +25,7 @@ impl MarkdownScrollManager {
         }
 
         let should_update = match self.git_stats_last_update {
-            Some(last_update) => {
-                last_update.elapsed().as_secs() >= GIT_STATS_UPDATE_INTERVAL_SECS
-            }
+            Some(last_update) => last_update.elapsed().as_secs() >= GIT_STATS_UPDATE_INTERVAL_SECS,
             None => true, // First update
         };
 

@@ -1,8 +1,8 @@
 //! Find the markdown element at a given screen position.
 
+use crate::markdown_renderer::markdown_elements::MarkdownElement;
 use crate::markdown_renderer::render_element;
 use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
-use crate::markdown_renderer::markdown_elements::MarkdownElement;
 
 use super::helpers::should_render_line;
 

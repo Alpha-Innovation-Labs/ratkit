@@ -3,9 +3,9 @@
 use crate::markdown_renderer::render_element;
 use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
 
-use super::should_render_line::should_render_line;
 use super::element_kind_to_string::element_kind_to_string;
 use super::element_to_plain_text::element_to_plain_text;
+use super::should_render_line::should_render_line;
 use crate::markdown_renderer::markdown_widget::MarkdownDoubleClickEvent;
 
 /// Get line information at the given screen position.

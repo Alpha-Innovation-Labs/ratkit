@@ -18,7 +18,11 @@ pub(crate) fn element_kind_to_string(kind: &ElementKind) -> String {
         ElementKind::CodeBlockHeader { language, .. } => {
             format!(
                 "Code Block Header ({})",
-                if language.is_empty() { "text" } else { language }
+                if language.is_empty() {
+                    "text"
+                } else {
+                    language
+                }
             )
         }
         ElementKind::CodeBlockContent { .. } => "Code Block Content".to_string(),

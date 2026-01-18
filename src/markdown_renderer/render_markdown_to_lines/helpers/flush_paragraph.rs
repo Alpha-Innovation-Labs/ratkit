@@ -1,6 +1,6 @@
 //! Flush accumulated text segments as a paragraph or blockquote.
 
-use crate::markdown_renderer::markdown_elements::{MarkdownElement, ElementKind, TextSegment};
+use crate::markdown_renderer::markdown_elements::{ElementKind, MarkdownElement, TextSegment};
 
 /// Flush accumulated segments as a paragraph or blockquote.
 ///

@@ -33,13 +33,17 @@ pub use selection_state::{SelectionPos, SelectionState};
 pub use find_line_at_position::find_line_at_position;
 pub use handle_mouse_event::handle_mouse_event;
 pub use handle_mouse_event_with_double_click::handle_mouse_event_with_double_click;
-pub use handle_mouse_event_with_selection::{copy_selection_to_clipboard, handle_mouse_event_with_selection, SelectionMouseResult};
+pub use handle_mouse_event_with_selection::{
+    copy_selection_to_clipboard, handle_mouse_event_with_selection, SelectionMouseResult,
+};
 pub use is_clickable_at_position::is_clickable_at_position;
 pub use render_markdown_interactive::render_markdown_interactive;
 pub use render_markdown_interactive_with_options::render_markdown_interactive_with_options;
 pub use render_markdown_interactive_with_selection::render_markdown_interactive_with_selection;
 pub use render_markdown_scrollable::render_markdown_scrollable;
-pub use render_markdown_statusline::{render_markdown_statusline, render_markdown_statusline_from_scroll};
+pub use render_markdown_statusline::{
+    render_markdown_statusline, render_markdown_statusline_from_scroll,
+};
 pub use render_markdown_with_minimap::{render_markdown_with_minimap, MarkdownRenderOptions};
 
 #[cfg(test)]

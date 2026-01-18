@@ -1,8 +1,7 @@
 //! Text processing helper functions for markdown rendering.
 
 use super::super::{
-    get_link_icon, CheckboxState, TextSegment, CHECKBOX_CHECKED, CHECKBOX_TODO,
-    CHECKBOX_UNCHECKED,
+    get_link_icon, CheckboxState, TextSegment, CHECKBOX_CHECKED, CHECKBOX_TODO, CHECKBOX_UNCHECKED,
 };
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::Span;

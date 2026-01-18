@@ -20,17 +20,26 @@ pub struct SelectionMouseResult {
 impl SelectionMouseResult {
     /// Create a new result indicating the event was handled.
     pub fn handled() -> Self {
-        Self { handled: true, copied: false }
+        Self {
+            handled: true,
+            copied: false,
+        }
     }
 
     /// Create a new result indicating nothing happened.
     pub fn none() -> Self {
-        Self { handled: false, copied: false }
+        Self {
+            handled: false,
+            copied: false,
+        }
     }
 
     /// Create a new result indicating text was copied.
     pub fn copied() -> Self {
-        Self { handled: false, copied: true }
+        Self {
+            handled: false,
+            copied: true,
+        }
     }
 }
 

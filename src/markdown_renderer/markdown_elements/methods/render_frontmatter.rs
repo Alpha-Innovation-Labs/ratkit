@@ -11,8 +11,8 @@ pub fn render(
     width: usize,
 ) -> Vec<Line<'static>> {
     let border_style = Style::default().fg(Color::DarkGray);
-    let key_style = Style::default().fg(Color::Rgb(130, 180, 255));
-    let value_style = Style::default().fg(Color::Rgb(180, 180, 180));
+    let key_style = Style::default().fg(Color::Rgb(240, 113, 120)); // Coral/red for keys (#F07178)
+    let value_style = Style::default().fg(Color::Rgb(170, 217, 76)); // Green for values (#AAD94C)
     let collapse_icon_style = Style::default().fg(Color::Yellow);
 
     // Border character for full-width lines
@@ -28,7 +28,8 @@ pub fn render(
         // Build collapsed line: "▶ ─── context_id ───────────"
         let prefix = "▶ ─── ";
         let suffix = " ";
-        let used_width = prefix.chars().count() + context_id.chars().count() + suffix.chars().count();
+        let used_width =
+            prefix.chars().count() + context_id.chars().count() + suffix.chars().count();
         let remaining = width.saturating_sub(used_width);
         let border_fill = border_char.repeat(remaining);
 
@@ -96,7 +97,7 @@ pub fn render(
 /// Render frontmatter start (opening border with collapse icon).
 pub fn render_start(collapsed: bool, context_id: Option<&str>, width: usize) -> Line<'static> {
     let border_style = Style::default().fg(Color::DarkGray);
-    let key_style = Style::default().fg(Color::Rgb(130, 180, 255));
+    let key_style = Style::default().fg(Color::Rgb(240, 113, 120)); // Coral/red (#F07178)
     let collapse_icon_style = Style::default().fg(Color::Yellow);
     let border_char = "─";
 
@@ -129,8 +130,8 @@ pub fn render_start(collapsed: bool, context_id: Option<&str>, width: usize) -> 
 
 /// Render a single frontmatter field.
 pub fn render_field(key: &str, value: &str, width: usize) -> Vec<Line<'static>> {
-    let key_style = Style::default().fg(Color::Rgb(130, 180, 255));
-    let value_style = Style::default().fg(Color::Rgb(180, 180, 180));
+    let key_style = Style::default().fg(Color::Rgb(240, 113, 120)); // Coral/red for keys (#F07178)
+    let value_style = Style::default().fg(Color::Rgb(170, 217, 76)); // Green for values (#AAD94C)
 
     let key_prefix = format!("{}: ", key);
     let key_prefix_len = key_prefix.chars().count();

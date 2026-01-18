@@ -14,7 +14,7 @@ pub use enums::{
 
 pub mod constants;
 pub use constants::{
-    get_language_icon, get_link_icon, CodeBlockColors, CodeBlockTheme, BLOCKQUOTE_MARKER,
-    BULLET_MARKERS, CHECKBOX_CHECKED, CHECKBOX_TODO, CHECKBOX_UNCHECKED, HEADING_ICONS,
-    HORIZONTAL_RULE_CHAR,
+    get_language_icon, get_link_icon, heading_bg_color, heading_fg_color, CodeBlockColors,
+    CodeBlockTheme, BLOCKQUOTE_MARKER, BULLET_MARKERS, CHECKBOX_CHECKED, CHECKBOX_TODO,
+    CHECKBOX_UNCHECKED, HEADING_ICONS, HORIZONTAL_RULE_CHAR,
 };

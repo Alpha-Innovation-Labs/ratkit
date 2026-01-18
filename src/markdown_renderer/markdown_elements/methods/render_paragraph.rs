@@ -12,6 +12,7 @@ pub fn render(
     _element: &MarkdownElement,
     segments: &[TextSegment],
     width: usize,
+    app_theme: Option<&crate::theme::AppTheme>,
 ) -> Vec<Line<'static>> {
     let plain_text = segments_to_plain_text(segments);
     let wrapped = wrap_text(&plain_text, width);
@@ -19,17 +20,14 @@ pub fn render(
     wrapped
         .into_iter()
         .map(|line_text| {
-            let spans = render_line_with_segments(&line_text, segments);
+            let spans = render_line_with_segments(&line_text, segments, app_theme);
             Line::from(spans)
         })
         .collect()
 }
 
 /// Render a single wrapped line, preserving styling from segments
-fn render_line_with_segments(
-    line_text: &str,
-    segments: &[TextSegment],
-) -> Vec<Span<'static>> {
+fn render_line_with_segments(line_text: &str, segments: &[TextSegment], app_theme: Option<&crate::theme::AppTheme>) -> Vec<Span<'static>> {
     if line_text.is_empty() {
         return vec![Span::raw("")];
     }
@@ -45,22 +43,47 @@ fn render_line_with_segments(
     let mut spans = Vec::new();
     let mut char_pos = 0;
 
+    // Get theme colors with fallbacks
+    let code_color = app_theme
+        .map(|t| t.markdown.code)
+        .unwrap_or(Color::Rgb(230, 180, 100));
+    let link_color = app_theme
+        .map(|t| t.markdown.link_text)
+        .unwrap_or(Color::Rgb(100, 200, 100));
+    let emph_color = app_theme
+        .map(|t| t.markdown.emph)
+        .unwrap_or(Color::Reset);
+    let strong_color = app_theme
+        .map(|t| t.markdown.strong)
+        .unwrap_or(Color::Reset);
+
     for segment in segments {
         let (text, style) = match segment {
             TextSegment::Plain(t) => (t.clone(), Style::default()),
-            TextSegment::Bold(t) => (t.clone(), Style::default().add_modifier(Modifier::BOLD)),
-            TextSegment::Italic(t) => (t.clone(), Style::default().add_modifier(Modifier::ITALIC)),
+            TextSegment::Bold(t) => (
+                t.clone(),
+                Style::default()
+                    .fg(strong_color)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            TextSegment::Italic(t) => (
+                t.clone(),
+                Style::default()
+                    .fg(emph_color)
+                    .add_modifier(Modifier::ITALIC),
+            ),
             TextSegment::BoldItalic(t) => (
                 t.clone(),
                 Style::default()
+                    .fg(strong_color)
                     .add_modifier(Modifier::BOLD)
                     .add_modifier(Modifier::ITALIC),
             ),
             TextSegment::InlineCode(t) => (
-                format!("`{}`", t),
+                t.clone(),
                 Style::default()
                     .bg(Color::Rgb(60, 60, 60))
-                    .fg(Color::Rgb(230, 180, 100)),
+                    .fg(code_color),
             ),
             TextSegment::Link {
                 text,
@@ -85,8 +108,8 @@ fn render_line_with_segments(
                         .add_modifier(Modifier::ITALIC)
                         .add_modifier(Modifier::UNDERLINED)
                 } else {
-                    // Regular links: green
-                    Style::default().fg(Color::Rgb(100, 200, 100))
+                    // Regular links: use theme color
+                    Style::default().fg(link_color)
                 };
 
                 // Add bold/italic modifiers if present
@@ -157,7 +180,7 @@ fn segments_to_plain_text(segments: &[TextSegment]) -> String {
             TextSegment::Bold(text) => text.clone(),
             TextSegment::Italic(text) => text.clone(),
             TextSegment::BoldItalic(text) => text.clone(),
-            TextSegment::InlineCode(text) => format!("`{}`", text),
+            TextSegment::InlineCode(text) => text.clone(),
             TextSegment::Link {
                 text,
                 url,
@@ -179,4 +202,3 @@ fn segments_to_plain_text(segments: &[TextSegment]) -> String {
         .collect::<Vec<_>>()
         .join("")
 }
-

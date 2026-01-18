@@ -6,6 +6,7 @@ mod text_style;
 mod viewport;
 mod viewport_style;
 mod width;
+mod with_theme;
 
 pub use config::*;
 pub use new::*;

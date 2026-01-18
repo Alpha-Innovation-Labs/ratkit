@@ -44,6 +44,43 @@ impl<'a> MarkdownWidget<'a> {
         let document_y = (relative_y + self.scroll.scroll_offset) as i32;
         let document_x = relative_x as i32;
 
+        // Check if mouse is over TOC area - handle TOC scrolling if so
+        if self.show_toc {
+            if let Some(toc_area) = self.calculate_toc_area(area) {
+                let is_over_toc = event.column >= toc_area.x
+                    && event.column < toc_area.x + toc_area.width
+                    && event.row >= toc_area.y
+                    && event.row < toc_area.y + toc_area.height;
+
+                if is_over_toc {
+                    // Handle scroll events for TOC scrolling
+                    match event.kind {
+                        MouseEventKind::ScrollUp => {
+                            self.scroll.toc_scroll_offset =
+                                self.scroll.toc_scroll_offset.saturating_sub(1);
+                            // Recalculate hovered entry after scroll
+                            self.update_toc_hovered_entry(event.column, event.row, toc_area);
+                            return MarkdownEvent::None;
+                        }
+                        MouseEventKind::ScrollDown => {
+                            // Get entry count to limit scrolling
+                            let toc = crate::markdown_renderer::toc::Toc::new(self.content);
+                            let entry_count = toc.entry_count();
+                            let visible_height = toc_area.height as usize;
+                            let max_offset = entry_count.saturating_sub(visible_height);
+                            if self.scroll.toc_scroll_offset < max_offset {
+                                self.scroll.toc_scroll_offset += 1;
+                            }
+                            // Recalculate hovered entry after scroll
+                            self.update_toc_hovered_entry(event.column, event.row, toc_area);
+                            return MarkdownEvent::None;
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+
         match event.kind {
             MouseEventKind::Down(MouseButton::Left) => {
                 // Exit active selection on new click
@@ -81,8 +118,12 @@ impl<'a> MarkdownWidget<'a> {
             MouseEventKind::Drag(MouseButton::Left) => {
                 let event_result = if !self.selection.is_active() {
                     // Start selection on drag
-                    self.selection
-                        .enter(document_x, document_y, self.rendered_lines.clone(), width);
+                    self.selection.enter(
+                        document_x,
+                        document_y,
+                        self.rendered_lines.clone(),
+                        width,
+                    );
                     self.selection.anchor = Some(SelectionPos::new(document_x, document_y));
                     self.mode = super::super::MarkdownWidgetMode::Drag;
                     MarkdownEvent::SelectionStarted
@@ -107,9 +148,7 @@ impl<'a> MarkdownWidget<'a> {
                         if !text.is_empty() {
                             if let Ok(mut clipboard) = arboard::Clipboard::new() {
                                 if clipboard.set_text(&text).is_ok() {
-                                    return MarkdownEvent::Copied {
-                                        text: text.clone(),
-                                    };
+                                    return MarkdownEvent::Copied { text: text.clone() };
                                 }
                             }
                         }
@@ -176,9 +215,7 @@ impl<'a> MarkdownWidget<'a> {
                 }
             }
 
-            return MarkdownEvent::FocusedLine {
-                line: clicked_line,
-            };
+            return MarkdownEvent::FocusedLine { line: clicked_line };
         }
 
         MarkdownEvent::None
@@ -240,11 +277,7 @@ impl<'a> MarkdownWidget<'a> {
     /// Get line information at a given screen position.
     ///
     /// Returns (line_number, line_kind, content) if found.
-    fn get_line_info_at_position(
-        &self,
-        y: usize,
-        width: usize,
-    ) -> Option<(usize, String, String)> {
+    fn get_line_info_at_position(&self, y: usize, width: usize) -> Option<(usize, String, String)> {
         use crate::markdown_renderer::markdown_elements::ElementKind;
 
         let elements = crate::markdown_renderer::render_markdown_to_elements(self.content, true);
@@ -296,7 +329,10 @@ impl<'a> MarkdownWidget<'a> {
     }
 
     /// Extract plain text from an ElementKind.
-    fn get_element_text(&self, kind: &crate::markdown_renderer::markdown_elements::ElementKind) -> String {
+    fn get_element_text(
+        &self,
+        kind: &crate::markdown_renderer::markdown_elements::ElementKind,
+    ) -> String {
         use crate::markdown_renderer::markdown_elements::{ElementKind, TextSegment};
 
         fn segment_to_text(seg: &TextSegment) -> &str {
@@ -314,23 +350,19 @@ impl<'a> MarkdownWidget<'a> {
         }
 
         match kind {
-            ElementKind::Heading { text, .. } => {
-                text.iter().map(segment_to_text).collect()
-            }
-            ElementKind::Paragraph(segments) => {
-                segments.iter().map(segment_to_text).collect()
-            }
+            ElementKind::Heading { text, .. } => text.iter().map(segment_to_text).collect(),
+            ElementKind::Paragraph(segments) => segments.iter().map(segment_to_text).collect(),
             ElementKind::CodeBlockContent { content, .. } => content.clone(),
             ElementKind::CodeBlockHeader { language, .. } => language.clone(),
-            ElementKind::ListItem { content, .. } => {
-                content.iter().map(segment_to_text).collect()
-            }
+            ElementKind::ListItem { content, .. } => content.iter().map(segment_to_text).collect(),
             ElementKind::Blockquote { content, .. } => {
                 content.iter().map(segment_to_text).collect()
             }
-            ElementKind::Frontmatter { fields, .. } => {
-                fields.iter().map(|(k, v)| format!("{}: {}", k, v)).collect::<Vec<_>>().join(", ")
-            }
+            ElementKind::Frontmatter { fields, .. } => fields
+                .iter()
+                .map(|(k, v)| format!("{}: {}", k, v))
+                .collect::<Vec<_>>()
+                .join(", "),
             ElementKind::FrontmatterField { key, value } => format!("{}: {}", key, value),
             ElementKind::TableRow { cells, .. } => cells.join(" | "),
             _ => String::new(),

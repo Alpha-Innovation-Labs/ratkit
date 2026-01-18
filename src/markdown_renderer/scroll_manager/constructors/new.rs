@@ -1,8 +1,8 @@
 //! Constructor for MarkdownScrollManager.
 
-use std::collections::HashMap;
-use crate::markdown_renderer::markdown_elements::CodeBlockTheme;
 use super::super::MarkdownScrollManager;
+use crate::markdown_renderer::markdown_elements::CodeBlockTheme;
+use std::collections::HashMap;
 
 impl MarkdownScrollManager {
     /// Create a new scroll manager with default settings.
@@ -27,6 +27,9 @@ impl MarkdownScrollManager {
             git_stats_cache: None,
             git_stats_last_update: None,
             pending_g_time: None,
+            toc_scroll_offset: 0,
+            toc_hovered_entry: None,
+            toc_hovered: false,
         }
     }
 }

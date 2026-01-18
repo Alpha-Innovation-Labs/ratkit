@@ -56,7 +56,7 @@ impl CodeBlockTheme {
                 background: Color::Rgb(10, 14, 20),
                 header_bg: Color::Rgb(15, 20, 28),
                 header_text: Color::Rgb(179, 186, 197),
-                icon: Color::Rgb(255, 180, 84),      // Ayu orange
+                icon: Color::Rgb(255, 180, 84), // Ayu orange
                 line_number: Color::Rgb(70, 80, 100),
                 line_separator: Color::Rgb(45, 52, 70),
             },
@@ -181,8 +181,8 @@ pub const BULLET_MARKERS: [&str; 4] = ["● ", "○ ", "◆ ", "◇ "];
 
 /// Checkbox icons (matching render-markdown.nvim).
 pub const CHECKBOX_UNCHECKED: &str = "󰄱 "; // [ ]
-pub const CHECKBOX_CHECKED: &str = "󰱒 ";   // [x]
-pub const CHECKBOX_TODO: &str = "󰥔 ";      // [-]
+pub const CHECKBOX_CHECKED: &str = "󰱒 "; // [x]
+pub const CHECKBOX_TODO: &str = "󰥔 "; // [-]
 
 /// Blockquote marker (matching render-markdown.nvim).
 pub const BLOCKQUOTE_MARKER: &str = "▋";
@@ -191,9 +191,9 @@ pub const BLOCKQUOTE_MARKER: &str = "▋";
 pub const HORIZONTAL_RULE_CHAR: char = '─';
 
 /// Link icons (matching render-markdown.nvim).
-pub const LINK_ICON: &str = "󰌹 ";       // Default hyperlink
-pub const IMAGE_ICON: &str = "󰥶 ";      // Image
-pub const EMAIL_ICON: &str = "󰀓 ";      // Email
+pub const LINK_ICON: &str = "󰌹 "; // Default hyperlink
+pub const IMAGE_ICON: &str = "󰥶 "; // Image
+pub const EMAIL_ICON: &str = "󰀓 "; // Email
 
 /// Domain-specific link icons.
 pub fn get_link_icon(url: &str) -> &'static str {
@@ -237,12 +237,12 @@ pub fn get_link_icon(url: &str) -> &'static str {
 pub fn get_language_icon(lang: &str) -> &'static str {
     match lang.to_lowercase().as_str() {
         // Systems Programming
-        "rust" | "rs" => "\u{e7a8} ",           //
-        "c" => "\u{e61e} ",                     //
+        "rust" | "rs" => "\u{e7a8} ",                //
+        "c" => "\u{e61e} ",                          //
         "cpp" | "c++" | "cxx" | "cc" => "\u{e61d} ", //
-        "zig" => "\u{e6a9} ",                   //
-        "nim" => "\u{e677} ",                   //
-        "d" => "\u{e7af} ",                     //
+        "zig" => "\u{e6a9} ",                        //
+        "nim" => "\u{e677} ",                        //
+        "d" => "\u{e7af} ",                          //
         "ada" => "󱗆 ",
         "fortran" | "f90" | "f95" => "󱈚 ",
         "assembly" | "asm" | "nasm" => "\u{e6ab} ", //
@@ -250,34 +250,34 @@ pub fn get_language_icon(lang: &str) -> &'static str {
         // Web Frontend
         "javascript" | "js" | "mjs" | "cjs" => "\u{e74e} ", //
         "typescript" | "ts" | "mts" | "cts" => "\u{e628} ", //
-        "jsx" | "tsx" | "react" => "\u{e7ba} ", //
-        "html" | "htm" => "\u{e736} ",          //
-        "css" => "\u{e749} ",                   //
-        "scss" | "sass" => "\u{e74b} ",         //
-        "less" => "\u{e758} ",                  //
-        "svelte" => "\u{e697} ",                //
-        "vue" => "\u{e6a0} ",                   //
-        "astro" => "\u{e6b6} ",                 //
+        "jsx" | "tsx" | "react" => "\u{e7ba} ",             //
+        "html" | "htm" => "\u{e736} ",                      //
+        "css" => "\u{e749} ",                               //
+        "scss" | "sass" => "\u{e74b} ",                     //
+        "less" => "\u{e758} ",                              //
+        "svelte" => "\u{e697} ",                            //
+        "vue" => "\u{e6a0} ",                               //
+        "astro" => "\u{e6b6} ",                             //
 
         // Web Backend / Scripting
         "python" | "py" | "pyw" | "pyi" => "󰌠 ",
-        "ruby" | "rb" | "erb" => "\u{e739} ",   //
-        "php" => "\u{e73d} ",                   //
-        "perl" | "pl" | "pm" => "\u{e769} ",    //
-        "lua" => "\u{e620} ",                   //
-        "r" | "rmd" => "\u{e68a} ",             //
-        "julia" => "\u{e624} ",                 //
+        "ruby" | "rb" | "erb" => "\u{e739} ", //
+        "php" => "\u{e73d} ",                 //
+        "perl" | "pl" | "pm" => "\u{e769} ",  //
+        "lua" => "\u{e620} ",                 //
+        "r" | "rmd" => "\u{e68a} ",           //
+        "julia" => "\u{e624} ",               //
 
         // JVM Languages
-        "java" => "\u{e738} ",                  //
-        "kotlin" | "kt" | "kts" => "\u{e634} ", //
-        "scala" => "\u{e737} ",                 //
-        "groovy" => "\u{e775} ",                //
+        "java" => "\u{e738} ",                              //
+        "kotlin" | "kt" | "kts" => "\u{e634} ",             //
+        "scala" => "\u{e737} ",                             //
+        "groovy" => "\u{e775} ",                            //
         "clojure" | "clj" | "cljs" | "cljc" => "\u{e76a} ", //
 
         // .NET Languages
         "csharp" | "cs" | "c#" => "󰌛 ",
-        "fsharp" | "fs" | "f#" => "\u{e7a7} ",  //
+        "fsharp" | "fs" | "f#" => "\u{e7a7} ", //
         "vb" | "vbnet" | "visualbasic" => "󰛤 ",
 
         // Functional Languages
@@ -292,14 +292,14 @@ pub fn get_language_icon(lang: &str) -> &'static str {
         "lisp" | "cl" | "el" => "󰅲 ",
 
         // Mobile
-        "swift" => "\u{e755} ",                 //
+        "swift" => "\u{e755} ",                     //
         "objectivec" | "objc" | "m" => "\u{e61e} ", //
-        "dart" => "\u{e798} ",                  //
+        "dart" => "\u{e798} ",                      //
 
         // Go & Modern
-        "go" | "golang" => "\u{e626} ",         //
-        "v" | "vlang" => "\u{e6ac} ",           //
-        "crystal" => "\u{e7a3} ",               //
+        "go" | "golang" => "\u{e626} ", //
+        "v" | "vlang" => "\u{e6ac} ",   //
+        "crystal" => "\u{e7a3} ",       //
         "odin" => "󰮔 ",
 
         // Shell & Scripting
@@ -310,82 +310,82 @@ pub fn get_language_icon(lang: &str) -> &'static str {
 
         // Data & Config
         "json" | "jsonc" | "json5" => "\u{e60b} ", //
-        "yaml" | "yml" => "\u{e6a8} ",          //
-        "toml" => "\u{e6b2} ",                  //
+        "yaml" | "yml" => "\u{e6a8} ",             //
+        "toml" => "\u{e6b2} ",                     //
         "xml" | "xsl" | "xslt" => "󰗀 ",
-        "ini" | "conf" | "cfg" => "\u{e615} ",  //
-        "env" | "dotenv" => "\u{e615} ",        //
-        "csv" => "\u{e64a} ",                   //
+        "ini" | "conf" | "cfg" => "\u{e615} ", //
+        "env" | "dotenv" => "\u{e615} ",       //
+        "csv" => "\u{e64a} ",                  //
 
         // Markup & Docs
-        "markdown" | "md" | "mdx" => "\u{e73e} ", //
-        "latex" | "tex" => "\u{e69b} ",         //
+        "markdown" | "md" | "mdx" => "\u{e73e} ",  //
+        "latex" | "tex" => "\u{e69b} ",            //
         "rst" | "restructuredtext" => "\u{e6a5} ", //
-        "asciidoc" | "adoc" => "\u{e6a5} ",     //
-        "org" => "\u{e633} ",                   //
+        "asciidoc" | "adoc" => "\u{e6a5} ",        //
+        "org" => "\u{e633} ",                      //
 
         // Database
         "sql" | "mysql" | "postgresql" | "postgres" | "sqlite" => "\u{e706} ", //
-        "plsql" | "plpgsql" => "\u{e706} ",     //
-        "mongodb" | "mongo" => "\u{e7a4} ",     //
-        "redis" => "\u{e76d} ",                 //
-        "graphql" | "gql" => "\u{e662} ",       //
-        "prisma" => "\u{e684} ",                //
+        "plsql" | "plpgsql" => "\u{e706} ",                                    //
+        "mongodb" | "mongo" => "\u{e7a4} ",                                    //
+        "redis" => "\u{e76d} ",                                                //
+        "graphql" | "gql" => "\u{e662} ",                                      //
+        "prisma" => "\u{e684} ",                                               //
 
         // DevOps & Infrastructure
         "docker" | "dockerfile" | "containerfile" => "\u{e7b0} ", //
         "kubernetes" | "k8s" => "󱃾 ",
         "terraform" | "tf" | "hcl" => "󱁢 ",
-        "ansible" => "\u{e7b0} ",               //
-        "vagrant" => "\u{e7b0} ",               //
-        "nix" => "\u{e779} ",                   //
-        "nginx" => "\u{e776} ",                 //
-        "apache" => "\u{e769} ",                //
+        "ansible" => "\u{e7b0} ", //
+        "vagrant" => "\u{e7b0} ", //
+        "nix" => "\u{e779} ",     //
+        "nginx" => "\u{e776} ",   //
+        "apache" => "\u{e769} ",  //
 
         // Build & Package
         "makefile" | "make" | "mk" => "\u{e779} ", //
-        "cmake" => "\u{e615} ",                 //
-        "gradle" => "\u{e660} ",                //
-        "maven" | "pom" => "\u{e674} ",         //
-        "cargo" => "\u{e7a8} ",                 //  (Rust)
-        "npm" | "package.json" => "\u{e71e} ",  //
-        "yarn" => "\u{e6a7} ",                  //
-        "pnpm" => "\u{e71e} ",                  //
+        "cmake" => "\u{e615} ",                    //
+        "gradle" => "\u{e660} ",                   //
+        "maven" | "pom" => "\u{e674} ",            //
+        "cargo" => "\u{e7a8} ",                    //  (Rust)
+        "npm" | "package.json" => "\u{e71e} ",     //
+        "yarn" => "\u{e6a7} ",                     //
+        "pnpm" => "\u{e71e} ",                     //
         "pip" | "requirements" => "󰌠 ",
 
         // Version Control
         "git" | "gitignore" | "gitconfig" | "gitattributes" => "\u{e702} ", //
-        "diff" | "patch" => "\u{e728} ",        //
+        "diff" | "patch" => "\u{e728} ",                                    //
 
         // Editor & IDE
         "vim" | "vimrc" | "neovim" | "nvim" => "\u{e62b} ", //
-        "emacs" | "elisp" => "\u{e632} ",       //
+        "emacs" | "elisp" => "\u{e632} ",                   //
         "vscode" | "code" => "󰨞 ",
 
         // Other Languages
-        "solidity" | "sol" => "\u{e6ac} ",      //
+        "solidity" | "sol" => "\u{e6ac} ", //
         "move" => "󰆧 ",
         "cairo" => "󰜥 ",
         "wasm" | "wat" | "webassembly" => "\u{e6a1} ", //
-        "llvm" | "ir" => "\u{e61e} ",           //
-        "cuda" | "cu" => "\u{e61e} ",           //
-        "opencl" => "\u{e61e} ",                //
-        "glsl" | "hlsl" | "shader" => "\u{e6ad} ", //
-        "proto" | "protobuf" => "\u{e6ae} ",    //
-        "thrift" => "\u{e6ae} ",                //
-        "avro" => "\u{e6ae} ",                  //
-        "capnp" => "\u{e6ae} ",                 //
-        "flatbuffers" | "fbs" => "\u{e6ae} ",   //
+        "llvm" | "ir" => "\u{e61e} ",                  //
+        "cuda" | "cu" => "\u{e61e} ",                  //
+        "opencl" => "\u{e61e} ",                       //
+        "glsl" | "hlsl" | "shader" => "\u{e6ad} ",     //
+        "proto" | "protobuf" => "\u{e6ae} ",           //
+        "thrift" => "\u{e6ae} ",                       //
+        "avro" => "\u{e6ae} ",                         //
+        "capnp" => "\u{e6ae} ",                        //
+        "flatbuffers" | "fbs" => "\u{e6ae} ",          //
 
         // Misc
-        "regex" | "regexp" => "\u{e656} ",      //
-        "http" | "rest" => "\u{e60c} ",         //
-        "binary" | "hex" => "\u{e7a3} ",        //
-        "log" | "logs" => "\u{e714} ",          //
+        "regex" | "regexp" => "\u{e656} ",       //
+        "http" | "rest" => "\u{e60c} ",          //
+        "binary" | "hex" => "\u{e7a3} ",         //
+        "log" | "logs" => "\u{e714} ",           //
         "text" | "txt" | "plain" => "\u{e612} ", //
 
         // Default
-        _ => "\u{e612} ",                       //
+        _ => "\u{e612} ", //
     }
 }
 

@@ -11,8 +11,8 @@ use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
 use super::render_markdown_interactive_with_options::render_markdown_interactive_with_options;
 use super::selection_state::SelectionState;
 
-/// Selection highlight style (#26343F background).
-const SELECTION_STYLE: Style = Style::new().bg(Color::Rgb(38, 52, 63));
+/// Default selection highlight style (#26343F background).
+const DEFAULT_SELECTION_BG: Color = Color::Rgb(38, 52, 63);
 
 /// Render markdown with selection highlighting.
 ///
@@ -34,8 +34,40 @@ pub fn render_markdown_interactive_with_selection(
     is_resizing: bool,
     selection: &SelectionState,
 ) -> (Text<'static>, Vec<Line<'static>>) {
-    // First render normally
-    let text = render_markdown_interactive_with_options(content, scroll, area, is_resizing);
+    render_markdown_interactive_with_selection_themed(
+        content,
+        scroll,
+        area,
+        is_resizing,
+        selection,
+        None,
+    )
+}
+
+/// Render markdown with selection highlighting and optional theme support.
+///
+/// # Arguments
+///
+/// * `content` - The markdown content to render
+/// * `scroll` - The scroll manager
+/// * `area` - The area to render into
+/// * `is_resizing` - Whether the widget is being resized
+/// * `selection` - The selection state
+/// * `app_theme` - Optional application theme for selection color
+///
+/// # Returns
+///
+/// A tuple of (rendered text, all rendered lines for selection extraction).
+pub fn render_markdown_interactive_with_selection_themed(
+    content: &str,
+    scroll: &mut MarkdownScrollManager,
+    area: Rect,
+    is_resizing: bool,
+    selection: &SelectionState,
+    app_theme: Option<&crate::theme::AppTheme>,
+) -> (Text<'static>, Vec<Line<'static>>) {
+    // First render normally, passing the theme through for element styling
+    let text = render_markdown_interactive_with_options(content, scroll, area, is_resizing, app_theme);
 
     // Get all rendered lines from cache for selection extraction
     let all_lines = scroll
@@ -54,6 +86,13 @@ pub fn render_markdown_interactive_with_selection(
         return (text, all_lines);
     };
 
+    // Get selection style from theme or use default
+    let selection_style = Style::new().bg(
+        app_theme
+            .map(|t| t.background_element)
+            .unwrap_or(DEFAULT_SELECTION_BG),
+    );
+
     let highlighted_lines: Vec<Line<'static>> = text
         .lines
         .into_iter()
@@ -68,7 +107,7 @@ pub fn render_markdown_interactive_with_selection(
             }
 
             // This line is at least partially selected
-            apply_selection_to_line(line, doc_y, &start, &end)
+            apply_selection_to_line(line, doc_y, &start, &end, selection_style)
         })
         .collect();
 
@@ -81,6 +120,7 @@ fn apply_selection_to_line(
     doc_y: i32,
     start: &super::selection_state::SelectionPos,
     end: &super::selection_state::SelectionPos,
+    selection_style: Style,
 ) -> Line<'static> {
     // Calculate the character range to highlight on this line
     let line_text: String = line.spans.iter().map(|s| s.content.as_ref()).collect();
@@ -116,7 +156,8 @@ fn apply_selection_to_line(
 
         // Skip line numbers, line bar, and blockquote markers from selection
         // Line numbers are digits/spaces at the start, border is │, blockquote is ▋
-        let is_line_number = current_pos == 0 && span_text.chars().all(|c| c.is_ascii_digit() || c == ' ');
+        let is_line_number =
+            current_pos == 0 && span_text.chars().all(|c| c.is_ascii_digit() || c == ' ');
         if is_line_number || span_text.contains('│') || span_text.contains('▋') {
             new_spans.push(span);
             current_pos = span_end;
@@ -128,7 +169,7 @@ fn apply_selection_to_line(
             new_spans.push(span);
         } else if current_pos >= sel_start && span_end <= sel_end + 1 {
             // Span is entirely inside selection
-            new_spans.push(Span::styled(span_text, SELECTION_STYLE));
+            new_spans.push(Span::styled(span_text, selection_style));
         } else {
             // Span is partially selected - split it
             let chars: Vec<char> = span_text.chars().collect();
@@ -142,13 +183,14 @@ fn apply_selection_to_line(
 
             // Selected portion
             let sel_offset = (sel_start - current_pos).max(0) as usize;
-            let sel_count = ((sel_end + 1 - current_pos).min(span_len) as usize)
-                .saturating_sub(sel_offset);
+            let sel_count =
+                ((sel_end + 1 - current_pos).min(span_len) as usize).saturating_sub(sel_offset);
             if sel_count > 0 && sel_offset < chars.len() {
-                let selected: String = chars[sel_offset..sel_offset + sel_count.min(chars.len() - sel_offset)]
+                let selected: String = chars
+                    [sel_offset..sel_offset + sel_count.min(chars.len() - sel_offset)]
                     .iter()
                     .collect();
-                new_spans.push(Span::styled(selected, SELECTION_STYLE));
+                new_spans.push(Span::styled(selected, selection_style));
             }
 
             // After selection

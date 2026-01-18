@@ -50,7 +50,10 @@ impl<'a> MarkdownWidget<'a> {
         let new_offset = target_line.saturating_sub(half_viewport);
 
         // Clamp to valid range
-        let max_offset = self.scroll.total_lines.saturating_sub(self.scroll.viewport_height);
+        let max_offset = self
+            .scroll
+            .total_lines
+            .saturating_sub(self.scroll.viewport_height);
         self.scroll.scroll_offset = new_offset.min(max_offset);
 
         // Update current line
@@ -86,7 +89,8 @@ impl<'a> MarkdownWidget<'a> {
         // When hovered, expand the minimap for better visibility
         let hover_scale: u16 = if self.minimap_hovered { 2 } else { 1 };
         let minimap_width = self.minimap_config.width * hover_scale;
-        let minimap_height = (self.minimap_config.height * hover_scale).min(main_area.height.saturating_sub(1));
+        let minimap_height =
+            (self.minimap_config.height * hover_scale).min(main_area.height.saturating_sub(1));
         let padding_right: u16 = 2;
         let padding_top: u16 = 1;
         if main_area.width <= minimap_width + padding_right + 2 {
@@ -94,7 +98,10 @@ impl<'a> MarkdownWidget<'a> {
         }
 
         Some(Rect {
-            x: main_area.x + main_area.width.saturating_sub(minimap_width + padding_right),
+            x: main_area.x
+                + main_area
+                    .width
+                    .saturating_sub(minimap_width + padding_right),
             y: main_area.y + padding_top,
             width: minimap_width,
             height: minimap_height,

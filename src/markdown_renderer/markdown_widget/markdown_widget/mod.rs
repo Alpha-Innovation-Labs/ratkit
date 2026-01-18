@@ -6,6 +6,7 @@ mod traits;
 
 use crate::markdown_renderer::minimap::MinimapConfig;
 use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
+use crate::markdown_renderer::toc::TocConfig;
 
 use super::double_click_state::DoubleClickState;
 use super::selection_state::SelectionState;
@@ -69,6 +70,12 @@ pub struct MarkdownWidget<'a> {
     pub(crate) minimap_config: MinimapConfig,
     /// Whether the minimap is currently hovered.
     pub(crate) minimap_hovered: bool,
+    /// Whether to show the TOC (replaces minimap).
+    pub(crate) show_toc: bool,
+    /// Configuration for the TOC.
+    pub(crate) toc_config: TocConfig,
     /// Cached rendered lines for selection text extraction.
     pub(crate) rendered_lines: Vec<ratatui::text::Line<'static>>,
+    /// Optional application theme for styling.
+    pub(crate) app_theme: Option<&'a crate::theme::AppTheme>,
 }

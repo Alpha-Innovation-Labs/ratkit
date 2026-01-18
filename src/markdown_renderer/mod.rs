@@ -11,20 +11,29 @@
 //! - Left border for blockquotes
 
 mod file_watcher;
+mod markdown_elements;
 mod markdown_source;
 mod markdown_style;
 mod markdown_widget;
 pub mod minimap;
 mod render_markdown_to_lines;
 mod scroll_manager;
-mod markdown_elements;
 mod syntax_highlighter;
 mod theme;
+pub mod toc;
 
 #[cfg(test)]
 mod tests;
 
 pub use file_watcher::MarkdownFileWatcher;
+pub use markdown_elements::methods::render::render as render_element;
+pub use markdown_elements::methods::render::render_with_options as render_element_with_options;
+pub use markdown_elements::methods::render::RenderOptions;
+pub use markdown_elements::{
+    get_language_icon, heading_bg_color, heading_fg_color, CodeBlockBorderKind, CodeBlockColors,
+    CodeBlockTheme, ColumnAlignment, ElementKind, MarkdownElement, TableBorderKind, TextSegment,
+    BULLET_MARKERS, HEADING_ICONS,
+};
 pub use markdown_source::MarkdownSource;
 pub use markdown_style::MarkdownStyle;
 pub use markdown_widget::{
@@ -35,18 +44,15 @@ pub use markdown_widget::{
     GitStats, MarkdownDoubleClickEvent, MarkdownEvent, MarkdownRenderOptions, MarkdownWidget,
     MarkdownWidgetMode, SelectionMouseResult, SelectionState,
 };
-pub use render_markdown_to_lines::render_markdown_to_elements;
 pub use minimap::{Minimap, MinimapConfig};
+pub use render_markdown_to_lines::render_markdown_to_elements;
 pub use scroll_manager::{ExpandableState, MarkdownScrollManager};
-pub use markdown_elements::methods::render::render as render_element;
-pub use markdown_elements::methods::render::render_with_options as render_element_with_options;
-pub use markdown_elements::methods::render::RenderOptions;
-pub use markdown_elements::{CodeBlockColors, CodeBlockTheme, ElementKind, MarkdownElement, TextSegment};
 pub use syntax_highlighter::{SyntaxHighlighter, SyntaxThemeVariant};
 pub use theme::{
     get_effective_theme_variant, load_theme_from_json, palettes, ColorMapping, ColorPalette,
     MarkdownTheme, ThemeVariant,
 };
+pub use toc::{Toc, TocConfig, TocEntry};
 
 /// Render markdown string to ratatui Text with default styling
 ///

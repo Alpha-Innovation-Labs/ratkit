@@ -30,9 +30,7 @@ pub fn render_header(
     let remaining = effective_width.saturating_sub(header_len + 4); // 4 for ╭─ and ─╮
 
     let border_style = Style::default().fg(colors.border);
-    let header_style = Style::default()
-        .fg(colors.header_text)
-        .bg(colors.header_bg);
+    let header_style = Style::default().fg(colors.header_text).bg(colors.header_bg);
     let icon_style = Style::default()
         .fg(colors.icon)
         .bg(colors.header_bg)
@@ -64,7 +62,9 @@ pub fn render_content(
 ) -> Line<'static> {
     let colors = theme.colors();
     let border_style = Style::default().fg(colors.border);
-    let line_num_style = Style::default().fg(colors.line_number).bg(colors.background);
+    let line_num_style = Style::default()
+        .fg(colors.line_number)
+        .bg(colors.background);
     let bg_style = Style::default().bg(colors.background);
 
     // Account for blockquote prefix in width

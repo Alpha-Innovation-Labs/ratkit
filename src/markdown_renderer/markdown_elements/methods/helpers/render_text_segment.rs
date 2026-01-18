@@ -21,10 +21,8 @@ pub fn render_text_segment(segment: &TextSegment, base_style: Style) -> Span<'st
                 .add_modifier(Modifier::ITALIC),
         ),
         TextSegment::InlineCode(text) => Span::styled(
-            format!(" {} ", text),
-            base_style
-                .bg(Color::Rgb(60, 60, 60))
-                .fg(Color::Rgb(230, 180, 100)),
+            text.clone(),
+            base_style.fg(Color::Rgb(17, 19, 23)), // #111317
         ),
         TextSegment::Link {
             text,

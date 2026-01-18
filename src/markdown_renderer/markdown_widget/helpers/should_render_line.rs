@@ -1,7 +1,7 @@
 //! Check if a line should be rendered based on collapse state.
 
+use crate::markdown_renderer::markdown_elements::{ElementKind, MarkdownElement};
 use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
-use crate::markdown_renderer::markdown_elements::{MarkdownElement, ElementKind};
 
 /// Check if a markdown element should be rendered based on collapse state.
 ///

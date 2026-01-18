@@ -5,10 +5,36 @@ use unicode_width::UnicodeWidthStr;
 
 use super::helpers::{flush_paragraph, parse_frontmatter};
 use crate::markdown_renderer::markdown_elements::{
-    CheckboxState, CodeBlockBorderKind, ColumnAlignment, MarkdownElement, ElementKind,
+    CheckboxState, CodeBlockBorderKind, ColumnAlignment, ElementKind, MarkdownElement,
     TableBorderKind, TextSegment,
 };
 use crate::markdown_renderer::SyntaxHighlighter;
+
+/// Calculate the display width of a string for terminal rendering.
+/// This uses unicode_width but treats emoji as width 1 since many terminals
+/// render emoji at width 1 instead of the Unicode-standard width 2.
+fn terminal_display_width(s: &str) -> usize {
+    s.chars()
+        .map(|c| {
+            // Check if character is likely an emoji (simplified check)
+            // Emoji are typically in these ranges or have variation selectors
+            let cp = c as u32;
+            if (0x1F300..=0x1F9FF).contains(&cp)  // Miscellaneous Symbols and Pictographs, Emoticons, etc.
+                || (0x2600..=0x26FF).contains(&cp)  // Miscellaneous Symbols
+                || (0x2700..=0x27BF).contains(&cp)  // Dingbats
+                || (0x1F600..=0x1F64F).contains(&cp) // Emoticons
+                || (0x1F680..=0x1F6FF).contains(&cp) // Transport and Map Symbols
+                || (0x2300..=0x23FF).contains(&cp)  // Miscellaneous Technical
+            {
+                // Treat emoji as width 1 for terminal compatibility
+                1
+            } else {
+                // Use standard unicode width for other characters
+                unicode_width::UnicodeWidthChar::width(c).unwrap_or(0)
+            }
+        })
+        .sum()
+}
 
 /// Render markdown content to markdown elements.
 ///
@@ -117,7 +143,10 @@ pub fn render_markdown_to_elements(
     }
     // Helper to get line number from byte offset
     let get_line = |offset: usize| -> usize {
-        byte_to_line.get(offset).copied().unwrap_or(current_source_line)
+        byte_to_line
+            .get(offset)
+            .copied()
+            .unwrap_or(current_source_line)
     };
 
     let options = Options::all();
@@ -285,6 +314,13 @@ pub fn render_markdown_to_elements(
                         section_id: None, // Headings themselves are not in a section (always visible)
                         source_line: event_source_line,
                     });
+
+                    // Add empty line after heading to match source layout
+                    lines.push(MarkdownElement {
+                        kind: ElementKind::Empty,
+                        section_id: current_section_id,
+                        source_line: event_source_line,
+                    });
                 }
                 TagEnd::Paragraph => {
                     flush_paragraph(
@@ -407,13 +443,13 @@ pub fn render_markdown_to_elements(
                                 .enumerate()
                                 .map(|(j, cell)| {
                                     let width =
-                                        table_col_widths.get(j).copied().unwrap_or(cell.width());
+                                        table_col_widths.get(j).copied().unwrap_or_else(|| terminal_display_width(cell));
                                     let alignment = table_alignments
                                         .get(j)
                                         .copied()
                                         .unwrap_or(ColumnAlignment::None);
-                                    // Pad based on unicode display width, not byte length
-                                    let cell_width = cell.width();
+                                    // Pad based on terminal display width (emoji-aware)
+                                    let cell_width = terminal_display_width(cell);
                                     let padding = width.saturating_sub(cell_width);
                                     match alignment {
                                         ColumnAlignment::Right => {
@@ -478,7 +514,7 @@ pub fn render_markdown_to_elements(
                 TagEnd::TableHead => {
                     // Finalize header row
                     for (i, cell) in current_row_cells.iter().enumerate() {
-                        let cell_width = cell.width();
+                        let cell_width = terminal_display_width(cell);
                         if i >= table_col_widths.len() {
                             table_col_widths.push(cell_width);
                         } else {
@@ -493,7 +529,7 @@ pub fn render_markdown_to_elements(
                     // Finalize body row
                     if table_header_done {
                         for (i, cell) in current_row_cells.iter().enumerate() {
-                            let cell_width = cell.width();
+                            let cell_width = terminal_display_width(cell);
                             if i >= table_col_widths.len() {
                                 table_col_widths.push(cell_width);
                             } else {
@@ -582,11 +618,12 @@ pub fn render_markdown_to_elements(
             }
             Event::Code(code) => {
                 if in_table {
-                    // Add inline code to cell
+                    // Add inline code to cell - just use the raw content
+                    // The code content is displayed as-is without wrapping backticks
                     if let Some(last_cell) = current_row_cells.last_mut() {
-                        last_cell.push_str(&format!("`{}`", code));
+                        last_cell.push_str(&code);
                     } else {
-                        current_row_cells.push(format!("`{}`", code));
+                        current_row_cells.push(code.to_string());
                     }
                 } else {
                     current_segments.push(TextSegment::InlineCode(code.to_string()));
@@ -602,8 +639,15 @@ pub fn render_markdown_to_elements(
                 current_segments.insert(0, TextSegment::Checkbox(state));
             }
             Event::SoftBreak => {
+                // Treat soft breaks as actual line breaks to match source file layout
                 if !in_code_block && !in_table {
-                    current_segments.push(TextSegment::Plain(" ".to_string()));
+                    flush_paragraph(
+                        &mut lines,
+                        &mut current_segments,
+                        blockquote_depth,
+                        current_section_id,
+                        event_source_line,
+                    );
                 }
             }
             Event::HardBreak => {

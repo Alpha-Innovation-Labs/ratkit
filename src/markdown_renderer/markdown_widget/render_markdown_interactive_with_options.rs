@@ -2,13 +2,13 @@
 
 use ratatui::{
     layout::Rect,
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     text::{Line, Span, Text},
 };
 
-use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
 use crate::markdown_renderer::markdown_elements::methods::render::RenderOptions;
 use crate::markdown_renderer::markdown_elements::ElementKind;
+use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
 
 use super::helpers::{hash_content, should_render_line};
 
@@ -20,6 +20,7 @@ use super::helpers::{hash_content, should_render_line};
 /// * `scroll` - The scroll manager
 /// * `area` - The area to render into
 /// * `_is_resizing` - Whether the widget is being resized (unused)
+/// * `app_theme` - Optional application theme for consistent styling
 ///
 /// # Returns
 ///
@@ -29,16 +30,36 @@ pub fn render_markdown_interactive_with_options(
     scroll: &mut MarkdownScrollManager,
     area: Rect,
     _is_resizing: bool,
+    app_theme: Option<&crate::theme::AppTheme>,
 ) -> Text<'static> {
     // Calculate line number width if document line numbers are enabled
     // Use fixed width of 6 chars: "  1 │ " to "999 │ " covers most documents
-    let line_num_width = if scroll.show_document_line_numbers { 6 } else { 0 };
+    let line_num_width = if scroll.show_document_line_numbers {
+        6
+    } else {
+        0
+    };
 
     let width = (area.width as usize).saturating_sub(line_num_width);
     let inner_height = area.height as usize;
     let content_hash = hash_content(content);
     let show_line_numbers = scroll.show_line_numbers;
     let theme = scroll.code_block_theme;
+
+    // Hash key parts of the app_theme for cache invalidation when theme changes
+    // We hash a few representative colors to detect theme changes
+    let app_theme_hash = app_theme
+        .map(|t| {
+            use std::hash::{Hash, Hasher};
+            use std::collections::hash_map::DefaultHasher;
+            let mut hasher = DefaultHasher::new();
+            // Hash a few key colors that are likely different between themes
+            format!("{:?}{:?}{:?}{:?}{:?}",
+                t.primary, t.text, t.background, t.markdown.heading, t.markdown.code
+            ).hash(&mut hasher);
+            hasher.finish()
+        })
+        .unwrap_or(0);
 
     // Check if we can use fully cached rendered lines
     let render_cache_valid = scroll
@@ -49,6 +70,7 @@ pub fn render_markdown_interactive_with_options(
                 && c.width == width
                 && c.show_line_numbers == show_line_numbers
                 && c.theme == theme
+                && c.app_theme_hash == app_theme_hash
         })
         .unwrap_or(false);
 
@@ -134,6 +156,7 @@ pub fn render_markdown_interactive_with_options(
         let render_options = RenderOptions {
             show_line_numbers,
             theme,
+            app_theme,
         };
 
         let mut lines = Vec::new();
@@ -167,6 +190,7 @@ pub fn render_markdown_interactive_with_options(
             width,
             show_line_numbers,
             theme,
+            app_theme_hash,
             lines: lines.clone(),
             line_boundaries: boundaries.clone(),
         });
@@ -181,11 +205,6 @@ pub fn render_markdown_interactive_with_options(
     let start = scroll.scroll_offset.min(all_rendered_lines.len());
     let end = (scroll.scroll_offset + inner_height).min(all_rendered_lines.len());
     let visible_lines: Vec<Line<'static>> = all_rendered_lines[start..end].to_vec();
-
-    // Current line style (subtle highlight)
-    let current_line_style = Style::default()
-        .bg(Color::Rgb(38, 52, 63))
-        .add_modifier(Modifier::BOLD);
 
     // Check if a visual line is the current line
     let current_visual_line = scroll.current_line.saturating_sub(1); // Convert to 0-indexed
@@ -202,7 +221,8 @@ pub fn render_markdown_interactive_with_options(
             .bg(theme_colors.background);
 
         // Build a map: visual_line_idx -> (logical_line_num, is_first_line_of_logical)
-        let mut visual_to_logical: Vec<(usize, bool)> = Vec::with_capacity(all_rendered_lines.len());
+        let mut visual_to_logical: Vec<(usize, bool)> =
+            Vec::with_capacity(all_rendered_lines.len());
         for (logical_idx, (_start_idx, count)) in line_boundaries.iter().enumerate() {
             for offset in 0..*count {
                 let is_first = offset == 0;
@@ -240,16 +260,25 @@ pub fn render_markdown_interactive_with_options(
                 // Apply current line highlighting to content
                 // Skip blockquote markers (▋) to keep them visually distinct
                 if is_current {
+                    let highlight_bg = Color::Rgb(38, 52, 63);
+                    let mut content_width = 0usize;
                     for span in line.spans.drain(..) {
+                        content_width += span.content.chars().count();
                         if span.content.contains('▋') {
                             // Keep blockquote marker without highlight
                             new_spans.push(span);
                         } else {
                             new_spans.push(Span::styled(
                                 span.content,
-                                span.style.bg(Color::Rgb(38, 52, 63)),
+                                span.style.bg(highlight_bg),
                             ));
                         }
+                    }
+                    // Add padding to fill the rest of the line (account for line number width)
+                    let total_content_width = line_num_width + content_width;
+                    if total_content_width < area.width as usize {
+                        let padding = " ".repeat(area.width as usize - total_content_width);
+                        new_spans.push(Span::styled(padding, Style::default().bg(highlight_bg)));
                     }
                 } else {
                     new_spans.extend(line.spans.drain(..));
@@ -269,17 +298,22 @@ pub fn render_markdown_interactive_with_options(
                 let is_current = visual_idx == current_visual_line;
 
                 if is_current {
-                    let new_spans: Vec<Span> = line
-                        .spans
-                        .drain(..)
-                        .map(|span| {
-                            if span.content.contains('▋') {
-                                span
-                            } else {
-                                Span::styled(span.content, span.style.patch(current_line_style))
-                            }
-                        })
-                        .collect();
+                    let highlight_bg = Color::Rgb(38, 52, 63);
+                    let mut content_width = 0usize;
+                    let mut new_spans = Vec::new();
+                    for span in line.spans.drain(..) {
+                        content_width += span.content.chars().count();
+                        if span.content.contains('▋') {
+                            new_spans.push(span);
+                        } else {
+                            new_spans.push(Span::styled(span.content, span.style.bg(highlight_bg)));
+                        }
+                    }
+                    // Add padding to fill the rest of the line
+                    if content_width < area.width as usize {
+                        let padding = " ".repeat(area.width as usize - content_width);
+                        new_spans.push(Span::styled(padding, Style::default().bg(highlight_bg)));
+                    }
                     Line::from(new_spans)
                 } else {
                     line

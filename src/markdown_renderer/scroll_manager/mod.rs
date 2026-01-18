@@ -7,9 +7,9 @@ mod constructors;
 mod methods;
 mod traits;
 
+use super::markdown_elements::{CodeBlockTheme, MarkdownElement};
 use super::markdown_source::MarkdownSource;
 use super::markdown_widget::GitStats;
-use super::markdown_elements::{CodeBlockTheme, MarkdownElement};
 use ratatui::text::Line;
 use std::collections::HashMap;
 use std::time::Instant;
@@ -59,6 +59,12 @@ pub struct MarkdownScrollManager {
     pub(crate) git_stats_last_update: Option<Instant>,
     /// Pending 'g' keypress time for vim-style gg (go to top).
     pub(crate) pending_g_time: Option<Instant>,
+    /// TOC scroll offset (for scrolling within the TOC list).
+    pub toc_scroll_offset: usize,
+    /// Currently hovered TOC entry index.
+    pub toc_hovered_entry: Option<usize>,
+    /// Whether the TOC is currently being hovered (expanded).
+    pub toc_hovered: bool,
 }
 
 /// Cache for parsed markdown (doesn't depend on width).
@@ -81,6 +87,8 @@ pub struct RenderCache {
     pub show_line_numbers: bool,
     /// Theme used for rendering.
     pub theme: CodeBlockTheme,
+    /// Hash of the app theme (for cache invalidation on theme change).
+    pub app_theme_hash: u64,
     /// Cached rendered lines.
     pub lines: Vec<Line<'static>>,
     /// Line boundaries: (start_visual_idx, visual_line_count) for each logical line.

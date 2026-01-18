@@ -1,6 +1,6 @@
 //! Main render implementation for MarkdownElement.
 
-use super::super::{CodeBlockTheme, MarkdownElement, ElementKind};
+use super::super::{CodeBlockTheme, ElementKind, MarkdownElement};
 use super::render_blockquote;
 use super::render_code_block;
 use super::render_expandable;
@@ -15,11 +15,13 @@ use ratatui::text::Line;
 
 /// Render options for markdown elements
 #[derive(Debug, Clone, Copy, Default)]
-pub struct RenderOptions {
+pub struct RenderOptions<'a> {
     /// Whether to show line numbers in code blocks
     pub show_line_numbers: bool,
     /// Color theme for code blocks
     pub theme: CodeBlockTheme,
+    /// Optional application theme for consistent styling
+    pub app_theme: Option<&'a crate::theme::AppTheme>,
 }
 
 /// Render a markdown element to ratatui Line with given width.
@@ -31,7 +33,7 @@ pub fn render(element: &MarkdownElement, width: usize) -> Vec<Line<'static>> {
 pub fn render_with_options(
     element: &MarkdownElement,
     width: usize,
-    options: RenderOptions,
+    options: RenderOptions<'_>,
 ) -> Vec<Line<'static>> {
     match &element.kind {
         ElementKind::Heading {
@@ -39,9 +41,9 @@ pub fn render_with_options(
             text,
             collapsed,
             ..
-        } => render_heading::render(element, *level, text, *collapsed, width),
+        } => render_heading::render(element, *level, text, *collapsed, width, options.app_theme),
         ElementKind::HeadingBorder { level } => {
-            vec![render_heading::render_border(element, *level, width)]
+            vec![render_heading::render_border(element, *level, width, options.app_theme)]
         }
         ElementKind::CodeBlockHeader {
             language,
@@ -87,17 +89,15 @@ pub fn render_with_options(
                 *blockquote_depth,
             )]
         }
-        ElementKind::Paragraph(segments) => {
-            render_paragraph::render(element, segments, width)
-        }
+        ElementKind::Paragraph(segments) => render_paragraph::render(element, segments, width, options.app_theme),
         ElementKind::ListItem {
             depth,
             ordered,
             number,
             content,
-        } => render_list_item::render(element, *depth, *ordered, *number, content, width),
+        } => render_list_item::render(element, *depth, *ordered, *number, content, width, options.app_theme),
         ElementKind::Blockquote { content, depth } => {
-            render_blockquote::render(element, content, *depth, width)
+            render_blockquote::render(element, content, *depth, width, options.app_theme)
         }
         ElementKind::TableRow {
             cells, is_header, ..
@@ -108,7 +108,7 @@ pub fn render_with_options(
             vec![render_table_border::render(element, kind)]
         }
         ElementKind::HorizontalRule => {
-            vec![render_horizontal_rule::render(element, width)]
+            vec![render_horizontal_rule::render(element, width, options.app_theme)]
         }
         ElementKind::Empty => {
             // Use a space so the line can receive highlight styling
@@ -147,6 +147,7 @@ pub fn render_with_options(
             *collapsed,
             *total_lines,
             width,
+            options.app_theme,
         ),
         ElementKind::ExpandToggle {
             content_id,
@@ -158,6 +159,7 @@ pub fn render_with_options(
             *expanded,
             *hidden_count,
             width,
+            options.app_theme,
         ),
     }
 }

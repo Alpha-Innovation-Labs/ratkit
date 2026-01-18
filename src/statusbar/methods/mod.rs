@@ -1,3 +1,5 @@
+mod with_theme;
+
 use ratatui::style::{Color, Style};
 use ratatui::text::Span;
 

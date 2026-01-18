@@ -1,3 +1,6 @@
+mod apply_theme;
+mod with_theme;
+
 use crate::menu_bar::functions::display_width;
 use crate::menu_bar::MenuBar;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};

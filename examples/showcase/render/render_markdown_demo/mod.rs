@@ -6,6 +6,7 @@ use ratatui::{
     layout::Rect,
     widgets::{Block, BorderType, Borders, Widget},
 };
+use ratatui_toolkit::AppTheme;
 
 use crate::app::App;
 use helpers::{
@@ -14,11 +15,24 @@ use helpers::{
 };
 
 /// Render the markdown demo.
-pub fn render_markdown_demo(frame: &mut ratatui::Frame, area: Rect, app: &mut App) {
+///
+/// # Arguments
+///
+/// * `frame` - The frame to render into.
+/// * `area` - The area to render in.
+/// * `app` - The application state.
+/// * `theme` - The application theme.
+pub fn render_markdown_demo(
+    frame: &mut ratatui::Frame,
+    area: Rect,
+    app: &mut App,
+    theme: &AppTheme,
+) {
     app.markdown_split.update_divider_position(area);
     let areas = calculate_split_areas(area, app.markdown_split.split_percent);
     let selection_active = app.markdown_selection.is_active();
     let border_style = get_border_style(
+        theme,
         selection_active,
         app.markdown_split.is_hovering,
         app.markdown_split.is_dragging,
@@ -33,7 +47,7 @@ pub fn render_markdown_demo(frame: &mut ratatui::Frame, area: Rect, app: &mut Ap
     let inner_area = block.inner(areas.left);
     block.render(areas.left, frame.buffer_mut());
 
-    // Render markdown content with minimap and statusline
+    // Render markdown content with TOC and statusline using the current theme
     app.markdown_rendered_lines = render_markdown_content(
         &app.markdown_scroll.content().unwrap_or("").to_string(),
         &mut app.markdown_scroll,
@@ -42,7 +56,10 @@ pub fn render_markdown_demo(frame: &mut ratatui::Frame, area: Rect, app: &mut Ap
         app.markdown_split.is_dragging,
         &app.markdown_selection,
         selection_active,
-        app.minimap_hovered,
+        app.toc_hovered,
+        app.toc_hovered_entry,
+        app.toc_scroll_offset,
+        theme,
     );
 
     render_controls_panel(frame, areas.right, border_style);

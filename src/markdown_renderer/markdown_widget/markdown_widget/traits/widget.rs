@@ -5,6 +5,7 @@ use ratatui::{layout::Rect, widgets::Widget};
 use super::super::MarkdownWidget;
 use crate::markdown_renderer::markdown_widget::render_markdown_interactive_with_options;
 use crate::markdown_renderer::minimap::Minimap;
+use crate::markdown_renderer::toc::Toc;
 
 impl<'a> Widget for MarkdownWidget<'a> {
     fn render(self, area: Rect, buf: &mut ratatui::buffer::Buffer) {
@@ -25,21 +26,65 @@ impl<'a> Widget for MarkdownWidget<'a> {
             (area, None)
         };
 
-        // Calculate minimap overlay area (small box in top-right corner, overlays content)
-        // When hovered, expand the minimap for better visibility
-        let hover_scale: u16 = if self.minimap_hovered { 2 } else { 1 };
-        let minimap_width = self.minimap_config.width * hover_scale;
-        let minimap_height = (self.minimap_config.height * hover_scale).min(main_area.height.saturating_sub(1));
         let padding_right: u16 = 2;
         let padding_top: u16 = 1;
         let content_area = main_area;
-        let minimap_area = if self.show_minimap && main_area.width > minimap_width + padding_right + 2 {
-            Some(Rect {
-                x: main_area.x + main_area.width.saturating_sub(minimap_width + padding_right),
-                y: main_area.y + padding_top,
-                width: minimap_width,
-                height: minimap_height,
-            })
+
+        // Calculate overlay area for TOC or minimap
+        let overlay_area = if self.show_toc {
+            // TOC: compact when not hovered, expanded when hovered
+            // Dynamic width based on content for expanded mode
+            let toc_width = if self.scroll.toc_hovered {
+                Toc::required_expanded_width(self.content, self.toc_config.show_border)
+                    .min(main_area.width.saturating_sub(padding_right + 4))
+            } else {
+                self.toc_config.compact_width
+            };
+            // Dynamic height based on content
+            let toc_height = if self.scroll.toc_hovered {
+                // Expanded: one row per entry
+                Toc::required_height(self.content, self.toc_config.show_border)
+                    .min(main_area.height.saturating_sub(1))
+            } else {
+                // Compact: based on entries and line_spacing
+                Toc::required_compact_height(
+                    self.content,
+                    self.toc_config.line_spacing,
+                    self.toc_config.show_border,
+                )
+                .min(main_area.height.saturating_sub(1))
+            };
+
+            if main_area.width > toc_width + padding_right + 2 {
+                Some(Rect {
+                    x: main_area.x + main_area.width.saturating_sub(toc_width + padding_right),
+                    y: main_area.y + padding_top,
+                    width: toc_width,
+                    height: toc_height,
+                })
+            } else {
+                None
+            }
+        } else if self.show_minimap {
+            // Minimap: scale up when hovered
+            let hover_scale: u16 = if self.minimap_hovered { 2 } else { 1 };
+            let minimap_width = self.minimap_config.width * hover_scale;
+            let minimap_height =
+                (self.minimap_config.height * hover_scale).min(main_area.height.saturating_sub(1));
+
+            if main_area.width > minimap_width + padding_right + 2 {
+                Some(Rect {
+                    x: main_area.x
+                        + main_area
+                            .width
+                            .saturating_sub(minimap_width + padding_right),
+                    y: main_area.y + padding_top,
+                    width: minimap_width,
+                    height: minimap_height,
+                })
+            } else {
+                None
+            }
         } else {
             None
         };
@@ -51,6 +96,7 @@ impl<'a> Widget for MarkdownWidget<'a> {
             self.scroll,
             content_area,
             self.is_resizing,
+            self.app_theme,
         );
 
         // Render markdown content
@@ -68,18 +114,35 @@ impl<'a> Widget for MarkdownWidget<'a> {
             }
         }
 
-        // Render minimap
-        if let Some(mm_area) = minimap_area {
-            let viewport_start = self.scroll.scroll_offset;
-            let viewport_end = viewport_start + content_area.height as usize;
-            let total_lines = self.scroll.total_lines;
+        // Render TOC or minimap overlay
+        if let Some(ov_area) = overlay_area {
+            if self.show_toc {
+                // Render TOC
+                let viewport_start = self.scroll.scroll_offset;
+                let viewport_height = content_area.height as usize;
+                let total_lines = self.scroll.total_lines;
 
-            let minimap = Minimap::new(self.content)
-                .width(mm_area.width)
-                .viewport(viewport_start, viewport_end, total_lines)
-                .config(self.minimap_config.clone());
+                let toc = Toc::new(self.content)
+                    .expanded(self.scroll.toc_hovered)
+                    .viewport(viewport_start, viewport_height, total_lines)
+                    .hovered(self.scroll.toc_hovered_entry)
+                    .toc_scroll(self.scroll.toc_scroll_offset)
+                    .config(self.toc_config.clone());
 
-            minimap.render(mm_area, buf);
+                toc.render(ov_area, buf);
+            } else if self.show_minimap {
+                // Render minimap
+                let viewport_start = self.scroll.scroll_offset;
+                let viewport_end = viewport_start + content_area.height as usize;
+                let total_lines = self.scroll.total_lines;
+
+                let minimap = Minimap::new(self.content)
+                    .width(ov_area.width)
+                    .viewport(viewport_start, viewport_end, total_lines)
+                    .config(self.minimap_config.clone());
+
+                minimap.render(ov_area, buf);
+            }
         }
 
         // Render statusline

@@ -1,8 +1,8 @@
 //! Handle click event at the given position.
 
+use crate::markdown_renderer::markdown_elements::ElementKind;
 use crate::markdown_renderer::render_element;
 use crate::markdown_renderer::scroll_manager::MarkdownScrollManager;
-use crate::markdown_renderer::markdown_elements::ElementKind;
 
 use super::should_render_line::should_render_line;
 

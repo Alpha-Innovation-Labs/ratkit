@@ -22,5 +22,5 @@ pub fn render_markdown_interactive(
     scroll: &mut MarkdownScrollManager,
     area: Rect,
 ) -> Text<'static> {
-    render_markdown_interactive_with_options(content, scroll, area, false)
+    render_markdown_interactive_with_options(content, scroll, area, false, None)
 }
