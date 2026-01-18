@@ -1,7 +1,7 @@
 //! Builder method for setting the theme.
 
 use crate::diff_file_tree::DiffFileTree;
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 
 impl DiffFileTree {
     /// Sets the application theme for styling.
@@ -21,7 +21,7 @@ impl DiffFileTree {
     ///
     /// ```rust
     /// use ratatui_toolkit::diff_file_tree::DiffFileTree;
-    /// use ratatui_toolkit::theme::AppTheme;
+    /// use ratatui_toolkit::services::theme::AppTheme;
     ///
     /// let theme = AppTheme::default();
     /// let tree = DiffFileTree::new().with_theme(&theme);

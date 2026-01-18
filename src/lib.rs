@@ -113,6 +113,10 @@ pub mod hotkey_modal;
 #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
 pub mod markdown_renderer;
 
+#[cfg(feature = "markdown")]
+#[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
+pub mod markdown_widget;
+
 #[cfg(feature = "terminal")]
 #[cfg_attr(docsrs, doc(cfg(feature = "terminal")))]
 pub mod termtui;
@@ -129,9 +133,8 @@ pub mod file_system_tree;
 #[cfg_attr(docsrs, doc(cfg(feature = "master-layout")))]
 pub mod master_layout;
 
-#[cfg(feature = "theme")]
-#[cfg_attr(docsrs, doc(cfg(feature = "theme")))]
-pub mod theme;
+// Services module - shared infrastructure
+pub mod services;
 
 // Re-export commonly used types - always available
 pub use button::render_title_with_buttons::render_title_with_buttons;
@@ -182,10 +185,10 @@ pub use hotkey_footer::{HotkeyFooter, HotkeyFooterBuilder, HotkeyItem};
 pub use hotkey_modal::{functions::render_hotkey_modal, Hotkey, HotkeyModalConfig, HotkeySection};
 
 #[cfg(feature = "markdown")]
-pub use markdown_renderer::{
-    render_markdown, render_markdown_with_style, DoubleClickState, GitStats,
-    MarkdownDoubleClickEvent, MarkdownEvent, MarkdownScrollManager, MarkdownStyle, MarkdownWidget,
-    MarkdownWidgetMode, SelectionPos, SelectionState,
+pub use markdown_widget::{
+    render_markdown, render_markdown_with_style, CodeBlockTheme, DoubleClickState, GitStats,
+    MarkdownDoubleClickEvent, MarkdownEvent, MarkdownFileWatcher, MarkdownScrollManager,
+    MarkdownStyle, MarkdownWidget, MarkdownWidgetMode, SelectionPos, SelectionState,
 };
 
 #[cfg(feature = "terminal")]
@@ -204,7 +207,10 @@ pub use master_layout::{
 };
 
 #[cfg(feature = "theme")]
-pub use theme::{AppTheme, DiffColors, MarkdownColors, SyntaxColors, ThemeVariant};
+pub use services::theme::{AppTheme, DiffColors, MarkdownColors, SyntaxColors, ThemeVariant};
+
+// File watcher service - always available
+pub use services::file_watcher::{FileWatcher, WatchConfig, WatchMode};
 
 /// Prelude module for convenient imports
 ///
@@ -269,9 +275,9 @@ pub mod prelude {
     pub use crate::hotkey_modal::HotkeySection;
 
     #[cfg(feature = "markdown")]
-    pub use crate::markdown_renderer::{
-        render_markdown, render_markdown_with_style, DoubleClickState, MarkdownScrollManager,
-        MarkdownStyle, MarkdownWidget, SelectionState,
+    pub use crate::markdown_widget::{
+        render_markdown, render_markdown_with_style, DoubleClickState, MarkdownFileWatcher,
+        MarkdownScrollManager, MarkdownStyle, MarkdownWidget, SelectionState,
     };
 
     #[cfg(feature = "terminal")]
@@ -290,7 +296,10 @@ pub mod prelude {
     };
 
     #[cfg(feature = "theme")]
-    pub use crate::theme::{AppTheme, DiffColors, MarkdownColors, SyntaxColors, ThemeVariant};
+    pub use crate::services::theme::{AppTheme, DiffColors, MarkdownColors, SyntaxColors, ThemeVariant};
+
+    // Services
+    pub use crate::services::file_watcher::{FileWatcher, WatchConfig, WatchMode};
 }
 
 /// Error types for the crate

@@ -13,7 +13,7 @@ pub fn render(
     segments: &[TextSegment],
     depth: usize,
     width: usize,
-    app_theme: Option<&crate::theme::AppTheme>,
+    app_theme: Option<&crate::services::theme::AppTheme>,
 ) -> Vec<Line<'static>> {
     let actual_depth = depth.max(1);
 

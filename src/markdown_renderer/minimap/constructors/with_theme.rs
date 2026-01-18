@@ -28,7 +28,7 @@ impl MinimapConfig {
     /// let theme = AppTheme::default();
     /// let config = MinimapConfig::default().with_theme(&theme);
     /// ```
-    pub fn with_theme(mut self, theme: &crate::theme::AppTheme) -> Self {
+    pub fn with_theme(mut self, theme: &crate::services::theme::AppTheme) -> Self {
         self.text_style = Style::default().fg(theme.border);
         self.viewport_style = Style::default().fg(theme.primary).bg(theme.background_element);
         self.background_style = Style::default().bg(theme.background_panel);

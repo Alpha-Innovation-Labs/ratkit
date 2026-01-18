@@ -1,6 +1,6 @@
 //! Get display name for code block themes.
 
-use ratatui_toolkit::markdown_renderer::CodeBlockTheme;
+use ratatui_toolkit::CodeBlockTheme;
 
 /// Get the display name for a code block theme.
 pub fn get_theme_name(theme: CodeBlockTheme) -> &'static str {

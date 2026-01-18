@@ -23,8 +23,8 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     Terminal,
 };
-use ratatui_toolkit::theme::loader::load_builtin_theme;
-use ratatui_toolkit::theme::persistence::save_theme;
+use ratatui_toolkit::services::theme::loader::load_builtin_theme;
+use ratatui_toolkit::services::theme::persistence::save_theme;
 use ratatui_toolkit::{
     render_hotkey_modal, render_toasts, ClickableScrollbarStateMouseExt,
     ClickableScrollbarStateScrollExt, Dialog, DialogType, DialogWidget, Hotkey, HotkeyFooter,

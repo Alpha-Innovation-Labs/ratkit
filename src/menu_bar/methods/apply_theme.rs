@@ -1,7 +1,7 @@
 //! Method to apply an AppTheme to an existing MenuBar in place.
 
 use crate::menu_bar::MenuBar;
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 use ratatui::style::{Modifier, Style};
 
 impl MenuBar {

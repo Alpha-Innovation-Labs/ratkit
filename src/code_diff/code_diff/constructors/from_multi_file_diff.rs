@@ -8,7 +8,7 @@ use crate::code_diff::diff_hunk::DiffHunk;
 use crate::code_diff::diff_line::DiffLine;
 use crate::diff_file_tree::{DiffFileTree, FileStatus};
 use crate::resizable_split::ResizableSplit;
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 
 impl CodeDiff {
     /// Creates a diff widget by parsing multi-file git diff output.

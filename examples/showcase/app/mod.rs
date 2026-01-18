@@ -12,7 +12,7 @@ use std::time::Instant;
 
 use super::demo_mode::DemoMode;
 use super::demo_tab::DemoTab;
-use ratatui_toolkit::markdown_renderer::MarkdownFileWatcher;
+use ratatui_toolkit::MarkdownFileWatcher;
 
 /// Main application state for the showcase.
 pub struct App {

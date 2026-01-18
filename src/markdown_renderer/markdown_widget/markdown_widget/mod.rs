@@ -87,5 +87,5 @@ pub struct MarkdownWidget<'a> {
     /// Cached rendered lines for selection text extraction.
     pub(crate) rendered_lines: Vec<ratatui::text::Line<'static>>,
     /// Optional application theme for styling.
-    pub(crate) app_theme: Option<&'a crate::theme::AppTheme>,
+    pub(crate) app_theme: Option<&'a crate::services::theme::AppTheme>,
 }

@@ -1,0 +1,13 @@
+//! Collapse all sections method for MarkdownScrollManager.
+
+use crate::markdown_widget::state::scroll_manager::MarkdownScrollManager;
+
+impl MarkdownScrollManager {
+    /// Collapse all sections.
+    pub fn collapse_all_sections(&mut self) {
+        let section_ids: Vec<usize> = self.collapsed_sections.keys().copied().collect();
+        for section_id in section_ids {
+            self.collapsed_sections.insert(section_id, true);
+        }
+    }
+}

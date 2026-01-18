@@ -21,7 +21,7 @@ pub struct RenderOptions<'a> {
     /// Color theme for code blocks
     pub theme: CodeBlockTheme,
     /// Optional application theme for consistent styling
-    pub app_theme: Option<&'a crate::theme::AppTheme>,
+    pub app_theme: Option<&'a crate::services::theme::AppTheme>,
 }
 
 /// Render a markdown element to ratatui Line with given width.

@@ -1,7 +1,7 @@
 //! Builder method for setting the theme.
 
 use crate::code_diff::code_diff::CodeDiff;
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 
 impl CodeDiff {
     /// Sets the application theme for styling.
@@ -21,7 +21,7 @@ impl CodeDiff {
     ///
     /// ```rust
     /// use ratatui_toolkit::code_diff::CodeDiff;
-    /// use ratatui_toolkit::theme::AppTheme;
+    /// use ratatui_toolkit::services::theme::AppTheme;
     ///
     /// let theme = AppTheme::default();
     /// let diff = CodeDiff::new().with_theme(&theme);

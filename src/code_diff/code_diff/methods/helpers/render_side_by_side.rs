@@ -6,7 +6,7 @@ use ratatui::style::Style;
 
 use crate::code_diff::code_diff::CodeDiff;
 use crate::code_diff::enums::DiffLineKind;
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 
 use super::build_aligned_lines::build_aligned_lines;
 use super::render_line::render_line;

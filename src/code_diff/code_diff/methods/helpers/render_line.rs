@@ -7,7 +7,7 @@ use ratatui::style::Style;
 use crate::code_diff::diff_config::DiffConfig;
 use crate::code_diff::diff_line::DiffLine;
 use crate::code_diff::enums::DiffLineKind;
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 
 /// Renders a single diff line content.
 ///

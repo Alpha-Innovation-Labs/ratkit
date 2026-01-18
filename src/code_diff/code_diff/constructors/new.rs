@@ -4,7 +4,7 @@ use crate::code_diff::code_diff::CodeDiff;
 use crate::code_diff::diff_config::DiffConfig;
 use crate::diff_file_tree::DiffFileTree;
 use crate::resizable_split::ResizableSplit;
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 
 impl CodeDiff {
     /// Creates a new empty diff widget.

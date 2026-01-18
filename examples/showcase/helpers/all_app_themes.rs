@@ -1,6 +1,6 @@
 //! Get all available application theme names.
 
-use ratatui_toolkit::theme::loader::BUILTIN_THEMES;
+use ratatui_toolkit::services::theme::loader::BUILTIN_THEMES;
 
 /// Get all available application theme names.
 ///

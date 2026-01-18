@@ -1,9 +1,9 @@
 //! App constructor.
 
 use ratatui::layout::Rect;
-use ratatui_toolkit::markdown_renderer::MarkdownFileWatcher;
-use ratatui_toolkit::theme::loader::load_builtin_theme;
-use ratatui_toolkit::theme::persistence::load_saved_theme;
+use ratatui_toolkit::MarkdownFileWatcher;
+use ratatui_toolkit::services::theme::loader::load_builtin_theme;
+use ratatui_toolkit::services::theme::persistence::load_saved_theme;
 use ratatui_toolkit::ThemeVariant;
 use ratatui_toolkit::{
     AppTheme, ClickableScrollbarState, ClickableScrollbarStateScrollExt, CodeDiff, DiffConfig,

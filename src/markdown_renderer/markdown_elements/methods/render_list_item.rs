@@ -15,7 +15,7 @@ pub fn render(
     number: Option<usize>,
     content: &[super::super::TextSegment],
     width: usize,
-    app_theme: Option<&crate::theme::AppTheme>,
+    app_theme: Option<&crate::services::theme::AppTheme>,
 ) -> Vec<Line<'static>> {
     let indent = "  ".repeat(depth);
 

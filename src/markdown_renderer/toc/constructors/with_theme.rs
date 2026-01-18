@@ -33,7 +33,7 @@ impl TocConfig {
     /// let theme = AppTheme::default();
     /// let config = TocConfig::default().with_theme(&theme);
     /// ```
-    pub fn with_theme(mut self, theme: &crate::theme::AppTheme) -> Self {
+    pub fn with_theme(mut self, theme: &crate::services::theme::AppTheme) -> Self {
         self.text_style = Style::default().fg(theme.text_muted);
         self.active_style = Style::default().fg(theme.primary);
         self.hover_style = Style::default().fg(theme.text).bg(theme.background_element);

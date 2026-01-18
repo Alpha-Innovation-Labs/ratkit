@@ -5,7 +5,7 @@ use ratatui::text::{Line, Span};
 
 use crate::diff_file_tree::helpers::file_icon;
 use crate::diff_file_tree::{DiffFileEntry, FileStatus};
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 use crate::tree_view::NodeState;
 
 /// Gets the color for a file status from the theme.

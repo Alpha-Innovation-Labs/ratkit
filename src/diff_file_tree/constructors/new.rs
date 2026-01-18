@@ -1,7 +1,7 @@
 //! Constructor for creating an empty DiffFileTree.
 
 use crate::diff_file_tree::DiffFileTree;
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 use crate::tree_view::TreeViewState;
 
 impl DiffFileTree {

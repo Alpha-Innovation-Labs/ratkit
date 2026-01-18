@@ -13,7 +13,7 @@ pub fn render_expandable(
     collapsed: bool,
     total_lines: usize,
     width: usize,
-    app_theme: Option<&crate::theme::AppTheme>,
+    app_theme: Option<&crate::services::theme::AppTheme>,
 ) -> Vec<Line<'static>> {
     let mut result = Vec::new();
 
@@ -55,7 +55,7 @@ pub fn render_expand_toggle(
     expanded: bool,
     hidden_count: usize,
     _width: usize,
-    app_theme: Option<&crate::theme::AppTheme>,
+    app_theme: Option<&crate::services::theme::AppTheme>,
 ) -> Vec<Line<'static>> {
     let toggle_text = if expanded {
         "▲ Show less ".to_string()

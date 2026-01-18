@@ -1,7 +1,7 @@
 //! Method to apply an AppTheme to the Dialog.
 
 use crate::dialog::Dialog;
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 use ratatui::style::{Modifier, Style};
 
 impl<'a> Dialog<'a> {

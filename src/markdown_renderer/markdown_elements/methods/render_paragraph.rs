@@ -12,7 +12,7 @@ pub fn render(
     _element: &MarkdownElement,
     segments: &[TextSegment],
     width: usize,
-    app_theme: Option<&crate::theme::AppTheme>,
+    app_theme: Option<&crate::services::theme::AppTheme>,
 ) -> Vec<Line<'static>> {
     let plain_text = segments_to_plain_text(segments);
     let wrapped = wrap_text(&plain_text, width);
@@ -27,7 +27,7 @@ pub fn render(
 }
 
 /// Render a single wrapped line, preserving styling from segments
-fn render_line_with_segments(line_text: &str, segments: &[TextSegment], app_theme: Option<&crate::theme::AppTheme>) -> Vec<Span<'static>> {
+fn render_line_with_segments(line_text: &str, segments: &[TextSegment], app_theme: Option<&crate::services::theme::AppTheme>) -> Vec<Span<'static>> {
     if line_text.is_empty() {
         return vec![Span::raw("")];
     }

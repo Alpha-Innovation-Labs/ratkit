@@ -1,7 +1,7 @@
 //! Method to apply an AppTheme to the Pane.
 
 use crate::pane::Pane;
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 use ratatui::style::Style;
 
 impl<'a> Pane<'a> {

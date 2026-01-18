@@ -53,7 +53,7 @@ pub mod traits;
 
 pub use helpers::file_icon;
 
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 use crate::tree_view::{TreeNode, TreeViewState};
 use ratatui::style::Color;
 

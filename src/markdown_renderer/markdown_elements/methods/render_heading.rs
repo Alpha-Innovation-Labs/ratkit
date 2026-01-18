@@ -13,7 +13,7 @@ pub fn render(
     text: &[super::super::TextSegment],
     collapsed: bool,
     width: usize,
-    app_theme: Option<&crate::theme::AppTheme>,
+    app_theme: Option<&crate::services::theme::AppTheme>,
 ) -> Vec<Line<'static>> {
     let icon = HEADING_ICONS
         .get(level.saturating_sub(1) as usize)
@@ -61,7 +61,7 @@ pub fn render(
     vec![Line::from(spans)]
 }
 
-pub fn render_border(_element: &MarkdownElement, level: u8, width: usize, _app_theme: Option<&crate::theme::AppTheme>) -> Line<'static> {
+pub fn render_border(_element: &MarkdownElement, level: u8, width: usize, _app_theme: Option<&crate::services::theme::AppTheme>) -> Line<'static> {
     // Border always uses the level-based background color for visual hierarchy
     let bg = heading_bg_color(level);
     let border = "▀".repeat(width);

@@ -1,7 +1,7 @@
 //! Method to apply an AppTheme to the HotkeyFooter.
 
 use crate::hotkey_footer::HotkeyFooter;
-use crate::theme::AppTheme;
+use crate::services::theme::AppTheme;
 
 impl HotkeyFooter {
     /// Applies theme colors to the hotkey footer.

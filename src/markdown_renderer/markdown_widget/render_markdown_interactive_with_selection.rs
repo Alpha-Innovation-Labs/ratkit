@@ -64,7 +64,7 @@ pub fn render_markdown_interactive_with_selection_themed(
     area: Rect,
     is_resizing: bool,
     selection: &SelectionState,
-    app_theme: Option<&crate::theme::AppTheme>,
+    app_theme: Option<&crate::services::theme::AppTheme>,
 ) -> (Text<'static>, Vec<Line<'static>>) {
     // First render normally, passing the theme through for element styling
     let text = render_markdown_interactive_with_options(content, scroll, area, is_resizing, app_theme);

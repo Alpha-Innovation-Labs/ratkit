@@ -30,7 +30,7 @@ pub fn render_markdown_interactive_with_options(
     scroll: &mut MarkdownScrollManager,
     area: Rect,
     _is_resizing: bool,
-    app_theme: Option<&crate::theme::AppTheme>,
+    app_theme: Option<&crate::services::theme::AppTheme>,
 ) -> Text<'static> {
     // Calculate line number width if document line numbers are enabled
     // Use fixed width of 6 chars: "  1 │ " to "999 │ " covers most documents

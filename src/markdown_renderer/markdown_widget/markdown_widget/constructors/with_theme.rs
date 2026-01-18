@@ -30,7 +30,7 @@ impl<'a> MarkdownWidget<'a> {
     /// // let widget = MarkdownWidget::new(content, scroll, selection, double_click)
     /// //     .with_theme(&theme);
     /// ```
-    pub fn with_theme(mut self, theme: &'a crate::theme::AppTheme) -> Self {
+    pub fn with_theme(mut self, theme: &'a crate::services::theme::AppTheme) -> Self {
         self.app_theme = Some(theme);
         self
     }
