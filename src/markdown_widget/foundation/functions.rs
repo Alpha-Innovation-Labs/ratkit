@@ -2,7 +2,7 @@
 
 use super::elements::render;
 use super::parser::render_markdown_to_elements;
-use crate::markdown_renderer::MarkdownStyle;
+use crate::markdown_widget::extensions::theme::MarkdownStyle;
 
 /// Render markdown string to ratatui Text with default styling
 ///

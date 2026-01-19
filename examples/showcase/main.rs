@@ -221,6 +221,7 @@ fn main() -> io::Result<()> {
                     app.toast_manager.add(Toast::new(
                         &format!("Toggled: {}", display_text),
                         ToastLevel::Info,
+                        None,
                     ));
                 }
                 MarkdownEvent::FocusedLine { .. } => {
@@ -303,6 +304,7 @@ fn main() -> io::Result<()> {
                                         app.toast_manager.add(Toast::new(
                                             &format!("Failed to save theme: {}", e),
                                             ToastLevel::Warning,
+                                            None,
                                         ));
                                     }
                                     app.toast_manager.add(Toast::new(
@@ -311,6 +313,7 @@ fn main() -> io::Result<()> {
                                             get_app_theme_display_name(theme_name)
                                         ),
                                         ToastLevel::Success,
+                                        None,
                                     ));
                                     app.theme_filter.clear();
                                     app.theme_picker_index = 0;
@@ -377,7 +380,7 @@ fn main() -> io::Result<()> {
                             let idx =
                                 (app.start_time.elapsed().as_millis() as usize) % messages.len();
                             app.toast_manager
-                                .add(Toast::new(messages[idx].0, messages[idx].1));
+                                .add(Toast::new(messages[idx].0, messages[idx].1, None));
                         }
                         KeyCode::Char('?') => {
                             app.show_hotkey_modal = !app.show_hotkey_modal;
@@ -475,6 +478,7 @@ fn main() -> io::Result<()> {
                                         app.toast_manager.add(Toast::new(
                                             "Copied to clipboard!",
                                             ToastLevel::Success,
+                                            None,
                                         ));
                                     }
                                     MarkdownEvent::SelectionEnded => {

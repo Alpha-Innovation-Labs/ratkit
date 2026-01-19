@@ -3,7 +3,7 @@
 use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
 use unicode_width::UnicodeWidthStr;
 
-use crate::markdown_renderer::SyntaxHighlighter;
+use crate::markdown_widget::extensions::theme::SyntaxHighlighter;
 use crate::markdown_widget::foundation::elements::{
     CheckboxState, CodeBlockBorderKind, ColumnAlignment, ElementKind, MarkdownElement,
     TableBorderKind, TextSegment,

@@ -111,10 +111,6 @@ pub mod hotkey_modal;
 
 #[cfg(feature = "markdown")]
 #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
-pub mod markdown_renderer;
-
-#[cfg(feature = "markdown")]
-#[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
 pub mod markdown_widget;
 
 #[cfg(feature = "terminal")]
