@@ -29,10 +29,7 @@ impl<'a> Toc<'a> {
         // Note: active_index tracking may need to be added to TocState
         let active_index: Option<usize> = None;
 
-        for (display_idx, entry_idx) in (start_idx..entries.len())
-            .take(visible_count)
-            .enumerate()
-        {
+        for (display_idx, entry_idx) in (start_idx..entries.len()).take(visible_count).enumerate() {
             let entry = &entries[entry_idx];
             let y = area.y + display_idx as u16;
 

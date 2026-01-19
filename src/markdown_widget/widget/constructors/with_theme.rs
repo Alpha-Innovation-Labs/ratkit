@@ -8,7 +8,6 @@ impl<'a> MarkdownWidget<'a> {
     /// When a theme is applied, the widget will use theme colors for:
     /// - Statusline (mode colors, background, text)
     /// - TOC (text, active, hover, background, border colors)
-    /// - Minimap (viewport, text, background colors)
     /// - Selection highlighting
     ///
     /// If no theme is set, the widget falls back to default hardcoded colors.
@@ -32,6 +31,8 @@ impl<'a> MarkdownWidget<'a> {
     /// ```
     pub fn with_theme(mut self, theme: &'a crate::services::theme::AppTheme) -> Self {
         self.app_theme = Some(theme);
+        // Apply theme colors to TOC config
+        self.toc_config = self.toc_config.with_theme(theme);
         self
     }
 }

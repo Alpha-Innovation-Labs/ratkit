@@ -12,6 +12,18 @@
 //! - Hover highlight for items
 //! - Click-to-scroll navigation
 //!
+//! # Mouse Capture Requirement
+//!
+//! For TOC click navigation and hover interactions to work, you must enable
+//! mouse capture with crossterm:
+//!
+//! ```rust,ignore
+//! use crossterm::event::{EnableMouseCapture, DisableMouseCapture};
+//! execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+//! ```
+//!
+//! Without `EnableMouseCapture`, click events will not be received.
+//!
 //! # Architecture
 //!
 //! The Toc extension is a UI widget only - it receives `&TocState` as a parameter
@@ -23,8 +35,8 @@ mod methods;
 mod traits;
 
 pub use constructors::*;
-pub use enums::*;
 pub use enums::TocConfig;
+pub use enums::*;
 
 use crate::markdown_widget::state::toc_state::TocState;
 

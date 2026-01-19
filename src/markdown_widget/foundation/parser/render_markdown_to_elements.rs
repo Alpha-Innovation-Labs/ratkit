@@ -3,12 +3,12 @@
 use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
 use unicode_width::UnicodeWidthStr;
 
+use crate::markdown_renderer::SyntaxHighlighter;
 use crate::markdown_widget::foundation::elements::{
     CheckboxState, CodeBlockBorderKind, ColumnAlignment, ElementKind, MarkdownElement,
     TableBorderKind, TextSegment,
 };
 use crate::markdown_widget::foundation::parser::helpers::{flush_paragraph, parse_frontmatter};
-use crate::markdown_renderer::SyntaxHighlighter;
 
 /// Calculate the display width of a string for terminal rendering.
 /// This uses unicode_width but treats emoji as width 1 since many terminals
@@ -24,7 +24,8 @@ fn terminal_display_width(s: &str) -> usize {
                 || (0x2700..=0x27BF).contains(&cp)  // Dingbats
                 || (0x1F600..=0x1F64F).contains(&cp) // Emoticons
                 || (0x1F680..=0x1F6FF).contains(&cp) // Transport and Map Symbols
-                || (0x2300..=0x23FF).contains(&cp)  // Miscellaneous Technical
+                || (0x2300..=0x23FF).contains(&cp)
+            // Miscellaneous Technical
             {
                 // Treat emoji as width 1 for terminal compatibility
                 1
@@ -442,8 +443,10 @@ pub fn render_markdown_to_elements(
                                 .iter()
                                 .enumerate()
                                 .map(|(j, cell)| {
-                                    let width =
-                                        table_col_widths.get(j).copied().unwrap_or_else(|| terminal_display_width(cell));
+                                    let width = table_col_widths
+                                        .get(j)
+                                        .copied()
+                                        .unwrap_or_else(|| terminal_display_width(cell));
                                     let alignment = table_alignments
                                         .get(j)
                                         .copied()

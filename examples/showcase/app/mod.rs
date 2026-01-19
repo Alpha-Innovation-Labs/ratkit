@@ -4,15 +4,19 @@ mod constructors;
 mod methods;
 
 use ratatui::layout::Rect;
+use ratatui_toolkit::markdown_widget::state::{
+    CacheState, CollapseState, DisplaySettings, ExpandableState, GitStatsState, ScrollState,
+    SourceState, VimState,
+};
+use ratatui_toolkit::services::file_watcher::FileWatcher;
 use ratatui_toolkit::{
-    AppTheme, ClickableScrollbarState, CodeDiff, DoubleClickState, MarkdownScrollManager, MenuBar,
-    ResizableSplit, SelectionState, TermTui, ToastManager, TreeNavigator, TreeViewState,
+    AppTheme, ClickableScrollbarState, CodeDiff, DoubleClickState, MenuBar, ResizableSplit,
+    SelectionState, TermTui, ToastManager, TreeNavigator, TreeViewState,
 };
 use std::time::Instant;
 
 use super::demo_mode::DemoMode;
 use super::demo_tab::DemoTab;
-use ratatui_toolkit::MarkdownFileWatcher;
 
 /// Main application state for the showcase.
 pub struct App {
@@ -34,10 +38,16 @@ pub struct App {
     // Hotkey modal
     pub show_hotkey_modal: bool,
 
-    // Markdown demo
-    pub markdown_split: ResizableSplit,
-    pub markdown_scroll: MarkdownScrollManager,
-    pub markdown_file_watcher: Option<MarkdownFileWatcher>,
+    // Markdown demo - new focused state modules
+    pub markdown_scroll: ScrollState,
+    pub markdown_source: SourceState,
+    pub markdown_cache: CacheState,
+    pub markdown_display: DisplaySettings,
+    pub markdown_collapse: CollapseState,
+    pub markdown_expandable: ExpandableState,
+    pub markdown_git_stats: GitStatsState,
+    pub markdown_vim: VimState,
+    pub markdown_file_watcher: Option<FileWatcher>,
     pub markdown_double_click: DoubleClickState,
     pub markdown_selection: SelectionState,
     /// Cached rendered lines for selection

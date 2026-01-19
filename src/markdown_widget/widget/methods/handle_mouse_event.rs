@@ -3,8 +3,10 @@
 use crossterm::event::{MouseButton, MouseEvent, MouseEventKind};
 use ratatui::layout::Rect;
 
+use crate::markdown_widget::extensions::scrollbar::{click_to_offset, is_in_scrollbar_area};
 use crate::markdown_widget::extensions::selection::should_render_line;
 use crate::markdown_widget::foundation::elements::render;
+use crate::markdown_widget::foundation::elements::ElementKind;
 use crate::markdown_widget::foundation::events::MarkdownEvent;
 use crate::markdown_widget::foundation::helpers::is_in_area;
 use crate::markdown_widget::foundation::parser::render_markdown_to_elements;
@@ -16,13 +18,18 @@ impl<'a> MarkdownWidget<'a> {
     /// Handle a mouse event for all interactions.
     ///
     /// This method handles:
-    /// - Click-to-focus: Sets the current line on click
+    /// - Click-to-focus: Sets the current line on click (highlights it)
     /// - Double-click: Returns event with line info
     /// - Text selection: Drag to select, auto-copy on release
     /// - Heading collapse: Click on heading to toggle
     /// - Scrolling: Mouse wheel to scroll
     ///
     /// Returns a `MarkdownEvent` indicating what action was taken.
+    ///
+    /// # Mouse Capture Requirement
+    ///
+    /// This method requires `EnableMouseCapture` to be enabled for click events.
+    /// Scroll events may work without it (terminal-dependent).
     ///
     /// # Arguments
     ///
@@ -75,8 +82,47 @@ impl<'a> MarkdownWidget<'a> {
                             self.update_toc_hovered_entry(event.column, event.row, toc_area);
                             return MarkdownEvent::None;
                         }
+                        MouseEventKind::Down(MouseButton::Left) => {
+                            // TOC click - navigation is handled by handle_toc_click
+                            // Don't change the highlighted line for TOC clicks
+                            return MarkdownEvent::None;
+                        }
                         _ => {}
                     }
+                }
+            }
+        }
+
+        // Check if click is on scrollbar area (rightmost column(s) of content area)
+        if let Some(scrollbar_area) = self.calculate_scrollbar_area(area) {
+            if is_in_scrollbar_area(event.column, event.row, scrollbar_area) {
+                match event.kind {
+                    MouseEventKind::Down(MouseButton::Left) | MouseEventKind::Drag(MouseButton::Left) => {
+                        // Click or drag on scrollbar - jump to position
+                        let new_offset = click_to_offset(event.row, scrollbar_area, self.scroll);
+                        self.scroll.scroll_offset = new_offset;
+                        return MarkdownEvent::Scrolled {
+                            offset: new_offset,
+                            direction: 0,
+                        };
+                    }
+                    MouseEventKind::ScrollUp => {
+                        let old_offset = self.scroll.scroll_offset;
+                        self.scroll.scroll_up(5);
+                        return MarkdownEvent::Scrolled {
+                            offset: self.scroll.scroll_offset,
+                            direction: -(old_offset.saturating_sub(self.scroll.scroll_offset) as i32),
+                        };
+                    }
+                    MouseEventKind::ScrollDown => {
+                        let old_offset = self.scroll.scroll_offset;
+                        self.scroll.scroll_down(5);
+                        return MarkdownEvent::Scrolled {
+                            offset: self.scroll.scroll_offset,
+                            direction: (self.scroll.scroll_offset.saturating_sub(old_offset) as i32),
+                        };
+                    }
+                    _ => {}
                 }
             }
         }
@@ -89,31 +135,28 @@ impl<'a> MarkdownWidget<'a> {
                 }
 
                 // Process click for double-click detection
-                let (is_double, should_process_pending) =
-                    self.double_click.process_click(event.column, event.row);
+                // Pass current scroll_offset so it can be stored for accurate line calculation later
+                let (is_double, _should_process_pending) = self.double_click.process_click(
+                    event.column,
+                    event.row,
+                    self.scroll.scroll_offset,
+                );
 
                 if is_double {
-                    // Double-click: return line info
+                    // Double-click: store info for app to retrieve, return None
                     if let Some(evt) = self.get_line_info_at_position(relative_y, width) {
-                        return MarkdownEvent::DoubleClick {
-                            line_number: evt.0,
-                            line_kind: evt.1,
-                            content: evt.2,
-                        };
+                        self.last_double_click = Some((evt.0, evt.1, evt.2));
                     }
+                    return MarkdownEvent::None;
                 }
 
-                // If there was a pending click from a different position, process it now
-                if should_process_pending {
-                    // The old pending click was NOT part of a double-click
-                    // But we don't process it here - we let it be handled by check_pending_timeout
+                // Single click: highlight the clicked line (set as current line)
+                let clicked_line = self.scroll.scroll_offset + relative_y + 1; // 1-indexed
+                if clicked_line <= self.scroll.total_lines {
+                    self.scroll.set_current_line(clicked_line);
                 }
 
-                // Don't process single-click actions (heading collapse, focus) immediately
-                // to avoid content shifting between clicks of a double-click.
-                // These are handled in check_pending_timeout.
-
-                MarkdownEvent::None
+                MarkdownEvent::FocusedLine { line: clicked_line }
             }
             MouseEventKind::Drag(MouseButton::Left) => {
                 let event_result = if !self.selection.is_active() {
@@ -187,19 +230,20 @@ impl<'a> MarkdownWidget<'a> {
     ///
     /// * `area` - The area the widget occupies (for position calculations)
     pub fn check_pending_click(&mut self, area: Rect) -> MarkdownEvent {
-        if let Some((x, y)) = self.double_click.check_pending_timeout() {
+        if let Some((x, y, click_scroll_offset)) = self.double_click.check_pending_timeout() {
             // Calculate relative position
             let relative_y = y.saturating_sub(area.y) as usize;
             let relative_x = x.saturating_sub(area.x) as usize;
             let width = area.width as usize;
 
             // Set focused line based on click position (1-indexed)
-            let clicked_line = self.scroll.scroll_offset + relative_y + 1;
+            // Use the scroll_offset from when the click happened, not the current scroll_offset
+            let clicked_line = click_scroll_offset + relative_y + 1;
             if clicked_line <= self.scroll.total_lines {
                 self.scroll.set_current_line(clicked_line);
             }
 
-            // Try to handle heading collapse
+            // Try to handle heading collapse (uses current scroll offset for content lookup)
             if self.handle_click_collapse(relative_x, relative_y, width) {
                 // Heading was toggled - get info for the event
                 if let Some((_, line_kind, text)) =
@@ -235,7 +279,7 @@ impl<'a> MarkdownWidget<'a> {
 
         for (idx, element) in elements.iter().enumerate() {
             // Skip elements that shouldn't be rendered (collapsed sections)
-            if !should_render_line(element, idx, self.scroll) {
+            if !should_render_line(element, idx, self.collapse) {
                 continue;
             }
 
@@ -245,23 +289,26 @@ impl<'a> MarkdownWidget<'a> {
             if document_y >= line_idx && document_y < line_idx + line_count {
                 match &element.kind {
                     ElementKind::Heading { section_id, .. } => {
-                        self.scroll.toggle_section_collapse(*section_id);
-                        self.scroll.invalidate_cache();
-                        return true;
+                        // Only collapse headings if show_heading_collapse is enabled
+                        if self.display.show_heading_collapse {
+                            self.collapse.toggle_section(*section_id);
+                            self.cache.invalidate();
+                            return true;
+                        }
                     }
                     ElementKind::Frontmatter { .. } => {
-                        self.scroll.toggle_section_collapse(0);
-                        self.scroll.invalidate_cache();
+                        self.collapse.toggle_section(0);
+                        self.cache.invalidate();
                         return true;
                     }
                     ElementKind::FrontmatterStart { .. } => {
-                        self.scroll.toggle_section_collapse(0);
-                        self.scroll.invalidate_cache();
+                        self.collapse.toggle_section(0);
+                        self.cache.invalidate();
                         return true;
                     }
                     ElementKind::ExpandToggle { content_id, .. } => {
-                        self.scroll.toggle_expandable(content_id);
-                        self.scroll.invalidate_cache();
+                        self.expandable.toggle(content_id);
+                        self.cache.invalidate();
                         return true;
                     }
                     _ => {}
@@ -277,7 +324,11 @@ impl<'a> MarkdownWidget<'a> {
     /// Get line information at a given screen position.
     ///
     /// Returns (line_number, line_kind, content) if found.
-    fn get_line_info_at_position(&self, y: usize, width: usize) -> Option<(usize, String, String)> {
+    pub fn get_line_info_at_position(
+        &self,
+        y: usize,
+        width: usize,
+    ) -> Option<(usize, String, String)> {
         use crate::markdown_widget::foundation::elements::ElementKind;
 
         let elements = render_markdown_to_elements(self.content, true);
@@ -286,7 +337,7 @@ impl<'a> MarkdownWidget<'a> {
         let mut logical_line_num = 0;
 
         for (idx, element) in elements.iter().enumerate() {
-            if !should_render_line(element, idx, self.scroll) {
+            if !should_render_line(element, idx, self.collapse) {
                 continue;
             }
 
@@ -384,5 +435,61 @@ impl<'a> MarkdownWidget<'a> {
     /// Get the current selection state (for rendering).
     pub fn selection(&self) -> &crate::markdown_widget::state::selection_state::SelectionState {
         self.selection
+    }
+
+    /// Get line information at the current highlighted line.
+    ///
+    /// Returns (line_number, line_kind, content) if found.
+    pub fn get_current_line_info(&self, width: usize) -> Option<(usize, String, String)> {
+        // current_line is 1-indexed document line, get_line_info_at_position expects
+        // a relative viewport position, so we need to convert.
+        // The document position of current_line is current_line - 1 (0-indexed).
+        // Since get_line_info_at_position adds scroll_offset, we pass (current_line - 1).
+        let document_y = self.scroll.current_line.saturating_sub(1);
+        let elements = render_markdown_to_elements(self.content, true);
+        let mut visual_line_idx = 0;
+        let mut logical_line_num = 0;
+
+        for (idx, element) in elements.iter().enumerate() {
+            if !should_render_line(element, idx, self.collapse) {
+                continue;
+            }
+
+            logical_line_num += 1;
+
+            let rendered = render(element, width);
+            let line_count = rendered.len();
+
+            if document_y >= visual_line_idx && document_y < visual_line_idx + line_count {
+                let line_kind = match &element.kind {
+                    ElementKind::Heading { .. } => "Heading",
+                    ElementKind::Paragraph(_) => "Paragraph",
+                    ElementKind::CodeBlockHeader { .. } => "CodeBlockHeader",
+                    ElementKind::CodeBlockContent { .. } => "CodeBlockContent",
+                    ElementKind::CodeBlockBorder { .. } => "CodeBlockBorder",
+                    ElementKind::ListItem { .. } => "ListItem",
+                    ElementKind::Blockquote { .. } => "Blockquote",
+                    ElementKind::Empty => "Empty",
+                    ElementKind::HorizontalRule => "HorizontalRule",
+                    ElementKind::Frontmatter { .. } => "Frontmatter",
+                    ElementKind::FrontmatterStart { .. } => "FrontmatterStart",
+                    ElementKind::FrontmatterField { .. } => "FrontmatterField",
+                    ElementKind::FrontmatterEnd => "FrontmatterEnd",
+                    ElementKind::Expandable { .. } => "Expandable",
+                    ElementKind::ExpandToggle { .. } => "ExpandToggle",
+                    ElementKind::TableRow { .. } => "TableRow",
+                    ElementKind::TableBorder(_) => "TableBorder",
+                    ElementKind::HeadingBorder { .. } => "HeadingBorder",
+                };
+
+                let text_content = self.get_element_text(&element.kind);
+
+                return Some((logical_line_num, line_kind.to_string(), text_content));
+            }
+
+            visual_line_idx += line_count;
+        }
+
+        None
     }
 }

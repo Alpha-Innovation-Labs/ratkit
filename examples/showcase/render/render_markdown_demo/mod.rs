@@ -2,17 +2,10 @@
 
 mod helpers;
 
-use ratatui::{
-    layout::Rect,
-    widgets::{Block, BorderType, Borders, Widget},
-};
-use ratatui_toolkit::AppTheme;
+use ratatui::layout::Rect;
+use ratatui_toolkit::{AppTheme, MarkdownWidget};
 
 use crate::app::App;
-use helpers::{
-    calculate_split_areas, get_border_style, get_markdown_title, render_controls_panel,
-    render_markdown_content,
-};
 
 /// Render the markdown demo.
 ///
@@ -28,41 +21,45 @@ pub fn render_markdown_demo(
     app: &mut App,
     theme: &AppTheme,
 ) {
-    app.markdown_split.update_divider_position(area);
-    let areas = calculate_split_areas(area, app.markdown_split.split_percent);
+    let content = app.markdown_source.content().unwrap_or("").to_string();
     let selection_active = app.markdown_selection.is_active();
-    let border_style = get_border_style(
-        theme,
-        selection_active,
-        app.markdown_split.is_hovering,
-        app.markdown_split.is_dragging,
-    );
 
-    // Create and render block for left panel
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded)
-        .title(get_markdown_title(selection_active))
-        .border_style(border_style);
-    let inner_area = block.inner(areas.left);
-    block.render(areas.left, frame.buffer_mut());
-
-    // Render markdown content with TOC and statusline using the current theme
-    let content = app.markdown_scroll.content().unwrap_or("").to_string();
-    app.markdown_rendered_lines = render_markdown_content(
+    let widget = MarkdownWidget::new(
         &content,
         &mut app.markdown_scroll,
+        &mut app.markdown_source,
+        &mut app.markdown_cache,
+        &app.markdown_display,
+        &mut app.markdown_collapse,
+        &mut app.markdown_expandable,
+        &mut app.markdown_git_stats,
+        &mut app.markdown_vim,
         &mut app.markdown_selection,
         &mut app.markdown_double_click,
-        inner_area,
-        frame.buffer_mut(),
-        app.markdown_split.is_dragging,
-        selection_active,
-        app.toc_hovered,
-        app.toc_hovered_entry,
-        app.toc_scroll_offset,
-        theme,
-    );
+    )
+    .show_toc(true)
+    .show_statusline(true)
+    .show_scrollbar(true)
+    .selection_active(selection_active)
+    .toc_hovered(app.toc_hovered)
+    .toc_hovered_entry(app.toc_hovered_entry)
+    .toc_scroll_offset(app.toc_scroll_offset)
+    .with_theme(theme);
 
-    render_controls_panel(frame, areas.right, border_style);
+    frame.render_widget(widget, area);
+
+    // Store rendered lines for selection text extraction
+    app.markdown_rendered_lines = app
+        .markdown_cache
+        .render_cache()
+        .map(|c| c.lines.clone())
+        .unwrap_or_default();
+
+    // Store inner area for mouse event handling (account for border)
+    app.markdown_inner_area = Rect {
+        x: area.x + 1,
+        y: area.y + 1,
+        width: area.width.saturating_sub(2),
+        height: area.height.saturating_sub(2),
+    };
 }

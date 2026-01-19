@@ -1,7 +1,7 @@
 //! Entry accessor methods for TOC widget.
 
-use crate::markdown_widget::state::toc_state::TocEntry;
 use super::super::Toc;
+use crate::markdown_widget::state::toc_state::TocEntry;
 
 impl<'a> Toc<'a> {
     /// Get the number of entries in the TOC.

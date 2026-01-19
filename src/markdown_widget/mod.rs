@@ -2,37 +2,85 @@
 //!
 //! Provides a feature-rich markdown viewer with optional extensions:
 //! - Table of contents (TOC)
-//! - Minimap navigation
 //! - Syntax highlighting
 //! - Text selection
-//! - File watching
+//! - Click-to-highlight line selection
 //!
-//! # Example
+//! # Mouse Capture Requirement
+//!
+//! For mouse interactions (click, drag, hover) to work, you must enable
+//! mouse capture with crossterm:
 //!
 //! ```rust,ignore
-//! use ratatui_toolkit::markdown_widget::{MarkdownWidget, MarkdownScrollManager};
+//! use crossterm::event::{EnableMouseCapture, DisableMouseCapture};
 //!
-//! // Minimal usage
-//! let widget = MarkdownWidget::new(content, &mut scroll);
+//! // On startup:
+//! execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
 //!
-//! // With TOC
-//! let widget = MarkdownWidget::new(content, &mut scroll)
-//!     .with_toc(&mut toc_state, TocConfig::default());
+//! // On cleanup:
+//! execute!(stdout, LeaveAlternateScreen, DisableMouseCapture)?;
+//! ```
 //!
-//! // Full-featured
-//! let widget = MarkdownWidget::new(content, &mut scroll)
-//!     .with_toc(&mut toc_state, TocConfig::default())
-//!     .with_selection(&mut selection, &mut double_click)
-//!     .with_minimap(MinimapConfig::default())
-//!     .with_theme(&app_theme)
-//!     .show_scrollbar(true)
-//!     .show_statusline(true);
+//! Without `EnableMouseCapture`, scroll wheel may still work (terminal-dependent),
+//! but click events will not be received.
+//!
+//! # Example (Recommended - Unified State)
+//!
+//! ```rust,ignore
+//! use ratatui_toolkit::{MarkdownWidget, MarkdownState};
+//!
+//! // Create unified state
+//! let mut state = MarkdownState::default();
+//! state.source.set_content("# Hello World\n\nWelcome!");
+//!
+//! // Create widget from state
+//! let content = state.content().to_string();
+//! let widget = MarkdownWidget::from_state(&content, &mut state)
+//!     .show_toc(true)
+//!     .show_statusline(true)
+//!     .show_scrollbar(true);
+//! ```
+//!
+//! # Example (Individual State Modules)
+//!
+//! ```rust,ignore
+//! use ratatui_toolkit::markdown_widget::{MarkdownWidget, state::*};
+//!
+//! // Create state modules
+//! let mut scroll = ScrollState::default();
+//! let mut source = SourceState::default();
+//! let mut cache = CacheState::default();
+//! let display = DisplaySettings::default();
+//! let mut collapse = CollapseState::default();
+//! let mut expandable = ExpandableState::default();
+//! let mut git_stats = GitStatsState::default();
+//! let mut vim = VimState::default();
+//! let mut selection = SelectionState::default();
+//! let mut double_click = DoubleClickState::default();
+//!
+//! // Create widget with individual state modules
+//! let widget = MarkdownWidget::new(
+//!     content,
+//!     &mut scroll,
+//!     &mut source,
+//!     &mut cache,
+//!     &display,
+//!     &mut collapse,
+//!     &mut expandable,
+//!     &mut git_stats,
+//!     &mut vim,
+//!     &mut selection,
+//!     &mut double_click,
+//! )
+//! .show_toc(true)
+//! .show_statusline(true)
+//! .show_scrollbar(true);
 //! ```
 
 // Core modules
+pub mod extensions;
 pub mod foundation;
 pub mod state;
-pub mod extensions;
 pub mod widget;
 
 // Internal re-exports for cross-module use
@@ -44,17 +92,31 @@ mod internal;
 
 // Elements
 pub use foundation::elements::{
+    // Enums
+    CheckboxState,
+    CodeBlockBorderKind,
+    // Constants
+    CodeBlockColors,
+    CodeBlockTheme,
+    ColumnAlignment,
+    ElementKind,
     // Struct
     MarkdownElement,
-    // Enums
-    CheckboxState, CodeBlockBorderKind, ColumnAlignment, ElementKind, TableBorderKind, TextSegment,
-    // Constants
-    CodeBlockColors, CodeBlockTheme, BLOCKQUOTE_MARKER, BULLET_MARKERS, CHECKBOX_CHECKED,
-    CHECKBOX_TODO, CHECKBOX_UNCHECKED, HEADING_ICONS, HORIZONTAL_RULE_CHAR,
+    TableBorderKind,
+    TextSegment,
+    BLOCKQUOTE_MARKER,
+    BULLET_MARKERS,
+    CHECKBOX_CHECKED,
+    CHECKBOX_TODO,
+    CHECKBOX_UNCHECKED,
+    HEADING_ICONS,
+    HORIZONTAL_RULE_CHAR,
 };
 
 // Element methods
-pub use foundation::elements::methods::{render as render_element, render_with_options as render_element_with_options, RenderOptions};
+pub use foundation::elements::methods::{
+    render as render_element, render_with_options as render_element_with_options, RenderOptions,
+};
 
 // Parser
 pub use foundation::parser::render_markdown_to_elements;
@@ -75,42 +137,43 @@ pub use foundation::functions::{render_markdown, render_markdown_with_style};
 // Widget
 // ============================================================================
 
-pub use widget::MarkdownWidget;
 pub use widget::enums::MarkdownWidgetMode;
+pub use widget::MarkdownWidget;
 
 // ============================================================================
 // State (always required)
 // ============================================================================
 
-pub use state::scroll_manager::{ExpandableState, MarkdownScrollManager, ParsedCache, RenderCache};
-pub use state::toc_state::{TocEntry, TocState};
-pub use state::selection_state::SelectionState;
-pub use state::double_click_state::DoubleClickState;
+pub use state::{
+    CacheState, CollapseState, DisplaySettings, DoubleClickState, ExpandableEntry, ExpandableState,
+    GitStatsState, MarkdownState, ParsedCache, RenderCache, ScrollState, SelectionState,
+    SourceState, TocEntry, TocState, VimState,
+};
 
 // ============================================================================
 // Extensions (toggleable)
 // ============================================================================
-
-// Minimap
-pub use extensions::minimap::{Minimap, MinimapConfig};
 
 // TOC
 pub use extensions::toc::{Toc, TocConfig};
 
 // Theme
 pub use extensions::theme::{
-    // Structs
-    ColorMapping, ColorPalette, MarkdownStyle, MarkdownTheme, SyntaxHighlighter,
-    // Enums
-    SyntaxThemeVariant, ThemeVariant,
     // Functions
-    get_effective_theme_variant, load_theme_from_json,
+    get_effective_theme_variant,
+    load_theme_from_json,
     // Palettes
     palettes,
+    // Structs
+    ColorMapping,
+    ColorPalette,
+    MarkdownStyle,
+    MarkdownTheme,
+    SyntaxHighlighter,
+    // Enums
+    SyntaxThemeVariant,
+    ThemeVariant,
 };
-
-// File watcher
-pub use extensions::file_watcher::MarkdownFileWatcher;
 
 // Selection handlers
 pub use extensions::selection::{

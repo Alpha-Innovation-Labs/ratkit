@@ -107,13 +107,7 @@ impl Widget for DiffFileTree {
 
         // Render filter line if needed
         if show_filter_line && area.height > 1 {
-            render_filter_line(
-                self.state.filter.as_deref(),
-                filter_mode,
-                area,
-                buf,
-                &theme,
-            );
+            render_filter_line(self.state.filter.as_deref(), filter_mode, area, buf, &theme);
         }
     }
 }
@@ -162,13 +156,7 @@ impl Widget for &DiffFileTree {
 
         // Render filter line if needed
         if show_filter_line && area.height > 1 {
-            render_filter_line(
-                self.state.filter.as_deref(),
-                filter_mode,
-                area,
-                buf,
-                &theme,
-            );
+            render_filter_line(self.state.filter.as_deref(), filter_mode, area, buf, &theme);
         }
     }
 }

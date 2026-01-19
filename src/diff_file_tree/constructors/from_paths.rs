@@ -116,10 +116,7 @@ impl DiffFileTree {
 }
 
 /// Builds a directory node with all its children from a flat list of paths.
-fn build_directory_node(
-    dir_name: &str,
-    files: &[(String, FileStatus)],
-) -> TreeNode<DiffFileEntry> {
+fn build_directory_node(dir_name: &str, files: &[(String, FileStatus)]) -> TreeNode<DiffFileEntry> {
     let entry = DiffFileEntry::directory(dir_name, dir_name);
 
     // Group files by their next path component
@@ -221,8 +218,7 @@ fn build_subdirectory_node(
     for subdir_name in subdir_names {
         if let Some(subdir_files) = subdirs.get(subdir_name) {
             let subdir_full_path = format!("{}/{}", full_path, subdir_name);
-            let subdir_node =
-                build_subdirectory_node(&subdir_full_path, subdir_name, subdir_files);
+            let subdir_node = build_subdirectory_node(&subdir_full_path, subdir_name, subdir_files);
             children.push(subdir_node);
         }
     }

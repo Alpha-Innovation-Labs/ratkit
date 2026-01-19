@@ -56,9 +56,8 @@ pub fn save_theme(theme_name: &str, config_path: Option<PathBuf>) -> io::Result<
         theme_name: theme_name.to_string(),
     };
 
-    let json = serde_json::to_string_pretty(&config).map_err(|e| {
-        io::Error::new(io::ErrorKind::InvalidData, format!("JSON error: {}", e))
-    })?;
+    let json = serde_json::to_string_pretty(&config)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("JSON error: {}", e)))?;
 
     fs::write(&path, json)?;
 

@@ -37,8 +37,7 @@ impl<'a> Toc<'a> {
 
         if self.expanded {
             // Calculate content area based on actual entries rather than passed area height
-            let content_area =
-                get_expanded_content_area(area, &self.config, entries.len());
+            let content_area = get_expanded_content_area(area, &self.config, entries.len());
             find_entry_at_position_expanded(
                 x,
                 y,

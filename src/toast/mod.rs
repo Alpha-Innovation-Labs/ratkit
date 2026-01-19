@@ -7,6 +7,9 @@ use std::time::{Duration, Instant};
 pub mod constructors;
 pub mod methods;
 
+/// Default toast display duration (3 seconds).
+pub const DEFAULT_TOAST_DURATION: Duration = Duration::from_secs(3);
+
 /// Toast notification level
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ToastLevel {

@@ -1,14 +1,18 @@
 //! App constructor.
 
 use ratatui::layout::Rect;
-use ratatui_toolkit::MarkdownFileWatcher;
+use ratatui_toolkit::markdown_widget::state::{
+    CacheState, CollapseState, DisplaySettings, ExpandableState, GitStatsState, ScrollState,
+    SourceState, VimState,
+};
+use ratatui_toolkit::services::file_watcher::FileWatcher;
 use ratatui_toolkit::services::theme::loader::load_builtin_theme;
 use ratatui_toolkit::services::theme::persistence::load_saved_theme;
 use ratatui_toolkit::ThemeVariant;
 use ratatui_toolkit::{
     AppTheme, ClickableScrollbarState, ClickableScrollbarStateScrollExt, CodeDiff, DiffConfig,
-    DoubleClickState, MarkdownScrollManager, MenuBar, MenuItem, ResizableSplit, SelectionState,
-    TermTui, ToastManager, TreeNavigator, TreeViewState,
+    DoubleClickState, MenuBar, MenuItem, ResizableSplit, SelectionState, TermTui, ToastManager,
+    TreeNavigator, TreeViewState,
 };
 use std::time::Instant;
 
@@ -79,6 +83,22 @@ impl App {
         )
         .with_theme(&theme);
 
+        // Create markdown state modules
+        let mut markdown_source = SourceState::default();
+        if let Err(e) = markdown_source.set_source_file(SAMPLE_MARKDOWN_FILE) {
+            eprintln!("Warning: Could not load markdown file: {}", e);
+            markdown_source.set_source_string(
+                "# Markdown Rendering\n\nError: Could not load markdown demo file.",
+            );
+        }
+
+        let mut markdown_display = DisplaySettings::default();
+        markdown_display.set_show_line_numbers(true);
+        markdown_display.set_show_document_line_numbers(true);
+
+        let mut markdown_git_stats = GitStatsState::default();
+        markdown_git_stats.set_show(true);
+
         Self {
             current_tab: DemoTab::Markdown,
             menu_bar,
@@ -88,24 +108,16 @@ impl App {
             show_dialog: false,
             dialog_type: ratatui_toolkit::DialogType::Info,
             show_hotkey_modal: false,
-            markdown_split: ResizableSplit::new(80),
-            markdown_scroll: {
-                let mut scroll = MarkdownScrollManager::new();
-                scroll.set_show_line_numbers(true);
-                scroll.set_show_document_line_numbers(true);
-                scroll.set_show_git_stats(true); // Enable git stats in statusline
-                                                 // Set file-based source for live reload support
-                if let Err(e) = scroll.set_source_file(SAMPLE_MARKDOWN_FILE) {
-                    eprintln!("Warning: Could not load markdown file: {}", e);
-                    scroll.set_source_string(
-                        "# Markdown Rendering\n\nError: Could not load markdown demo file.",
-                    );
-                }
-                scroll
-            },
+            markdown_scroll: ScrollState::default(),
+            markdown_source,
+            markdown_cache: CacheState::default(),
+            markdown_display,
+            markdown_collapse: CollapseState::default(),
+            markdown_expandable: ExpandableState::default(),
+            markdown_git_stats,
+            markdown_vim: VimState::default(),
             markdown_file_watcher: {
-                // Set up file watcher for live reload
-                MarkdownFileWatcher::new().ok().and_then(|mut watcher| {
+                FileWatcher::for_file().ok().and_then(|mut watcher| {
                     watcher
                         .watch(std::path::Path::new(SAMPLE_MARKDOWN_FILE))
                         .ok()?;

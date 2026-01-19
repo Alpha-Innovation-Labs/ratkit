@@ -24,6 +24,8 @@ pub struct RenderOptions<'a> {
     pub theme: CodeBlockTheme,
     /// Optional application theme for consistent styling
     pub app_theme: Option<&'a crate::services::theme::AppTheme>,
+    /// Whether to show collapse indicators on headings (default: false)
+    pub show_heading_collapse: bool,
 }
 
 /// Render a markdown element to ratatui Line with given width.
@@ -43,9 +45,22 @@ pub fn render_with_options(
             text,
             collapsed,
             ..
-        } => render_heading::render(element, *level, text, *collapsed, width, options.app_theme),
+        } => render_heading::render(
+            element,
+            *level,
+            text,
+            *collapsed,
+            width,
+            options.app_theme,
+            options.show_heading_collapse,
+        ),
         ElementKind::HeadingBorder { level } => {
-            vec![render_heading::render_border(element, *level, width, options.app_theme)]
+            vec![render_heading::render_border(
+                element,
+                *level,
+                width,
+                options.app_theme,
+            )]
         }
         ElementKind::CodeBlockHeader {
             language,
@@ -91,13 +106,23 @@ pub fn render_with_options(
                 *blockquote_depth,
             )]
         }
-        ElementKind::Paragraph(segments) => render_paragraph::render(element, segments, width, options.app_theme),
+        ElementKind::Paragraph(segments) => {
+            render_paragraph::render(element, segments, width, options.app_theme)
+        }
         ElementKind::ListItem {
             depth,
             ordered,
             number,
             content,
-        } => render_list_item::render(element, *depth, *ordered, *number, content, width, options.app_theme),
+        } => render_list_item::render(
+            element,
+            *depth,
+            *ordered,
+            *number,
+            content,
+            width,
+            options.app_theme,
+        ),
         ElementKind::Blockquote { content, depth } => {
             render_blockquote::render(element, content, *depth, width, options.app_theme)
         }
@@ -110,7 +135,11 @@ pub fn render_with_options(
             vec![render_table_border::render(element, kind)]
         }
         ElementKind::HorizontalRule => {
-            vec![render_horizontal_rule::render(element, width, options.app_theme)]
+            vec![render_horizontal_rule::render(
+                element,
+                width,
+                options.app_theme,
+            )]
         }
         ElementKind::Empty => {
             // Use a space so the line can receive highlight styling

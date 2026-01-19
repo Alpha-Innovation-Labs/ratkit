@@ -67,13 +67,22 @@ impl<'a> MarkdownWidget<'a> {
         let prev_entry = self.toc_hovered_entry;
 
         if is_potentially_over_toc {
-            // Get TocState or use a default empty one
-            let default_state = TocState::new();
-            let toc_state = self.toc_state.unwrap_or(&default_state);
+            // Create state from content with entries
+            let auto_state = TocState::from_content(self.content);
+            let toc_state = if let Some(provided) = self.toc_state {
+                if provided.entries.is_empty() {
+                    &auto_state
+                } else {
+                    provided
+                }
+            } else {
+                &auto_state
+            };
 
             // Try to find an entry at this position
+            // Use compact mode when not hovered, expanded mode when hovered
             let toc = Toc::new(toc_state)
-                .expanded(true) // Use expanded mode for entry detection
+                .expanded(self.toc_hovered)
                 .config(self.toc_config.clone());
 
             let entry = toc.entry_at_position(event.column, event.row, toc_area);
@@ -155,9 +164,17 @@ impl<'a> MarkdownWidget<'a> {
     /// * `y` - Mouse Y coordinate
     /// * `toc_area` - The TOC area rect
     pub fn update_toc_hovered_entry(&mut self, x: u16, y: u16, toc_area: Rect) {
-        // Get TocState or use a default empty one
-        let default_state = TocState::new();
-        let toc_state = self.toc_state.unwrap_or(&default_state);
+        // Create state from content with entries
+        let auto_state = TocState::from_content(self.content);
+        let toc_state = if let Some(provided) = self.toc_state {
+            if provided.entries.is_empty() {
+                &auto_state
+            } else {
+                provided
+            }
+        } else {
+            &auto_state
+        };
 
         let toc = Toc::new(toc_state)
             .expanded(true) // Use expanded mode for entry detection when hovered

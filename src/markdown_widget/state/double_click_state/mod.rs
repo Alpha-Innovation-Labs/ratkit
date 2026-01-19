@@ -14,7 +14,8 @@ pub struct DoubleClickState {
     /// Position of the last click.
     pub(crate) last_click_pos: Option<(u16, u16)>,
     /// Pending single-click that hasn't been processed yet.
-    pub(crate) pending_single_click: Option<(u16, u16, Instant)>,
+    /// Stores: (x, y, timestamp, scroll_offset_at_click_time)
+    pub(crate) pending_single_click: Option<(u16, u16, Instant, usize)>,
 }
 
 impl DoubleClickState {

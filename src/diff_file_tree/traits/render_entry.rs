@@ -72,9 +72,7 @@ pub fn render_entry<'a>(
             .bg(theme.primary)
             .add_modifier(Modifier::BOLD)
     } else if node_state.is_selected {
-        Style::default()
-            .fg(theme.text)
-            .bg(theme.background_element)
+        Style::default().fg(theme.text).bg(theme.background_element)
     } else if entry.is_dir {
         // Directories use info color (blue) to distinguish from modified files (yellow)
         Style::default().fg(theme.info)

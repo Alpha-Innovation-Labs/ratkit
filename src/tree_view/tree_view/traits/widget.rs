@@ -1,10 +1,6 @@
 //! Widget implementation for &TreeView.
 
-use ratatui::{
-    buffer::Buffer,
-    layout::Rect,
-    widgets::Widget,
-};
+use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
 
 use crate::tree_view::tree_view::TreeView;
 use crate::tree_view::tree_view_state::TreeViewState;

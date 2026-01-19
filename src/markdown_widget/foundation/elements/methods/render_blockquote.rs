@@ -2,7 +2,9 @@
 
 use crate::markdown_widget::foundation::elements::constants::BLOCKQUOTE_MARKER;
 use crate::markdown_widget::foundation::elements::enums::TextSegment;
-use crate::markdown_widget::foundation::elements::methods::helpers::{render_text_segment, wrap_text};
+use crate::markdown_widget::foundation::elements::methods::helpers::{
+    render_text_segment, wrap_text,
+};
 use crate::markdown_widget::foundation::elements::MarkdownElement;
 use ratatui::style::{Color, Style};
 use ratatui::text::{Line, Span};

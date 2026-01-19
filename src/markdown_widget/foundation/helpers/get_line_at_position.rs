@@ -1,6 +1,6 @@
 //! Get line information at a given screen position.
 
-use crate::markdown_widget::state::scroll_manager::MarkdownScrollManager;
+use crate::markdown_widget::state::{CollapseState, ScrollState};
 
 use crate::markdown_widget::foundation::elements::{render, ElementKind, MarkdownElement};
 use crate::markdown_widget::foundation::events::MarkdownDoubleClickEvent;
@@ -54,14 +54,14 @@ fn element_kind_to_string(kind: &ElementKind) -> String {
 }
 
 /// Check if a markdown element should be rendered based on collapse state.
-fn should_render_line(element: &MarkdownElement, _idx: usize, scroll: &MarkdownScrollManager) -> bool {
+fn should_render_line(element: &MarkdownElement, _idx: usize, collapse: &CollapseState) -> bool {
     // Headings: visible unless a parent section is collapsed (hierarchical collapse)
     if let ElementKind::Heading { section_id, .. } = &element.kind {
         // Check if any parent section is collapsed
-        if let Some(&(_level, parent_id)) = scroll.section_hierarchy.get(section_id) {
+        if let Some((_level, parent_id)) = collapse.get_hierarchy(*section_id) {
             if let Some(parent) = parent_id {
                 // If parent is collapsed, this heading is hidden
-                if scroll.is_section_collapsed(parent) {
+                if collapse.is_section_collapsed(parent) {
                     return false;
                 }
             }
@@ -85,7 +85,7 @@ fn should_render_line(element: &MarkdownElement, _idx: usize, scroll: &MarkdownS
         ElementKind::FrontmatterField { .. } | ElementKind::FrontmatterEnd
     ) {
         // Frontmatter uses section_id 0 for collapse state
-        if scroll.is_section_collapsed(0) {
+        if collapse.is_section_collapsed(0) {
             return false;
         }
         return true;
@@ -93,7 +93,7 @@ fn should_render_line(element: &MarkdownElement, _idx: usize, scroll: &MarkdownS
 
     // Check if this element belongs to a collapsed section
     if let Some(section_id) = element.section_id {
-        if scroll.is_section_collapsed(section_id) {
+        if collapse.is_section_collapsed(section_id) {
             return false;
         }
     }
@@ -108,7 +108,8 @@ fn should_render_line(element: &MarkdownElement, _idx: usize, scroll: &MarkdownS
 /// * `y` - Y coordinate relative to the widget
 /// * `width` - Width of the widget
 /// * `content` - The markdown content
-/// * `scroll` - The scroll manager
+/// * `scroll` - The scroll state
+/// * `collapse` - The collapse state
 ///
 /// # Returns
 ///
@@ -117,7 +118,8 @@ pub fn get_line_at_position(
     y: usize,
     width: usize,
     content: &str,
-    scroll: &MarkdownScrollManager,
+    scroll: &ScrollState,
+    collapse: &CollapseState,
 ) -> Option<MarkdownDoubleClickEvent> {
     let elements = render_markdown_to_elements(content, true);
     let document_y = y + scroll.scroll_offset;
@@ -125,7 +127,7 @@ pub fn get_line_at_position(
     let mut logical_line_num = 0; // Track the visible logical line number (1-indexed for display)
 
     for (idx, element) in elements.iter().enumerate() {
-        if !should_render_line(&element, idx, scroll) {
+        if !should_render_line(&element, idx, collapse) {
             continue;
         }
 

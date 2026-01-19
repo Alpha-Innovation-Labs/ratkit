@@ -85,7 +85,11 @@ pub fn render_tree_demo(
     let primary = theme.primary;
     let background_panel = theme.background_panel;
     let filter_mode = app.tree_state.filter_mode;
-    let has_filter = app.tree_state.filter.as_ref().is_some_and(|f| !f.is_empty());
+    let has_filter = app
+        .tree_state
+        .filter
+        .as_ref()
+        .is_some_and(|f| !f.is_empty());
     let show_filter_line = filter_mode || has_filter;
 
     // Calculate inner area for the tree (accounting for block border)

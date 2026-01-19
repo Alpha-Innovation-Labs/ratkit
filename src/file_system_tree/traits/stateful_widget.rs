@@ -21,12 +21,7 @@ fn entry_matches_filter(entry: &FileSystemEntry, filter: &Option<String>) -> boo
 }
 
 /// Renders the filter input line at the bottom of the tree.
-fn render_filter_line(
-    filter_text: Option<&str>,
-    filter_mode: bool,
-    area: Rect,
-    buf: &mut Buffer,
-) {
+fn render_filter_line(filter_text: Option<&str>, filter_mode: bool, area: Rect, buf: &mut Buffer) {
     if area.height == 0 {
         return;
     }

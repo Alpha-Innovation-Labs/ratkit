@@ -1,8 +1,8 @@
 //! Handle click event at the given position.
 
-use crate::markdown_widget::state::scroll_manager::MarkdownScrollManager;
 use crate::markdown_widget::foundation::elements::{render, ElementKind};
 use crate::markdown_widget::foundation::parser::render_markdown_to_elements;
+use crate::markdown_widget::state::{CacheState, CollapseState, ExpandableState, ScrollState};
 
 use super::should_render_line::should_render_line;
 
@@ -14,17 +14,24 @@ use super::should_render_line::should_render_line;
 /// * `y` - Y coordinate relative to the widget
 /// * `width` - Width of the widget
 /// * `content` - The markdown content
-/// * `scroll` - The scroll manager
+/// * `scroll` - The scroll state
+/// * `collapse` - The collapse state
+/// * `expandable` - The expandable state
+/// * `cache` - The cache state
 ///
 /// # Returns
 ///
 /// `true` if the click was handled.
+#[allow(clippy::too_many_arguments)]
 pub fn handle_click(
     _x: usize,
     y: usize,
     width: usize,
     content: &str,
-    scroll: &mut MarkdownScrollManager,
+    scroll: &ScrollState,
+    collapse: &mut CollapseState,
+    expandable: &mut ExpandableState,
+    cache: &mut CacheState,
 ) -> bool {
     let elements = render_markdown_to_elements(content, true);
 
@@ -34,7 +41,7 @@ pub fn handle_click(
 
     for (idx, element) in elements.iter().enumerate() {
         // Skip elements that shouldn't be rendered (collapsed sections)
-        if !should_render_line(&element, idx, scroll) {
+        if !should_render_line(&element, idx, collapse) {
             continue;
         }
 
@@ -48,23 +55,23 @@ pub fn handle_click(
                     collapsed: _,
                     ..
                 } => {
-                    scroll.toggle_section_collapse(*section_id);
-                    scroll.invalidate_cache(); // Invalidate cache after toggle
+                    collapse.toggle_section(*section_id);
+                    cache.invalidate();
                     return true;
                 }
                 ElementKind::Frontmatter { .. } => {
-                    scroll.toggle_section_collapse(0);
-                    scroll.invalidate_cache();
+                    collapse.toggle_section(0);
+                    cache.invalidate();
                     return true;
                 }
                 ElementKind::FrontmatterStart { .. } => {
-                    scroll.toggle_section_collapse(0);
-                    scroll.invalidate_cache();
+                    collapse.toggle_section(0);
+                    cache.invalidate();
                     return true;
                 }
                 ElementKind::ExpandToggle { content_id, .. } => {
-                    scroll.toggle_expandable(content_id);
-                    scroll.invalidate_cache();
+                    expandable.toggle(content_id);
+                    cache.invalidate();
                     return true;
                 }
                 _ => {}

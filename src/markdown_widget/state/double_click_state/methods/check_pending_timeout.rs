@@ -11,14 +11,15 @@ impl DoubleClickState {
     ///
     /// # Returns
     ///
-    /// The position of the pending click if it should be processed.
-    pub fn check_pending_timeout(&mut self) -> Option<(u16, u16)> {
-        if let Some((x, y, time)) = self.pending_single_click {
+    /// The position and scroll_offset of the pending click if it should be processed.
+    /// Returns `(x, y, scroll_offset_at_click_time)`.
+    pub fn check_pending_timeout(&mut self) -> Option<(u16, u16, usize)> {
+        if let Some((x, y, time, scroll_offset)) = self.pending_single_click {
             let elapsed = time.elapsed();
             if elapsed >= Duration::from_millis(Self::DOUBLE_CLICK_THRESHOLD_MS) {
                 // Timeout expired, process the pending single click
                 self.pending_single_click = None;
-                return Some((x, y));
+                return Some((x, y, scroll_offset));
             }
         }
         None

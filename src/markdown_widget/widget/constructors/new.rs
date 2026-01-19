@@ -1,10 +1,11 @@
 //! Constructor for MarkdownWidget.
 
-use crate::markdown_widget::extensions::minimap::MinimapConfig;
+use crate::markdown_widget::extensions::scrollbar::ScrollbarConfig;
 use crate::markdown_widget::extensions::toc::TocConfig;
-use crate::markdown_widget::state::double_click_state::DoubleClickState;
-use crate::markdown_widget::state::scroll_manager::MarkdownScrollManager;
-use crate::markdown_widget::state::selection_state::SelectionState;
+use crate::markdown_widget::state::{
+    CacheState, CollapseState, DisplaySettings, DoubleClickState, ExpandableState, GitStatsState,
+    ScrollState, SelectionState, SourceState, VimState,
+};
 use crate::markdown_widget::widget::enums::MarkdownWidgetMode;
 use crate::markdown_widget::widget::MarkdownWidget;
 
@@ -14,22 +15,44 @@ impl<'a> MarkdownWidget<'a> {
     /// # Arguments
     ///
     /// * `content` - The markdown content to render
-    /// * `scroll` - The scroll manager for handling scroll state
-    /// * `selection` - The selection state for text selection/copy
-    /// * `double_click` - The double-click state for detection
+    /// * `scroll` - Scroll state (position, viewport, current line)
+    /// * `source` - Content source state
+    /// * `cache` - Render cache state
+    /// * `display` - Display settings (line numbers, themes)
+    /// * `collapse` - Section collapse state
+    /// * `expandable` - Expandable content state
+    /// * `git_stats_state` - Git stats state
+    /// * `vim` - Vim keybinding state
+    /// * `selection` - Selection state for text selection/copy
+    /// * `double_click` - Double-click state for detection
     ///
     /// # Returns
     ///
     /// A new `MarkdownWidget` instance.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         content: &'a str,
-        scroll: &'a mut MarkdownScrollManager,
+        scroll: &'a mut ScrollState,
+        source: &'a mut SourceState,
+        cache: &'a mut CacheState,
+        display: &'a DisplaySettings,
+        collapse: &'a mut CollapseState,
+        expandable: &'a mut ExpandableState,
+        git_stats_state: &'a mut GitStatsState,
+        vim: &'a mut VimState,
         selection: &'a mut SelectionState,
         double_click: &'a mut DoubleClickState,
     ) -> Self {
         Self {
             content,
             scroll,
+            source,
+            cache,
+            display,
+            collapse,
+            expandable,
+            git_stats_state,
+            vim,
             selection,
             double_click,
             toc_state: None,
@@ -37,11 +60,9 @@ impl<'a> MarkdownWidget<'a> {
             mode: MarkdownWidgetMode::Normal,
             show_statusline: true,
             show_scrollbar: false,
+            scrollbar_config: ScrollbarConfig::default(),
             selection_active: false,
             git_stats: None,
-            show_minimap: false,
-            minimap_config: MinimapConfig::default(),
-            minimap_hovered: false,
             show_toc: false,
             toc_config: TocConfig::default(),
             toc_hovered: false,
@@ -49,6 +70,7 @@ impl<'a> MarkdownWidget<'a> {
             toc_scroll_offset: 0,
             rendered_lines: Vec::new(),
             app_theme: None,
+            last_double_click: None,
         }
     }
 }

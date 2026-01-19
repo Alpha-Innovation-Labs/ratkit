@@ -1,7 +1,7 @@
 //! Method to apply an AppTheme to the StatusBar.
 
-use crate::statusbar::StatusBar;
 use crate::services::theme::AppTheme;
+use crate::statusbar::StatusBar;
 use ratatui::style::Style;
 
 impl<'a> StatusBar<'a> {

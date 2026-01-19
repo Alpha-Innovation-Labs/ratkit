@@ -4,11 +4,7 @@ pub mod constructors;
 pub mod methods;
 pub mod traits;
 
-use ratatui::{
-    style::Style,
-    text::Line,
-    widgets::Block,
-};
+use ratatui::{style::Style, text::Line, widgets::Block};
 
 use crate::tree_view::node_state::NodeState;
 use crate::tree_view::tree_node::TreeNode;

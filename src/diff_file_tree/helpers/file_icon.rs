@@ -9,19 +9,19 @@ pub fn file_icon(filename: &str) -> &'static str {
         "rs" => "\u{e7a8}", //  (rust icon)
 
         // Web
-        "js" => "\u{e74e}",        //  (javascript)
-        "ts" => "\u{e628}",        //  (typescript)
-        "jsx" | "tsx" => "\u{e7ba}", //  (react)
-        "html" => "\u{e736}",      //  (html)
-        "css" => "\u{e749}",       //  (css)
+        "js" => "\u{e74e}",            //  (javascript)
+        "ts" => "\u{e628}",            //  (typescript)
+        "jsx" | "tsx" => "\u{e7ba}",   //  (react)
+        "html" => "\u{e736}",          //  (html)
+        "css" => "\u{e749}",           //  (css)
         "scss" | "sass" => "\u{e74b}", //  (sass)
-        "vue" => "\u{e6a0}",       //  (vue)
+        "vue" => "\u{e6a0}",           //  (vue)
 
         // Config
-        "toml" => "\u{e6b2}",       //  (config)
+        "toml" => "\u{e6b2}",         //  (config)
         "yaml" | "yml" => "\u{e6a8}", //  (yaml)
-        "json" => "\u{e60b}",       //  (json)
-        "xml" => "\u{e619}",        //  (xml)
+        "json" => "\u{e60b}",         //  (json)
+        "xml" => "\u{e619}",          //  (xml)
 
         // Docs
         "md" | "markdown" => "\u{e73e}", //  (markdown)
@@ -39,12 +39,12 @@ pub fn file_icon(filename: &str) -> &'static str {
         "go" => "\u{e627}", //  (go)
 
         // C/C++
-        "c" => "\u{e61e}",             //  (c)
+        "c" => "\u{e61e}",                  //  (c)
         "cpp" | "cc" | "cxx" => "\u{e61d}", //  (c++)
-        "h" | "hpp" => "\u{e61f}",     //  (header)
+        "h" | "hpp" => "\u{e61f}",          //  (header)
 
         // Java/Kotlin
-        "java" => "\u{e738}",      //  (java)
+        "java" => "\u{e738}",       //  (java)
         "kt" | "kts" => "\u{e634}", //  (kotlin)
 
         // Ruby

@@ -28,7 +28,11 @@ pub fn render(
 }
 
 /// Render a single wrapped line, preserving styling from segments
-fn render_line_with_segments(line_text: &str, segments: &[TextSegment], app_theme: Option<&crate::services::theme::AppTheme>) -> Vec<Span<'static>> {
+fn render_line_with_segments(
+    line_text: &str,
+    segments: &[TextSegment],
+    app_theme: Option<&crate::services::theme::AppTheme>,
+) -> Vec<Span<'static>> {
     if line_text.is_empty() {
         return vec![Span::raw("")];
     }
@@ -51,12 +55,8 @@ fn render_line_with_segments(line_text: &str, segments: &[TextSegment], app_them
     let link_color = app_theme
         .map(|t| t.markdown.link_text)
         .unwrap_or(Color::Rgb(100, 200, 100));
-    let emph_color = app_theme
-        .map(|t| t.markdown.emph)
-        .unwrap_or(Color::Reset);
-    let strong_color = app_theme
-        .map(|t| t.markdown.strong)
-        .unwrap_or(Color::Reset);
+    let emph_color = app_theme.map(|t| t.markdown.emph).unwrap_or(Color::Reset);
+    let strong_color = app_theme.map(|t| t.markdown.strong).unwrap_or(Color::Reset);
 
     for segment in segments {
         let (text, style) = match segment {
@@ -82,9 +82,7 @@ fn render_line_with_segments(line_text: &str, segments: &[TextSegment], app_them
             ),
             TextSegment::InlineCode(t) => (
                 t.clone(),
-                Style::default()
-                    .bg(Color::Rgb(60, 60, 60))
-                    .fg(code_color),
+                Style::default().bg(Color::Rgb(60, 60, 60)).fg(code_color),
             ),
             TextSegment::Link {
                 text,

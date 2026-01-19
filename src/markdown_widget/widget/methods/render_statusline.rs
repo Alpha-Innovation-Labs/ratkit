@@ -51,24 +51,22 @@ impl<'a> MarkdownWidget<'a> {
             .unwrap_or(Color::Rgb(58, 58, 58));
 
         // Mode text foreground - use theme background or default black
-        let mode_fg = self
-            .app_theme
-            .map(|t| t.background)
-            .unwrap_or(Color::Black);
+        let mode_fg = self.app_theme.map(|t| t.background).unwrap_or(Color::Black);
 
         // File text color - use theme text or default white
         let file_fg = self.app_theme.map(|t| t.text).unwrap_or(Color::White);
 
         // Get filename from source path
         let filename = self
-            .scroll
+            .source
             .source_path()
             .and_then(|p| p.file_name())
             .and_then(|n| n.to_str());
 
         // Position info - use source line count for accurate display
-        let display_total = if self.scroll.source_line_count > 0 {
-            self.scroll.source_line_count
+        let source_line_count = self.source.line_count();
+        let display_total = if source_line_count > 0 {
+            source_line_count
         } else {
             self.scroll.total_lines
         };
@@ -87,10 +85,7 @@ impl<'a> MarkdownWidget<'a> {
             .unwrap_or(Color::Rgb(171, 178, 191));
 
         // Position text foreground - use theme background or default black
-        let position_fg = self
-            .app_theme
-            .map(|t| t.background)
-            .unwrap_or(Color::Black);
+        let position_fg = self.app_theme.map(|t| t.background).unwrap_or(Color::Black);
 
         // Build the statusline
         let mut statusline = StatusLineStacked::new()
@@ -132,31 +127,27 @@ impl<'a> MarkdownWidget<'a> {
 
         // Now render git stats with colored icons (no background)
         // Icons from lvim: LineAdded (U+EADC), LineModified (U+EADE), LineRemoved (U+EADF)
-        // Get git stats from scroll manager (which manages the caching/updates)
+        // Get git stats from git_stats_state (which manages the caching/updates)
         // or fall back to manually-set widget stats
-        let git_stats = self.scroll.git_stats().or(self.git_stats.clone());
+        let git_stats = self.git_stats_state.git_stats().or(self.git_stats.clone());
         if let Some(stats) = &git_stats {
             // Use theme colors for git stats or fall back to defaults
-            let green = Style::new().fg(
-                self.app_theme
-                    .map(|t| t.success)
-                    .unwrap_or(Color::Rgb(152, 195, 121)),
-            );
-            let yellow = Style::new().fg(
-                self.app_theme
-                    .map(|t| t.warning)
-                    .unwrap_or(Color::Rgb(229, 192, 123)),
-            );
-            let red = Style::new().fg(
-                self.app_theme
-                    .map(|t| t.error)
-                    .unwrap_or(Color::Rgb(224, 108, 117)),
-            );
-            let dim = Style::new().fg(
-                self.app_theme
-                    .map(|t| t.text_muted)
-                    .unwrap_or(Color::Rgb(92, 99, 112)),
-            );
+            let green = Style::new().fg(self
+                .app_theme
+                .map(|t| t.success)
+                .unwrap_or(Color::Rgb(152, 195, 121)));
+            let yellow = Style::new().fg(self
+                .app_theme
+                .map(|t| t.warning)
+                .unwrap_or(Color::Rgb(229, 192, 123)));
+            let red = Style::new().fg(self
+                .app_theme
+                .map(|t| t.error)
+                .unwrap_or(Color::Rgb(224, 108, 117)));
+            let dim = Style::new().fg(self
+                .app_theme
+                .map(|t| t.text_muted)
+                .unwrap_or(Color::Rgb(92, 99, 112)));
 
             let mut x = git_stats_start_x;
 

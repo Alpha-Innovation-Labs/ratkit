@@ -2,7 +2,11 @@
 
 use ratatui::{buffer::Buffer, layout::Rect, text::Line, widgets::Widget};
 use ratatui_toolkit::{
-    AppTheme, DoubleClickState, MarkdownScrollManager, MarkdownWidget, SelectionState,
+    markdown_widget::state::{
+        CacheState, CollapseState, DisplaySettings, ExpandableState, GitStatsState, ScrollState,
+        SourceState, VimState,
+    },
+    AppTheme, DoubleClickState, MarkdownWidget, SelectionState,
 };
 
 /// Render the markdown content with TOC and statusline.
@@ -10,7 +14,14 @@ use ratatui_toolkit::{
 /// # Arguments
 ///
 /// * `content` - The markdown content string.
-/// * `scroll` - The scroll manager.
+/// * `scroll` - The scroll state.
+/// * `source` - The source state.
+/// * `cache` - The cache state.
+/// * `display` - The display settings.
+/// * `collapse` - The collapse state.
+/// * `expandable` - The expandable state.
+/// * `git_stats` - The git stats state.
+/// * `vim` - The vim state.
 /// * `selection` - The selection state.
 /// * `double_click` - The double-click state.
 /// * `area` - The area to render into.
@@ -25,9 +36,17 @@ use ratatui_toolkit::{
 /// # Returns
 ///
 /// All rendered lines for selection text extraction.
+#[allow(clippy::too_many_arguments)]
 pub fn render_markdown_content(
     content: &str,
-    scroll: &mut MarkdownScrollManager,
+    scroll: &mut ScrollState,
+    source: &mut SourceState,
+    cache: &mut CacheState,
+    display: &DisplaySettings,
+    collapse: &mut CollapseState,
+    expandable: &mut ExpandableState,
+    git_stats: &mut GitStatsState,
+    vim: &mut VimState,
     selection: &mut SelectionState,
     double_click: &mut DoubleClickState,
     area: Rect,
@@ -39,21 +58,33 @@ pub fn render_markdown_content(
     toc_scroll_offset: usize,
     app_theme: &AppTheme,
 ) -> Vec<Line<'static>> {
-    let widget = MarkdownWidget::new(content, scroll, selection, double_click)
-        .show_toc(true)
-        .show_statusline(true)
-        .show_scrollbar(true)
-        .selection_active(selection_active)
-        .toc_hovered(toc_hovered)
-        .toc_hovered_entry(toc_hovered_entry)
-        .toc_scroll_offset(toc_scroll_offset)
-        .is_resizing(is_dragging)
-        .with_theme(app_theme);
+    let widget = MarkdownWidget::new(
+        content,
+        scroll,
+        source,
+        cache,
+        display,
+        collapse,
+        expandable,
+        git_stats,
+        vim,
+        selection,
+        double_click,
+    )
+    .show_toc(true)
+    .show_statusline(true)
+    .show_scrollbar(true)
+    .selection_active(selection_active)
+    .toc_hovered(toc_hovered)
+    .toc_hovered_entry(toc_hovered_entry)
+    .toc_scroll_offset(toc_scroll_offset)
+    .is_resizing(is_dragging)
+    .with_theme(app_theme);
 
     widget.render(area, buf);
 
-    // Get rendered lines from scroll manager's cache for selection text extraction
-    scroll
+    // Get rendered lines from cache for selection text extraction
+    cache
         .render_cache()
         .map(|c| c.lines.clone())
         .unwrap_or_default()

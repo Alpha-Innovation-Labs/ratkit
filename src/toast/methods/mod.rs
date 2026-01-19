@@ -8,6 +8,7 @@ pub mod toast_manager_add;
 pub mod toast_manager_clear;
 pub mod toast_manager_error;
 pub mod toast_manager_get_active;
+pub mod toast_manager_handle_click;
 pub mod toast_manager_has_toasts;
 pub mod toast_manager_info;
 pub mod toast_manager_remove_expired;

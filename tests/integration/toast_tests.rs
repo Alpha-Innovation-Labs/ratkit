@@ -5,20 +5,20 @@ use ratatui_toolkit::toast::{Toast, ToastLevel, ToastManager};
 /// Test Toast creation with different ToastLevel variants
 #[test]
 fn test_toast_creation_with_different_levels() {
-    let info_toast = Toast::new("Info message", ToastLevel::Info);
+    let info_toast = Toast::new("Info message", ToastLevel::Info, None);
     assert_eq!(info_toast.level, ToastLevel::Info);
     assert_eq!(info_toast.message, "Info message");
     assert_eq!(info_toast.duration, Duration::from_secs(3));
 
-    let warning_toast = Toast::new("Warning message", ToastLevel::Warning);
+    let warning_toast = Toast::new("Warning message", ToastLevel::Warning, None);
     assert_eq!(warning_toast.level, ToastLevel::Warning);
     assert_eq!(warning_toast.message, "Warning message");
 
-    let error_toast = Toast::new("Error message", ToastLevel::Error);
+    let error_toast = Toast::new("Error message", ToastLevel::Error, None);
     assert_eq!(error_toast.level, ToastLevel::Error);
     assert_eq!(error_toast.message, "Error message");
 
-    let success_toast = Toast::new("Success message", ToastLevel::Success);
+    let success_toast = Toast::new("Success message", ToastLevel::Success, None);
     assert_eq!(success_toast.level, ToastLevel::Success);
     assert_eq!(success_toast.message, "Success message");
 }
@@ -143,7 +143,7 @@ fn test_toast_manager_default() {
 fn test_add_toast_to_manager() {
     let mut manager = ToastManager::new();
 
-    let toast = Toast::new("Test toast", ToastLevel::Info);
+    let toast = Toast::new("Test toast", ToastLevel::Info, None);
     manager.add(toast);
 
     assert_eq!(manager.get_active().len(), 1);
@@ -156,9 +156,9 @@ fn test_add_toast_to_manager() {
 fn test_add_multiple_toasts() {
     let mut manager = ToastManager::new();
 
-    manager.add(Toast::new("First", ToastLevel::Info));
-    manager.add(Toast::new("Second", ToastLevel::Warning));
-    manager.add(Toast::new("Third", ToastLevel::Error));
+    manager.add(Toast::new("First", ToastLevel::Info, None));
+    manager.add(Toast::new("Second", ToastLevel::Warning, None));
+    manager.add(Toast::new("Third", ToastLevel::Error, None));
 
     assert_eq!(manager.get_active().len(), 3);
     assert_eq!(manager.get_active()[0].message, "First");
@@ -171,9 +171,9 @@ fn test_add_multiple_toasts() {
 fn test_toast_ordering() {
     let mut manager = ToastManager::new();
 
-    manager.add(Toast::new("Toast 1", ToastLevel::Info));
-    manager.add(Toast::new("Toast 2", ToastLevel::Info));
-    manager.add(Toast::new("Toast 3", ToastLevel::Info));
+    manager.add(Toast::new("Toast 1", ToastLevel::Info, None));
+    manager.add(Toast::new("Toast 2", ToastLevel::Info, None));
+    manager.add(Toast::new("Toast 3", ToastLevel::Info, None));
 
     let toasts = manager.get_active();
     assert_eq!(toasts.len(), 3);
@@ -257,7 +257,7 @@ fn test_auto_remove_expired_on_add() {
     thread::sleep(Duration::from_millis(100));
 
     // Add a new toast - this should trigger cleanup
-    manager.add(Toast::new("New toast", ToastLevel::Success));
+    manager.add(Toast::new("New toast", ToastLevel::Success, None));
 
     // Should only have the new toast
     assert_eq!(manager.get_active().len(), 1);
@@ -312,9 +312,9 @@ fn test_concurrent_toasts_different_durations() {
 fn test_clear_all_toasts() {
     let mut manager = ToastManager::new();
 
-    manager.add(Toast::new("Toast 1", ToastLevel::Info));
-    manager.add(Toast::new("Toast 2", ToastLevel::Warning));
-    manager.add(Toast::new("Toast 3", ToastLevel::Error));
+    manager.add(Toast::new("Toast 1", ToastLevel::Info, None));
+    manager.add(Toast::new("Toast 2", ToastLevel::Warning, None));
+    manager.add(Toast::new("Toast 3", ToastLevel::Error, None));
 
     assert_eq!(manager.get_active().len(), 3);
 
@@ -399,7 +399,7 @@ fn test_max_limit_keeps_most_recent() {
     assert_eq!(manager.get_active().len(), 5);
 
     // Add one more
-    manager.add(Toast::new("Toast 6", ToastLevel::Info));
+    manager.add(Toast::new("Toast 6", ToastLevel::Info, None));
 
     // Should still be 5, with oldest removed
     assert_eq!(manager.get_active().len(), 5);
@@ -428,11 +428,11 @@ fn test_toast_message_types() {
     let mut manager = ToastManager::new();
 
     // Test with &str
-    manager.add(Toast::new("str message", ToastLevel::Info));
+    manager.add(Toast::new("str message", ToastLevel::Info, None));
 
     // Test with String
     let owned = String::from("owned message");
-    manager.add(Toast::new(owned, ToastLevel::Info));
+    manager.add(Toast::new(owned, ToastLevel::Info, None));
 
     // Test with format!
     manager.add(Toast::new(format!("formatted {}", 123), ToastLevel::Info));
@@ -509,7 +509,7 @@ fn test_has_toasts_accuracy() {
     assert!(!manager.has_toasts());
 
     // Add a toast
-    manager.add(Toast::new("Test", ToastLevel::Info));
+    manager.add(Toast::new("Test", ToastLevel::Info, None));
     assert!(manager.has_toasts());
 
     // Clear
@@ -561,7 +561,7 @@ fn test_max_limit_with_expired() {
     thread::sleep(Duration::from_millis(100));
 
     // Add one more - should trigger expired removal
-    manager.add(Toast::new("New", ToastLevel::Info));
+    manager.add(Toast::new("New", ToastLevel::Info, None));
 
     // Should have 5 toasts (expired one removed, new one added)
     assert_eq!(manager.get_active().len(), 5);

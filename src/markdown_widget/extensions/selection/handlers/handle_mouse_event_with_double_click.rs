@@ -2,10 +2,9 @@
 
 use ratatui::layout::Rect;
 
-use crate::markdown_widget::state::scroll_manager::MarkdownScrollManager;
 use crate::markdown_widget::foundation::events::MarkdownDoubleClickEvent;
 use crate::markdown_widget::foundation::helpers::{get_line_at_position, is_in_area};
-use crate::markdown_widget::state::double_click_state::DoubleClickState;
+use crate::markdown_widget::state::{CollapseState, DoubleClickState, ScrollState};
 
 /// Handle mouse event with double-click detection.
 ///
@@ -22,7 +21,8 @@ use crate::markdown_widget::state::double_click_state::DoubleClickState;
 /// * `event` - The mouse event
 /// * `area` - The widget area
 /// * `content` - The markdown content
-/// * `scroll` - The scroll manager
+/// * `scroll` - The scroll state
+/// * `collapse` - The collapse state
 /// * `double_click_state` - The double-click state tracker
 ///
 /// # Returns
@@ -32,7 +32,8 @@ pub fn handle_mouse_event_with_double_click(
     event: &crossterm::event::MouseEvent,
     area: Rect,
     content: &str,
-    scroll: &mut MarkdownScrollManager,
+    scroll: &mut ScrollState,
+    collapse: &CollapseState,
     double_click_state: &mut DoubleClickState,
 ) -> (bool, Option<MarkdownDoubleClickEvent>) {
     if !is_in_area(event.column, event.row, area) {
@@ -45,11 +46,13 @@ pub fn handle_mouse_event_with_double_click(
     match event.kind {
         crossterm::event::MouseEventKind::Down(crossterm::event::MouseButton::Left) => {
             let (is_double, _should_process_pending) =
-                double_click_state.process_click(event.column, event.row);
+                double_click_state.process_click(event.column, event.row, scroll.scroll_offset);
 
             if is_double {
                 // Double-click: return line info
-                if let Some(evt) = get_line_at_position(relative_y, width, content, scroll) {
+                if let Some(evt) =
+                    get_line_at_position(relative_y, width, content, scroll, collapse)
+                {
                     return (true, Some(evt));
                 }
             }

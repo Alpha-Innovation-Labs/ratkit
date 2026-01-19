@@ -53,9 +53,17 @@ impl<'a> MarkdownWidget<'a> {
             return false;
         }
 
-        // Get TocState or use a default empty one
-        let default_state = TocState::new();
-        let toc_state = self.toc_state.unwrap_or(&default_state);
+        // Create state from content with entries
+        let auto_state = TocState::from_content(self.content);
+        let toc_state = if let Some(provided) = self.toc_state {
+            if provided.entries.is_empty() {
+                &auto_state
+            } else {
+                provided
+            }
+        } else {
+            &auto_state
+        };
 
         // Create a TOC to find the clicked entry
         let toc = Toc::new(toc_state)
@@ -114,9 +122,17 @@ impl<'a> MarkdownWidget<'a> {
             return false;
         }
 
-        // Get TocState or use a default empty one
-        let default_state = TocState::new();
-        let toc_state = self.toc_state.unwrap_or(&default_state);
+        // Create state from content with entries
+        let auto_state = TocState::from_content(self.content);
+        let toc_state = if let Some(provided) = self.toc_state {
+            if provided.entries.is_empty() {
+                &auto_state
+            } else {
+                provided
+            }
+        } else {
+            &auto_state
+        };
 
         // Create a TOC to find the clicked entry
         let toc = Toc::new(toc_state)

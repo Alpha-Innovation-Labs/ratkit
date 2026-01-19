@@ -29,13 +29,13 @@ use ratatui_toolkit::{
     render_hotkey_modal, render_toasts, ClickableScrollbarStateMouseExt,
     ClickableScrollbarStateScrollExt, Dialog, DialogType, DialogWidget, Hotkey, HotkeyFooter,
     HotkeyItem, HotkeyModalConfig, HotkeySection, MarkdownEvent, MarkdownWidget, ScrollbarEvent,
-    StatusBar, StatusItem, ThemeVariant, Toast, ToastLevel,
+    ThemeVariant, Toast, ToastLevel,
 };
 use std::io;
 
 use app::App;
 use demo_tab::DemoTab;
-use helpers::{all_app_themes, get_app_theme_display_name, get_theme_name};
+use helpers::{all_app_themes, get_app_theme_display_name};
 use render::{
     get_filtered_themes, render_code_diff_demo, render_dialogs_demo, render_markdown_demo,
     render_scrollbar_demo, render_statusline_demo, render_terminal_demo, render_theme_picker,
@@ -52,8 +52,11 @@ fn main() -> io::Result<()> {
     let mut app = App::new();
     app.toast_manager
         .info("Welcome to ratatui-toolkit showcase!");
-    app.toast_manager
-        .add(Toast::new("Press Tab to switch demos", ToastLevel::Info));
+    app.toast_manager.add(Toast::new(
+        "Press Tab to switch demos",
+        ToastLevel::Info,
+        None,
+    ));
 
     loop {
         let tree_nodes = app.build_tree();
@@ -67,7 +70,6 @@ fn main() -> io::Result<()> {
                 .constraints([
                     Constraint::Length(3), // Menu bar
                     Constraint::Min(0),    // Content
-                    Constraint::Length(1), // Status bar
                     Constraint::Length(1), // Hotkey footer
                 ])
                 .split(area);
@@ -93,32 +95,6 @@ fn main() -> io::Result<()> {
                 DemoTab::Terminal => render_terminal_demo(frame, content_area, &mut app, &theme),
             }
 
-            // Status bar with theme
-            let elapsed = app.start_time.elapsed().as_secs();
-            let status = if app.current_tab == DemoTab::Markdown {
-                // Use source_line_count for accurate display (falls back to total_lines if 0)
-                let display_total = if app.markdown_scroll.source_line_count > 0 {
-                    app.markdown_scroll.source_line_count
-                } else {
-                    app.markdown_scroll.total_lines
-                };
-                let line_info =
-                    format!("Ln {}/{}", app.markdown_scroll.current_line, display_total);
-                let theme_name = get_theme_name(app.markdown_scroll.code_block_theme);
-                StatusBar::new()
-                    .with_theme(&app.current_theme)
-                    .add_left(StatusItem::bold(format!(" {}", app.current_tab.name())))
-                    .add_center(StatusItem::new(line_info))
-                    .add_right(StatusItem::new(format!(" {} [T]", theme_name)))
-            } else {
-                StatusBar::new()
-                    .with_theme(&app.current_theme)
-                    .add_left(StatusItem::bold(format!(" {}", app.current_tab.name())))
-                    .add_center(StatusItem::new("ratatui-toolkit v0.1.0"))
-                    .add_right(StatusItem::dimmed(format!("{}s", elapsed)))
-            };
-            frame.render_widget(status, main_chunks[2]);
-
             // Hotkey footer with theme
             let footer_items = vec![
                 HotkeyItem::new("Tab", "switch"),
@@ -129,7 +105,7 @@ fn main() -> io::Result<()> {
                 HotkeyItem::new("q", "quit"),
             ];
             let footer = HotkeyFooter::new(footer_items).with_theme(&app.current_theme);
-            frame.render_widget(&footer, main_chunks[3]);
+            frame.render_widget(&footer, main_chunks[2]);
 
             // Toasts
             render_toasts(frame, &app.toast_manager);
@@ -199,25 +175,37 @@ fn main() -> io::Result<()> {
 
         app.toast_manager.remove_expired();
 
-        // Update cached git stats periodically (handled by scroll manager)
-        app.markdown_scroll.update_git_stats();
+        // Update cached git stats periodically
+        app.markdown_git_stats
+            .update(app.markdown_source.source_path());
 
         // Check for markdown file changes and reload if needed
-        if let Some(ref watcher) = app.markdown_file_watcher {
+        if let Some(ref mut watcher) = app.markdown_file_watcher {
             if watcher.check_for_changes() {
-                if let Ok(true) = app.markdown_scroll.reload_source() {
-                    app.toast_manager
-                        .add(Toast::new("Markdown file reloaded", ToastLevel::Info));
+                if let Ok(true) = app.markdown_source.reload_source() {
+                    app.markdown_cache.invalidate();
+                    app.toast_manager.add(Toast::new(
+                        "Markdown file reloaded",
+                        ToastLevel::Info,
+                        None,
+                    ));
                 }
             }
         }
 
         // Check for pending markdown single-click timeout (for deferred processing)
         if app.current_tab == DemoTab::Markdown {
-            let content = app.markdown_scroll.content().unwrap_or("").to_string();
+            let content = app.markdown_source.content().unwrap_or("").to_string();
             let mut widget = MarkdownWidget::new(
                 &content,
                 &mut app.markdown_scroll,
+                &mut app.markdown_source,
+                &mut app.markdown_cache,
+                &app.markdown_display,
+                &mut app.markdown_collapse,
+                &mut app.markdown_expandable,
+                &mut app.markdown_git_stats,
+                &mut app.markdown_vim,
                 &mut app.markdown_selection,
                 &mut app.markdown_double_click,
             );
@@ -243,9 +231,7 @@ fn main() -> io::Result<()> {
         }
 
         // Adaptive polling: fast during drag for smooth resize, slower otherwise to save CPU
-        let poll_timeout = if app.markdown_split.is_dragging
-            || app.terminal_split.is_dragging
-            || app.code_diff.is_sidebar_dragging()
+        let poll_timeout = if app.terminal_split.is_dragging || app.code_diff.is_sidebar_dragging()
         {
             std::time::Duration::from_millis(8) // ~120fps for smooth dragging
         } else {
@@ -468,10 +454,17 @@ fn main() -> io::Result<()> {
                             DemoTab::Markdown => {
                                 // Use widget's unified key event handler
                                 let content =
-                                    app.markdown_scroll.content().unwrap_or("").to_string();
+                                    app.markdown_source.content().unwrap_or("").to_string();
                                 let mut widget = MarkdownWidget::new(
                                     &content,
                                     &mut app.markdown_scroll,
+                                    &mut app.markdown_source,
+                                    &mut app.markdown_cache,
+                                    &app.markdown_display,
+                                    &mut app.markdown_collapse,
+                                    &mut app.markdown_expandable,
+                                    &mut app.markdown_git_stats,
+                                    &mut app.markdown_vim,
                                     &mut app.markdown_selection,
                                     &mut app.markdown_double_click,
                                 );
@@ -565,7 +558,6 @@ fn main() -> io::Result<()> {
                             .constraints([
                                 Constraint::Length(3), // Menu bar
                                 Constraint::Min(0),    // Content
-                                Constraint::Length(1), // Status bar
                                 Constraint::Length(1), // Hotkey footer
                             ])
                             .split(area);
@@ -583,174 +575,125 @@ fn main() -> io::Result<()> {
                             .constraints([
                                 Constraint::Length(3), // Menu bar
                                 Constraint::Min(0),    // Content
-                                Constraint::Length(1), // Status bar
                                 Constraint::Length(1), // Hotkey footer
                             ])
                             .split(area);
                         let content_area = main_chunks[1];
 
-                        // Handle split divider first
-                        match mouse.kind {
-                            MouseEventKind::Down(MouseButton::Left) => {
-                                if app.markdown_split.is_on_divider(
-                                    mouse.column,
-                                    mouse.row,
-                                    content_area,
-                                ) {
-                                    app.markdown_split.start_drag();
-                                }
-                            }
-                            MouseEventKind::Drag(MouseButton::Left) => {
-                                if app.markdown_split.is_dragging {
-                                    app.markdown_split.update_from_mouse(
-                                        mouse.column,
-                                        mouse.row,
-                                        content_area,
-                                    );
-                                }
-                            }
-                            MouseEventKind::Up(MouseButton::Left) => {
-                                if app.markdown_split.is_dragging {
-                                    app.markdown_split.stop_drag();
-                                    // Invalidate cache after resize
-                                    app.markdown_scroll.invalidate_cache();
-                                }
-                            }
-                            MouseEventKind::Moved => {
-                                app.markdown_split.is_hovering = app.markdown_split.is_on_divider(
-                                    mouse.column,
-                                    mouse.row,
-                                    content_area,
-                                );
+                        // Inner area accounts for widget border
+                        let inner_area = Rect {
+                            x: content_area.x + 1,
+                            y: content_area.y + 1,
+                            width: content_area.width.saturating_sub(2),
+                            height: content_area.height.saturating_sub(2),
+                        };
 
-                                // Handle TOC hover
-                                let left_width = (content_area.width as u32
-                                    * app.markdown_split.split_percent as u32
-                                    / 100) as u16;
-                                let markdown_area = Rect {
-                                    x: content_area.x,
-                                    y: content_area.y,
-                                    width: left_width,
-                                    height: content_area.height,
-                                };
-                                let inner_area = Rect {
-                                    x: markdown_area.x + 1,
-                                    y: markdown_area.y + 1,
-                                    width: markdown_area.width.saturating_sub(2),
-                                    height: markdown_area.height.saturating_sub(2),
-                                };
+                        // Get content before mutable borrows
+                        let content = app.markdown_source.content().unwrap_or("").to_string();
 
-                                let content =
-                                    app.markdown_scroll.content().unwrap_or("").to_string();
-                                let mut widget = MarkdownWidget::new(
-                                    &content,
-                                    &mut app.markdown_scroll,
-                                    &mut app.markdown_selection,
-                                    &mut app.markdown_double_click,
-                                )
-                                .show_toc(true);
-                                widget.set_toc_hovered(app.toc_hovered);
-                                widget.set_toc_scroll_offset(app.toc_scroll_offset);
-
-                                if widget.handle_toc_hover(&mouse, inner_area) {
-                                    app.toc_hovered = widget.is_toc_hovered();
-                                    app.toc_hovered_entry = widget.get_toc_hovered_entry();
-                                }
-                            }
-                            _ => {}
-                        }
-
-                        // Only handle markdown interactions when NOT dragging divider
-                        if !app.markdown_split.is_dragging {
-                            // Calculate markdown area based on split percentage
-                            let left_width = (content_area.width as u32
-                                * app.markdown_split.split_percent as u32
-                                / 100) as u16;
-                            let markdown_area = Rect {
-                                x: content_area.x,
-                                y: content_area.y,
-                                width: left_width,
-                                height: content_area.height,
-                            };
-
-                            // Account for the block border (1 pixel on each side)
-                            let inner_area = Rect {
-                                x: markdown_area.x + 1,
-                                y: markdown_area.y + 1,
-                                width: markdown_area.width.saturating_sub(2),
-                                height: markdown_area.height.saturating_sub(2),
-                            };
-
-                            // Store inner area for pending click checks
-                            app.markdown_inner_area = inner_area;
-
-                            // Get content before mutable borrows
-                            let content = app.markdown_scroll.content().unwrap_or("").to_string();
-
-                            // Handle TOC click first (for scroll-to-heading navigation)
-                            if mouse.kind == MouseEventKind::Down(MouseButton::Left) {
-                                let mut widget = MarkdownWidget::new(
-                                    &content,
-                                    &mut app.markdown_scroll,
-                                    &mut app.markdown_selection,
-                                    &mut app.markdown_double_click,
-                                )
-                                .show_toc(true);
-                                widget.set_toc_hovered(app.toc_hovered);
-                                widget.set_toc_scroll_offset(app.toc_scroll_offset);
-
-                                if widget.handle_toc_click(&mouse, inner_area) {
-                                    // TOC click handled - sync hovered entry from widget
-                                    app.toc_hovered_entry = widget.get_toc_hovered_entry();
-                                    continue;
-                                }
-                            }
-
-                            // Use widget's unified mouse event handler
+                        // Handle TOC hover on mouse move
+                        if mouse.kind == MouseEventKind::Moved {
                             let mut widget = MarkdownWidget::new(
                                 &content,
                                 &mut app.markdown_scroll,
+                                &mut app.markdown_source,
+                                &mut app.markdown_cache,
+                                &app.markdown_display,
+                                &mut app.markdown_collapse,
+                                &mut app.markdown_expandable,
+                                &mut app.markdown_git_stats,
+                                &mut app.markdown_vim,
                                 &mut app.markdown_selection,
                                 &mut app.markdown_double_click,
                             )
                             .show_toc(true);
-                            widget.set_rendered_lines(app.markdown_rendered_lines.clone());
                             widget.set_toc_hovered(app.toc_hovered);
                             widget.set_toc_scroll_offset(app.toc_scroll_offset);
 
-                            let event = widget.handle_mouse_event(&mouse, inner_area);
-
-                            // Update app's TOC scroll offset after handling
-                            app.toc_scroll_offset = widget.get_toc_scroll_offset();
-
-                            match event {
-                                MarkdownEvent::Copied { .. } => {
-                                    app.toast_manager.add(Toast::new(
-                                        "Copied to clipboard!",
-                                        ToastLevel::Success,
-                                    ));
-                                }
-                                MarkdownEvent::DoubleClick {
-                                    line_number,
-                                    line_kind,
-                                    content,
-                                } => {
-                                    let display_content = if content.len() > 40 {
-                                        format!("{}...", &content[..40])
-                                    } else {
-                                        content
-                                    };
-                                    let msg = format!(
-                                        "Line {}: {} - \"{}\"",
-                                        line_number, line_kind, display_content
-                                    );
-                                    app.toast_manager.add(Toast::new(&msg, ToastLevel::Info));
-                                }
-                                MarkdownEvent::SelectionStarted => {
-                                    // Selection mode started
-                                }
-                                _ => {}
+                            if widget.handle_toc_hover(&mouse, inner_area) {
+                                app.toc_hovered = widget.is_toc_hovered();
+                                app.toc_hovered_entry = widget.get_toc_hovered_entry();
                             }
+                        }
+
+                        // Handle TOC click first (for scroll-to-heading navigation)
+                        if mouse.kind == MouseEventKind::Down(MouseButton::Left) {
+                            let mut widget = MarkdownWidget::new(
+                                &content,
+                                &mut app.markdown_scroll,
+                                &mut app.markdown_source,
+                                &mut app.markdown_cache,
+                                &app.markdown_display,
+                                &mut app.markdown_collapse,
+                                &mut app.markdown_expandable,
+                                &mut app.markdown_git_stats,
+                                &mut app.markdown_vim,
+                                &mut app.markdown_selection,
+                                &mut app.markdown_double_click,
+                            )
+                            .show_toc(true);
+                            widget.set_toc_hovered(app.toc_hovered);
+                            widget.set_toc_scroll_offset(app.toc_scroll_offset);
+
+                            if widget.handle_toc_click(&mouse, inner_area) {
+                                app.toc_hovered_entry = widget.get_toc_hovered_entry();
+                                continue;
+                            }
+                        }
+
+                        // Use widget's unified mouse event handler
+                        let mut widget = MarkdownWidget::new(
+                            &content,
+                            &mut app.markdown_scroll,
+                            &mut app.markdown_source,
+                            &mut app.markdown_cache,
+                            &app.markdown_display,
+                            &mut app.markdown_collapse,
+                            &mut app.markdown_expandable,
+                            &mut app.markdown_git_stats,
+                            &mut app.markdown_vim,
+                            &mut app.markdown_selection,
+                            &mut app.markdown_double_click,
+                        )
+                        .show_toc(true);
+                        widget.set_rendered_lines(app.markdown_rendered_lines.clone());
+                        widget.set_toc_hovered(app.toc_hovered);
+                        widget.set_toc_scroll_offset(app.toc_scroll_offset);
+
+                        let event = widget.handle_mouse_event(&mouse, inner_area);
+
+                        // Update app's TOC scroll offset after handling
+                        app.toc_scroll_offset = widget.get_toc_scroll_offset();
+
+                        match event {
+                            MarkdownEvent::Copied { .. } => {
+                                app.toast_manager.add(Toast::new(
+                                    "Copied to clipboard!",
+                                    ToastLevel::Success,
+                                    None,
+                                ));
+                            }
+                            MarkdownEvent::DoubleClick {
+                                line_number,
+                                line_kind,
+                                content,
+                            } => {
+                                let display_content = if content.len() > 40 {
+                                    format!("{}...", &content[..40])
+                                } else {
+                                    content
+                                };
+                                let msg = format!(
+                                    "Line {}: {} - \"{}\"",
+                                    line_number, line_kind, display_content
+                                );
+                                app.toast_manager
+                                    .add(Toast::new(&msg, ToastLevel::Info, None));
+                            }
+                            MarkdownEvent::SelectionStarted => {
+                                // Selection mode started
+                            }
+                            _ => {}
                         }
                     }
 
@@ -762,7 +705,6 @@ fn main() -> io::Result<()> {
                             .constraints([
                                 Constraint::Length(3), // Menu bar
                                 Constraint::Min(0),    // Content
-                                Constraint::Length(1), // Status bar
                                 Constraint::Length(1), // Hotkey footer
                             ])
                             .split(area);

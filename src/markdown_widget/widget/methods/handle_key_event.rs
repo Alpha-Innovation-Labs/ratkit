@@ -1,15 +1,10 @@
 //! Handle keyboard events for the markdown widget.
 
-use std::time::{Duration, Instant};
-
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use crate::markdown_widget::foundation::events::MarkdownEvent;
 use crate::markdown_widget::widget::enums::MarkdownWidgetMode;
 use crate::markdown_widget::widget::MarkdownWidget;
-
-/// Timeout for vim-style key sequences (e.g., gg).
-const KEY_SEQUENCE_TIMEOUT: Duration = Duration::from_millis(500);
 
 impl<'a> MarkdownWidget<'a> {
     /// Handle a keyboard event for navigation and actions.
@@ -31,7 +26,7 @@ impl<'a> MarkdownWidget<'a> {
         if key.code == KeyCode::Esc && self.selection.is_active() {
             self.selection.exit();
             self.mode = MarkdownWidgetMode::Normal;
-            self.scroll.pending_g_time = None;
+            self.vim.clear_pending_g();
             return MarkdownEvent::SelectionEnded;
         }
 
@@ -43,7 +38,7 @@ impl<'a> MarkdownWidget<'a> {
                         if clipboard.set_text(&text).is_ok() {
                             self.selection.exit();
                             self.mode = MarkdownWidgetMode::Normal;
-                            self.scroll.pending_g_time = None;
+                            self.vim.clear_pending_g();
                             return MarkdownEvent::Copied { text };
                         }
                     }
@@ -62,7 +57,7 @@ impl<'a> MarkdownWidget<'a> {
                         if clipboard.set_text(&text).is_ok() {
                             self.selection.exit();
                             self.mode = MarkdownWidgetMode::Normal;
-                            self.scroll.pending_g_time = None;
+                            self.vim.clear_pending_g();
                             return MarkdownEvent::Copied { text };
                         }
                     }
@@ -72,24 +67,20 @@ impl<'a> MarkdownWidget<'a> {
 
         // Handle vim-style 'gg' for go to top
         if key.code == KeyCode::Char('g') {
-            let now = Instant::now();
-            if let Some(pending_time) = self.scroll.pending_g_time {
-                if now.duration_since(pending_time) < KEY_SEQUENCE_TIMEOUT {
-                    // Second 'g' within timeout - go to top
-                    self.scroll.pending_g_time = None;
-                    self.scroll.scroll_to_top();
-                    return MarkdownEvent::FocusedLine {
-                        line: self.scroll.current_line,
-                    };
-                }
+            if self.vim.check_pending_gg() {
+                // Second 'g' within timeout - go to top
+                self.scroll.scroll_to_top();
+                return MarkdownEvent::FocusedLine {
+                    line: self.scroll.current_line,
+                };
             }
             // First 'g' or timeout expired - set pending
-            self.scroll.pending_g_time = Some(now);
+            self.vim.set_pending_g();
             return MarkdownEvent::None;
         }
 
         // Any other key clears pending 'g'
-        self.scroll.pending_g_time = None;
+        self.vim.clear_pending_g();
 
         // Handle navigation keys
         match key.code {

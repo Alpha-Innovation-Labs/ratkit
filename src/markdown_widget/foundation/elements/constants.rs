@@ -168,12 +168,12 @@ impl CodeBlockTheme {
 
 /// Heading icons by level (matching render-markdown.nvim).
 pub const HEADING_ICONS: [&str; 6] = [
-    "\u{f0321} ", // H1
-    "\u{f0323} ", // H2
-    "\u{f0325} ", // H3
-    "\u{f0327} ", // H4
-    "\u{f0329} ", // H5
-    "\u{f032b} ", // H6
+    "󰲡 ", // H1
+    "󰲣 ", // H2
+    "󰲥 ", // H3
+    "󰲧 ", // H4
+    "󰲩 ", // H5
+    "󰲫 ", // H6
 ];
 
 /// Bullet markers that cycle by nesting level (matching render-markdown.nvim).

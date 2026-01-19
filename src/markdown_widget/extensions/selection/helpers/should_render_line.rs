@@ -1,7 +1,7 @@
 //! Check if a line should be rendered based on collapse state.
 
-use crate::markdown_widget::state::scroll_manager::MarkdownScrollManager;
 use crate::markdown_widget::foundation::elements::{ElementKind, MarkdownElement};
+use crate::markdown_widget::state::CollapseState;
 
 /// Check if a markdown element should be rendered based on collapse state.
 ///
@@ -9,7 +9,7 @@ use crate::markdown_widget::foundation::elements::{ElementKind, MarkdownElement}
 ///
 /// * `element` - The element to check
 /// * `_idx` - The index of the element (unused but kept for API compatibility)
-/// * `scroll` - The scroll manager containing collapse state
+/// * `collapse` - The collapse state containing section collapse information
 ///
 /// # Returns
 ///
@@ -17,15 +17,15 @@ use crate::markdown_widget::foundation::elements::{ElementKind, MarkdownElement}
 pub fn should_render_line(
     element: &MarkdownElement,
     _idx: usize,
-    scroll: &MarkdownScrollManager,
+    collapse: &CollapseState,
 ) -> bool {
     // Headings: visible unless a parent section is collapsed (hierarchical collapse)
     if let ElementKind::Heading { section_id, .. } = &element.kind {
         // Check if any parent section is collapsed
-        if let Some(&(_level, parent_id)) = scroll.section_hierarchy.get(section_id) {
+        if let Some((_level, parent_id)) = collapse.get_hierarchy(*section_id) {
             if let Some(parent) = parent_id {
                 // If parent is collapsed, this heading is hidden
-                if scroll.is_section_collapsed(parent) {
+                if collapse.is_section_collapsed(parent) {
                     return false;
                 }
             }
@@ -49,7 +49,7 @@ pub fn should_render_line(
         ElementKind::FrontmatterField { .. } | ElementKind::FrontmatterEnd
     ) {
         // Frontmatter uses section_id 0 for collapse state
-        if scroll.is_section_collapsed(0) {
+        if collapse.is_section_collapsed(0) {
             return false;
         }
         return true;
@@ -57,7 +57,7 @@ pub fn should_render_line(
 
     // Check if this element belongs to a collapsed section
     if let Some(section_id) = element.section_id {
-        if scroll.is_section_collapsed(section_id) {
+        if collapse.is_section_collapsed(section_id) {
             return false;
         }
     }

@@ -13,16 +13,25 @@ pub fn render(_element: &MarkdownElement, cells: &[String], is_header: bool) -> 
         Style::default()
     };
 
-    let mut spans = vec![Span::styled("\u{2502} ", Style::default().fg(Color::DarkGray))];
+    let mut spans = vec![Span::styled(
+        "\u{2502} ",
+        Style::default().fg(Color::DarkGray),
+    )];
 
     for (i, cell) in cells.iter().enumerate() {
         if i > 0 {
-            spans.push(Span::styled(" \u{2502} ", Style::default().fg(Color::DarkGray)));
+            spans.push(Span::styled(
+                " \u{2502} ",
+                Style::default().fg(Color::DarkGray),
+            ));
         }
         spans.push(Span::styled(cell.clone(), style));
     }
 
-    spans.push(Span::styled(" \u{2502}", Style::default().fg(Color::DarkGray)));
+    spans.push(Span::styled(
+        " \u{2502}",
+        Style::default().fg(Color::DarkGray),
+    ));
 
     Line::from(spans)
 }

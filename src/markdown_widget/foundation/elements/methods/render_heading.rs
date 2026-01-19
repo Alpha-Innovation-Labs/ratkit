@@ -1,6 +1,8 @@
 //! Render heading and heading border.
 
-use crate::markdown_widget::foundation::elements::constants::{heading_bg_color, heading_fg_color, HEADING_ICONS};
+use crate::markdown_widget::foundation::elements::constants::{
+    heading_bg_color, heading_fg_color, HEADING_ICONS,
+};
 use crate::markdown_widget::foundation::elements::enums::TextSegment;
 use crate::markdown_widget::foundation::elements::methods::helpers::render_text_segment;
 use crate::markdown_widget::foundation::elements::MarkdownElement;
@@ -14,6 +16,7 @@ pub fn render(
     collapsed: bool,
     width: usize,
     app_theme: Option<&crate::services::theme::AppTheme>,
+    show_collapse_indicator: bool,
 ) -> Vec<Line<'static>> {
     let icon = HEADING_ICONS
         .get(level.saturating_sub(1) as usize)
@@ -30,23 +33,24 @@ pub fn render(
     let indent_count = level as usize;
     let indent = " ".repeat(indent_count);
 
-    // Collapse indicator at the start
-    let collapse_indicator = if collapsed { "\u{25b6}" } else { "\u{25bc}" };
+    let mut spans = Vec::new();
 
-    let mut spans = vec![
-        // Collapse indicator at the very start (with bg)
-        Span::styled(
+    // Only show collapse indicator if enabled
+    if show_collapse_indicator {
+        let collapse_indicator = if collapsed { "\u{25b6}" } else { "\u{25bc}" };
+        spans.push(Span::styled(
             collapse_indicator.to_string(),
             Style::default().fg(fg).bg(bg),
-        ),
-        // Indentation with background
-        Span::styled(indent, Style::default().bg(bg)),
-        // Icon with heading style
-        Span::styled(
-            icon.to_string(),
-            Style::default().fg(fg).bg(bg).add_modifier(Modifier::BOLD),
-        ),
-    ];
+        ));
+    }
+
+    // Indentation with background
+    spans.push(Span::styled(indent, Style::default().bg(bg)));
+    // Icon with heading style
+    spans.push(Span::styled(
+        icon.to_string(),
+        Style::default().fg(fg).bg(bg).add_modifier(Modifier::BOLD),
+    ));
 
     for segment in text {
         spans.push(render_text_segment(segment, Style::default().fg(fg).bg(bg)));
@@ -61,7 +65,12 @@ pub fn render(
     vec![Line::from(spans)]
 }
 
-pub fn render_border(_element: &MarkdownElement, level: u8, width: usize, _app_theme: Option<&crate::services::theme::AppTheme>) -> Line<'static> {
+pub fn render_border(
+    _element: &MarkdownElement,
+    level: u8,
+    width: usize,
+    _app_theme: Option<&crate::services::theme::AppTheme>,
+) -> Line<'static> {
     // Border always uses the level-based background color for visual hierarchy
     let bg = heading_bg_color(level);
     let border = "\u{2580}".repeat(width);

@@ -186,9 +186,10 @@ pub use hotkey_modal::{functions::render_hotkey_modal, Hotkey, HotkeyModalConfig
 
 #[cfg(feature = "markdown")]
 pub use markdown_widget::{
-    render_markdown, render_markdown_with_style, CodeBlockTheme, DoubleClickState, GitStats,
-    MarkdownDoubleClickEvent, MarkdownEvent, MarkdownFileWatcher, MarkdownScrollManager,
-    MarkdownStyle, MarkdownWidget, MarkdownWidgetMode, SelectionPos, SelectionState,
+    render_markdown, render_markdown_with_style, CacheState, CodeBlockTheme, CollapseState,
+    DisplaySettings, DoubleClickState, ExpandableState, GitStats, GitStatsState,
+    MarkdownDoubleClickEvent, MarkdownEvent, MarkdownState, MarkdownStyle, MarkdownWidget,
+    MarkdownWidgetMode, ScrollState, SelectionPos, SelectionState, SourceState, VimState,
 };
 
 #[cfg(feature = "terminal")]
@@ -276,8 +277,9 @@ pub mod prelude {
 
     #[cfg(feature = "markdown")]
     pub use crate::markdown_widget::{
-        render_markdown, render_markdown_with_style, DoubleClickState, MarkdownFileWatcher,
-        MarkdownScrollManager, MarkdownStyle, MarkdownWidget, SelectionState,
+        render_markdown, render_markdown_with_style, CacheState, CollapseState, DisplaySettings,
+        DoubleClickState, ExpandableState, GitStatsState, MarkdownState, MarkdownStyle,
+        MarkdownWidget, ScrollState, SelectionState, SourceState, VimState,
     };
 
     #[cfg(feature = "terminal")]
@@ -296,7 +298,9 @@ pub mod prelude {
     };
 
     #[cfg(feature = "theme")]
-    pub use crate::services::theme::{AppTheme, DiffColors, MarkdownColors, SyntaxColors, ThemeVariant};
+    pub use crate::services::theme::{
+        AppTheme, DiffColors, MarkdownColors, SyntaxColors, ThemeVariant,
+    };
 
     // Services
     pub use crate::services::file_watcher::{FileWatcher, WatchConfig, WatchMode};
