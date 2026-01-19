@@ -1,0 +1,194 @@
+---
+description: "Syncs Next Actions between test files and context files based on conversation changes"
+mode: agent
+temperature: 0.2
+disable: false
+tools:
+  bash: false
+  read: true
+  write: false
+  edit: true
+  webfetch: false
+  list: true
+  glob: true
+  grep: true
+  task: false
+  todowrite: true
+  todoread: true
+---
+
+# Sync Context Command
+
+## Description
+
+Analyzes the current conversation to identify what Next Actions (tests) were implemented or changed, then syncs them to the relevant context file(s) in `.context/`. This ensures the context file's "Next Actions" table stays in sync with actual test implementations.
+
+## Usage
+
+```bash
+/sync-context
+```
+
+No parameters needed - the command analyzes the current conversation automatically.
+
+## What This Command Does
+
+1. **Analyzes the conversation** to identify:
+   - Which context ID(s) were worked on (e.g., CLI_010, TUI_011)
+   - What tests were written, modified, or discussed
+   - New Next Actions that were implemented
+
+2. **Finds the relevant context file(s)** in `.context/`
+
+3. **Compares** the documented Next Actions with what was actually implemented
+
+4. **Updates** the context file's "## Next Actions" table with:
+   - Missing actions that were implemented
+   - Updated wording for actions that changed
+
+## Workflow
+
+### Phase 1: Conversation Analysis
+
+1. **Identify context IDs** mentioned in the conversation:
+   - Look for patterns like "CLI_010", "TUI_011", etc.
+   - Check test file names (e.g., `cli_010_context_chat/` → CLI_010)
+   - Check context file references (e.g., `.context/nexus-cli/CLI_010-*.md`)
+
+2. **Identify Next Actions** that were implemented:
+   - Look for test functions that were written or modified
+   - Look for test descriptions or scenario descriptions discussed
+   - Note any new test cases added during the conversation
+
+### Phase 2: Context File Discovery
+
+1. **Find matching context files**:
+   ```
+   .context/**/<context_id>*.md
+   ```
+   For example: CLI_010 → `.context/nexus-cli/CLI_010-context-chat.md`
+
+2. **Read the context file** and extract:
+   - Current "## Next Actions" table
+   - List of documented actions (Description + Test columns)
+
+### Phase 3: Action Comparison
+
+1. **Compare documented vs implemented**:
+   - Read the test directory (e.g., `crates/nexus-cli/tests/cli_010_*/`)
+   - Extract test function names from `test_*.rs` files
+   - Compare with actions listed in context file's Next Actions table
+
+2. **Identify gaps**:
+   - Actions implemented but not documented
+   - Actions with outdated wording
+   - (Do NOT remove actions - they might be pending implementation)
+
+### Phase 4: Present Changes for Approval
+
+Use the standardized question format:
+
+```
+**Change [N/TOTAL]**: Update CLI_010-context-chat.md - Next Actions
+
+**What I noticed:** During this conversation, a new test `test_context_chat_scans_existing_context_files` was added that verifies the agent scans .context/ for existing files.
+
+**Recommended:** Option A - Add this action to the context file
+
+| Option | Description |
+|--------|-------------|
+| A | Add row: "Agent system prompt includes list of existing context files" \| `context_files_in_prompt` |
+| B | Skip - This action is already covered or not needed |
+| C | Modify - I'll provide different wording |
+| Short | Provide custom Description \| Test text |
+
+You can reply with: "A" to accept, "B" to skip, "C" to modify, or your own text.
+```
+
+Wait for user approval for each change.
+
+### Phase 5: Apply Changes
+
+After all approvals collected:
+
+1. **Show final summary**:
+   ```
+   **Summary of Changes:**
+   
+   I will update the following Next Actions:
+   
+   1. **CLI_010-context-chat.md**
+      - Add: "Agent system prompt includes list of existing context files" | `context_files_in_prompt`
+   
+   **Proceed with these updates?** (A=Yes, B=No, C=Review)
+   ```
+
+2. **Apply approved changes**:
+   - Read the context file
+   - Locate "## Next Actions" table
+   - Add new rows in the same table format
+   - Preserve existing rows (don't remove any)
+
+## Next Actions Table Format
+
+Per `.cdd/rules/context.md`, actions use table format:
+
+```markdown
+## Next Actions
+
+| Description | Test |
+|-------------|------|
+| User can create new item | `create_item` |
+| System validates input on submit | `validate_input` |
+| Error displays when API fails | `api_error_displayed` |
+```
+
+Each row should:
+- Have a Description (human-readable, starts with verb)
+- Have a Test name (snake_case, without `test_` prefix)
+- Description uses present tense ("User can...", "Agent creates...", "System displays...")
+- Test column uses backticks around the test name
+
+## Example Execution
+
+```markdown
+# After working on CLI_010 and adding a new test
+
+/sync-context
+
+# Output:
+1. Analyzing conversation...
+   - Found context: CLI_010
+   - Found new test: test_context_chat_scans_existing_context_files
+   
+2. Finding context file...
+   - Found: .context/nexus-cli/CLI_010-context-chat.md
+   
+3. Comparing actions...
+   - Context has 10 documented actions
+   - Test file has 16 tests
+   - New action to add: context file scanning
+   
+4. Presenting change for approval...
+   [Shows change proposal]
+   
+5. User approves...
+
+6. Updating context file...
+   Added row to CLI_010-context-chat.md:
+   | Agent scans .context/ for existing files | `context_chat_scans_existing_context_files` |
+```
+
+## Important Notes
+
+- **Non-destructive**: Never removes existing actions
+- **One-by-one approval**: Each change is presented individually
+- **Final confirmation**: All changes summarized before applying
+- **Preserves format**: Matches existing table format
+- **Test correlation**: `crates/<project>/tests/<context_id>_*/` → `.context/<project>/<CONTEXT_ID>-*.md`
+- **Standard compliance**: Follows `.cdd/rules/context.md` format
+
+## Related Commands
+
+- `/cdd-review-contexts` - Audit context files for quality issues
+- `/cdd-create-context` - Create a new context file
