@@ -1,6 +1,8 @@
 //! Methods for ScrollState.
 
 pub mod adjust_scroll_for_current_line;
+pub mod filter_line_down;
+pub mod filter_line_up;
 pub mod is_current_line_visible;
 pub mod line_down;
 pub mod line_up;

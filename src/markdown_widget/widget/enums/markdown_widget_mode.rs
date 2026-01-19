@@ -8,4 +8,6 @@ pub enum MarkdownWidgetMode {
     Normal,
     /// Drag/selection mode.
     Drag,
+    /// Filter mode (search/filter document).
+    Filter,
 }

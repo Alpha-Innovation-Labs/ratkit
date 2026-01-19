@@ -97,7 +97,8 @@ impl<'a> MarkdownWidget<'a> {
         if let Some(scrollbar_area) = self.calculate_scrollbar_area(area) {
             if is_in_scrollbar_area(event.column, event.row, scrollbar_area) {
                 match event.kind {
-                    MouseEventKind::Down(MouseButton::Left) | MouseEventKind::Drag(MouseButton::Left) => {
+                    MouseEventKind::Down(MouseButton::Left)
+                    | MouseEventKind::Drag(MouseButton::Left) => {
                         // Click or drag on scrollbar - jump to position
                         let new_offset = click_to_offset(event.row, scrollbar_area, self.scroll);
                         self.scroll.scroll_offset = new_offset;
@@ -111,7 +112,8 @@ impl<'a> MarkdownWidget<'a> {
                         self.scroll.scroll_up(5);
                         return MarkdownEvent::Scrolled {
                             offset: self.scroll.scroll_offset,
-                            direction: -(old_offset.saturating_sub(self.scroll.scroll_offset) as i32),
+                            direction: -(old_offset.saturating_sub(self.scroll.scroll_offset)
+                                as i32),
                         };
                     }
                     MouseEventKind::ScrollDown => {
@@ -119,7 +121,8 @@ impl<'a> MarkdownWidget<'a> {
                         self.scroll.scroll_down(5);
                         return MarkdownEvent::Scrolled {
                             offset: self.scroll.scroll_offset,
-                            direction: (self.scroll.scroll_offset.saturating_sub(old_offset) as i32),
+                            direction: (self.scroll.scroll_offset.saturating_sub(old_offset)
+                                as i32),
                         };
                     }
                     _ => {}

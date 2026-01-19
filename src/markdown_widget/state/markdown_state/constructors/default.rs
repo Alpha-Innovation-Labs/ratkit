@@ -25,6 +25,8 @@ impl Default for MarkdownState {
             selection_active: false,
             cached_git_stats: None,
             rendered_lines: Vec::new(),
+            filter: None,
+            filter_mode: false,
         }
     }
 }

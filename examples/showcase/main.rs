@@ -84,9 +84,7 @@ fn main() -> io::Result<()> {
             match app.current_tab {
                 DemoTab::Markdown => render_markdown_demo(frame, content_area, &mut app, &theme),
                 DemoTab::CodeDiff => render_code_diff_demo(frame, content_area, &app),
-                DemoTab::FileTree => {
-                    render_file_tree_demo(frame, content_area, &mut app, &theme)
-                }
+                DemoTab::FileTree => render_file_tree_demo(frame, content_area, &mut app, &theme),
                 DemoTab::Tree => {
                     render_tree_demo(frame, content_area, &mut app, &tree_nodes, &theme)
                 }
@@ -397,8 +395,11 @@ fn main() -> io::Result<()> {
                             ];
                             let idx =
                                 (app.start_time.elapsed().as_millis() as usize) % messages.len();
-                            app.toast_manager
-                                .add(Toast::new(messages[idx].0, messages[idx].1, None));
+                            app.toast_manager.add(Toast::new(
+                                messages[idx].0,
+                                messages[idx].1,
+                                None,
+                            ));
                         }
                         KeyCode::Char('?') => {
                             app.show_hotkey_modal = !app.show_hotkey_modal;

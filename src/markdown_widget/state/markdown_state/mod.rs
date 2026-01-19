@@ -63,6 +63,10 @@ pub struct MarkdownState {
     /// Cached rendered lines for selection text extraction.
     /// This persists between frames so mouse events can access line data.
     pub rendered_lines: Vec<ratatui::text::Line<'static>>,
+    /// Current filter text (when in filter mode).
+    pub filter: Option<String>,
+    /// Whether filter mode is currently active.
+    pub filter_mode: bool,
 }
 
 impl MarkdownState {

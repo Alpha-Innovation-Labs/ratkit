@@ -19,6 +19,10 @@ pub struct WidgetStateSync {
     pub selection_active: bool,
     /// Last double-click info (line number, kind, content).
     pub last_double_click: Option<(usize, String, String)>,
+    /// Current filter text (when in filter mode).
+    pub filter: Option<String>,
+    /// Whether filter mode is currently active.
+    pub filter_mode: bool,
 }
 
 impl WidgetStateSync {
@@ -32,6 +36,8 @@ impl WidgetStateSync {
         state.toc_hovered_entry = self.toc_hovered_entry;
         state.toc_scroll_offset = self.toc_scroll_offset;
         state.selection_active = self.selection_active;
+        state.filter = self.filter.clone();
+        state.filter_mode = self.filter_mode;
     }
 
     /// Check if there was a double-click and consume it.
@@ -69,6 +75,8 @@ impl<'a> MarkdownWidget<'a> {
             toc_scroll_offset: self.toc_scroll_offset,
             selection_active: self.selection.is_active(),
             last_double_click: self.last_double_click.take(),
+            filter: self.filter.clone(),
+            filter_mode: self.filter_mode,
         }
     }
 
@@ -97,5 +105,7 @@ impl<'a> MarkdownWidget<'a> {
         state.toc_hovered_entry = self.toc_hovered_entry;
         state.toc_scroll_offset = self.toc_scroll_offset;
         state.selection_active = self.selection.is_active();
+        state.filter = self.filter;
+        state.filter_mode = self.filter_mode;
     }
 }

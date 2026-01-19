@@ -15,7 +15,7 @@ impl<'a> MarkdownWidget<'a> {
     /// Render the statusline using StatusLineStacked (powerline style).
     ///
     /// The statusline displays:
-    /// - Mode indicator (NORMAL/DRAG) on the left with colored background
+    /// - Mode indicator (NORMAL/DRAG/FILTER) on the left with colored background
     /// - Filename with git stats (no background on git icons)
     /// - Scroll position (percentage/total lines) on the right
     ///
@@ -33,14 +33,23 @@ impl<'a> MarkdownWidget<'a> {
                     .app_theme
                     .map(|t| t.info)
                     .unwrap_or(Color::Rgb(97, 175, 239)); // blue
-                (" NORMAL ", color)
+                (" NORMAL ".to_string(), color)
             }
             MarkdownWidgetMode::Drag => {
                 let color = self
                     .app_theme
                     .map(|t| t.warning)
                     .unwrap_or(Color::Rgb(229, 192, 123)); // yellow/orange
-                (" DRAG ", color)
+                (" DRAG ".to_string(), color)
+            }
+            MarkdownWidgetMode::Filter => {
+                let color = self
+                    .app_theme
+                    .map(|t| t.success)
+                    .unwrap_or(Color::Rgb(152, 195, 121)); // green
+                let filter_text = self.filter.clone().unwrap_or_default();
+                let display_text = format!(" /{} ", filter_text);
+                (display_text, color)
             }
         };
 
@@ -87,11 +96,18 @@ impl<'a> MarkdownWidget<'a> {
         // Position text foreground - use theme background or default black
         let position_fg = self.app_theme.map(|t| t.background).unwrap_or(Color::Black);
 
+        // Calculate git stats start position
+        let git_stats_start_x = {
+            let mode_len = mode_text.len() as u16 + 1; // +1 for slant
+            let file_len = filename.map(|n| n.len() + 2).unwrap_or(0) as u16 + 1; // +2 for spaces, +1 for slant
+            area.x + mode_len + file_len
+        };
+
         // Build the statusline
         let mut statusline = StatusLineStacked::new()
             // Mode segment (left)
             .start(
-                Span::from(mode_text).style(
+                Span::from(mode_text.clone()).style(
                     Style::new()
                         .fg(mode_fg)
                         .bg(mode_color)
@@ -108,13 +124,6 @@ impl<'a> MarkdownWidget<'a> {
                 Span::from(SLANT_TL_BR).style(Style::new().fg(file_bg)),
             );
         }
-
-        // Calculate git stats start position
-        let git_stats_start_x = {
-            let mode_len = mode_text.len() as u16 + 1; // +1 for slant
-            let file_len = filename.map(|n| n.len() + 2).unwrap_or(0) as u16 + 1; // +2 for spaces, +1 for slant
-            area.x + mode_len + file_len
-        };
 
         // Position segment (right)
         statusline = statusline.end(

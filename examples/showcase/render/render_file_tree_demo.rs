@@ -40,14 +40,12 @@ pub fn render_file_tree_demo(
 
     // Render the FileSystemTree with a block
     // FileSystemTree handles its own filter line rendering internally
-    let tree_widget = file_tree
-        .clone()
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .title(" FileSystemTree - Current Directory "),
-        );
+    let tree_widget = file_tree.clone().block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .title(" FileSystemTree - Current Directory "),
+    );
     frame.render_stateful_widget(tree_widget, chunks[0], &mut app.file_tree_state);
 
     // Show filter mode indicator in info panel

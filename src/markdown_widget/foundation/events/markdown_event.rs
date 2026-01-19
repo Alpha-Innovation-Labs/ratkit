@@ -54,4 +54,18 @@ pub enum MarkdownEvent {
         /// Direction of scroll (positive = down, negative = up).
         direction: i32,
     },
+
+    /// Filter mode changed (entered, text changed, or exited with Esc).
+    FilterModeChanged {
+        /// Whether filter mode is active.
+        active: bool,
+        /// Current filter text.
+        filter: String,
+    },
+
+    /// Filter mode exited via Enter (focuses the selected line).
+    FilterModeExited {
+        /// The line that was focused when filter mode was exited.
+        line: usize,
+    },
 }
