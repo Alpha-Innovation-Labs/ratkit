@@ -51,7 +51,7 @@ help:
     @echo "  just \033[0;33mdemo-replay\033[0m            \033[0;32mReplay interactive demo\033[0m"
     @echo "  just \033[0;33mdemo-upload\033[0m            \033[0;32mUpload demo to asciinema.org\033[0m"
     @echo "  just \033[0;33mdemo-gif\033[0m                \033[0;32mConvert demo to GIF\033[0m"
-    @echo "  just \033[0;33mdemo-mdz\033[0m                \033[0;32mRun standalone Markdown Widget demo\033[0m"
+    @echo "  just \033[0;33mdemo-md\033[0m                \033[0;32mRun standalone Markdown Widget demo\033[0m"
     @echo "  just \033[0;33mdemo-term\033[0m               \033[0;32mRun standalone Terminal Pane demo\033[0m"
     @echo "  just \033[0;33mdemo-clean\033[0m              \033[0;32mRemove all demo files\033[0m"
     @echo ""
@@ -95,6 +95,6 @@ import 'justfiles/utilities/demo-interactive.just'
 import 'justfiles/utilities/demo-replay.just'
 import 'justfiles/utilities/demo-upload.just'
 import 'justfiles/utilities/demo-gif.just'
-import 'justfiles/utilities/demo-mdz.just'
+import 'justfiles/utilities/demo-md.just'
 import 'justfiles/utilities/demo-term.just'
 import 'justfiles/utilities/demo-clean.just'

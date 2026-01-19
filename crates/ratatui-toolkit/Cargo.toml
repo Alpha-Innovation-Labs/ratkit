@@ -88,6 +88,11 @@ name = "termtui_demo"
 path = "examples/termtui_demo.rs"
 required-features = ["terminal"]
 
+[[example]]
+name = "markdown_demo"
+path = "examples/markdown_demo.rs"
+required-features = ["markdown"]
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
