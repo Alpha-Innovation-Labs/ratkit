@@ -170,12 +170,29 @@ fn run_demo(
                     }
                     // Handle key event
                     let content = app.markdown.content().to_string();
-                    let mut sync_state = {
+                    let event = {
                         let mut widget = MarkdownWidget::from_state(&content, &mut app.markdown);
-                        widget.handle_key_event(key);
-                        widget.get_state_sync()
+                        widget.handle_key_event(key)
                     };
-                    sync_state.apply_to(&mut app.markdown);
+
+                    // Handle filter mode events
+                    use ratatui_toolkit::markdown_widget::foundation::events::MarkdownEvent;
+                    match event {
+                        MarkdownEvent::FilterModeChanged { active, filter } => {
+                            app.markdown.filter_mode = active;
+                            app.markdown.filter = Some(filter);
+                        }
+                        MarkdownEvent::FilterModeExited { line } => {
+                            app.markdown.filter_mode = false;
+                            app.markdown.filter = None;
+                            app.markdown.scroll.current_line = line;
+                            app.markdown.scroll.filter_mode = false;
+                            app.markdown.scroll.filter = None;
+                            // Clear render cache so all content is shown again
+                            app.markdown.cache.clear_render_cache();
+                        }
+                        _ => {}
+                    }
                 }
                 Event::Mouse(mouse) => {
                     // Handle toast click-to-dismiss

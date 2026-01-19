@@ -25,6 +25,7 @@ help:
     @echo "  just \033[0;33mweb-serve\033[0m               \033[0;32mServe web demo (localhost:8080)\033[0m"
     @echo "  just \033[0;33mweb-build\033[0m               \033[0;32mBuild web demo for production\033[0m"
     @echo "  just \033[0;33mexample <name>\033[0m          \033[0;32mRun specific example\033[0m"
+    @echo "  just \033[0;33mmdviewer\033[0m               \033[0;32mRun markdown viewer demo\033[0m"
     @echo ""
     @echo "\033[1;35m  Building:\033[0m"
     @echo "  just \033[0;33mbuild\033[0m                   \033[0;32mBuild with all features\033[0m"
@@ -62,6 +63,7 @@ import 'justfiles/development/web.just'
 import 'justfiles/development/run.just'
 import 'justfiles/development/dev.just'
 import 'justfiles/development/example.just'
+import 'justfiles/development/mdviewer.just'
 
 # ============================================================================
 # Building Commands
