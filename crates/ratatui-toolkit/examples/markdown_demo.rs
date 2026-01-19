@@ -61,7 +61,7 @@ fn main() -> io::Result<()> {
     // Load source file
     markdown
         .source
-        .set_source_file("examples/markdown_demo_full.md")?;
+        .set_source_file("crates/ratatui-toolkit/examples/markdown_demo_full.md")?;
 
     let mut app = AppState {
         markdown,
