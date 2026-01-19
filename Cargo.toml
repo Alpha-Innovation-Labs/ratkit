@@ -82,6 +82,7 @@ tokio-test = "0.4"
 [[example]]
 name = "showcase"
 path = "examples/showcase/main.rs"
+required-features = ["file-tree"]
 
 [[example]]
 name = "termtui_demo"

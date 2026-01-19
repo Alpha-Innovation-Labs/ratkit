@@ -8,8 +8,8 @@ use ratatui::{
 use crate::markdown_widget::foundation::types::SelectionPos;
 use crate::markdown_widget::state::selection_state::SelectionState;
 
-/// Selection highlight background color (red as requested).
-const SELECTION_BG: Color = Color::Rgb(180, 60, 60);
+/// Selection highlight background color (dark blue for better visibility).
+const SELECTION_BG: Color = Color::Rgb(55, 75, 120);
 
 /// Apply selection highlighting to visible lines.
 ///

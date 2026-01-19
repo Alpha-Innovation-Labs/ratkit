@@ -10,8 +10,8 @@ use ratatui_toolkit::markdown_widget::state::{
 };
 use ratatui_toolkit::services::file_watcher::FileWatcher;
 use ratatui_toolkit::{
-    AppTheme, ClickableScrollbarState, CodeDiff, DoubleClickState, MenuBar, ResizableSplit,
-    SelectionState, TermTui, ToastManager, TreeNavigator, TreeViewState,
+    AppTheme, ClickableScrollbarState, CodeDiff, DoubleClickState, FileSystemTree, MenuBar,
+    ResizableSplit, SelectionState, TermTui, ToastManager, TreeNavigator, TreeViewState,
 };
 use std::time::Instant;
 
@@ -26,6 +26,11 @@ pub struct App {
 
     // Code diff demo - now just a single CodeDiff widget with integrated sidebar
     pub code_diff: CodeDiff,
+
+    // File system tree demo
+    pub file_tree: Option<FileSystemTree<'static>>,
+    pub file_tree_state: TreeViewState,
+    pub file_tree_navigator: TreeNavigator,
 
     // Tree demo
     pub tree_state: TreeViewState,

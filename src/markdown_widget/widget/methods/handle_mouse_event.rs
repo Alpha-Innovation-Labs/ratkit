@@ -191,7 +191,9 @@ impl<'a> MarkdownWidget<'a> {
                         if !text.is_empty() {
                             if let Ok(mut clipboard) = arboard::Clipboard::new() {
                                 if clipboard.set_text(&text).is_ok() {
-                                    return MarkdownEvent::Copied { text: text.clone() };
+                                    // Store in selection state for app to retrieve (shows toast)
+                                    self.selection.last_copied_text = Some(text.clone());
+                                    return MarkdownEvent::Copied { text };
                                 }
                             }
                         }

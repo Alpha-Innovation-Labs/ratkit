@@ -23,4 +23,6 @@ pub struct SelectionState {
     pub frozen_lines: Option<Vec<ratatui::text::Line<'static>>>,
     /// Width when lines were frozen.
     pub frozen_width: usize,
+    /// Last copied text (for showing toast notification).
+    pub last_copied_text: Option<String>,
 }

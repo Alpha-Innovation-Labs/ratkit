@@ -11,9 +11,10 @@ use ratatui_toolkit::services::theme::persistence::load_saved_theme;
 use ratatui_toolkit::ThemeVariant;
 use ratatui_toolkit::{
     AppTheme, ClickableScrollbarState, ClickableScrollbarStateScrollExt, CodeDiff, DiffConfig,
-    DoubleClickState, MenuBar, MenuItem, ResizableSplit, SelectionState, TermTui, ToastManager,
-    TreeNavigator, TreeViewState,
+    DoubleClickState, FileSystemTree, MenuBar, MenuItem, ResizableSplit, SelectionState, TermTui,
+    ToastManager, TreeNavigator, TreeViewState,
 };
+use std::path::PathBuf;
 use std::time::Instant;
 
 use super::super::App;
@@ -43,18 +44,24 @@ impl App {
         let menu_bar = MenuBar::new(vec![
             MenuItem::with_icon("Markdown", "", 0),
             MenuItem::with_icon("Code Diff", "", 1),
-            MenuItem::with_icon("Tree", "", 2),
-            MenuItem::with_icon("Dialogs", "󰍉", 3),
-            MenuItem::with_icon("Scrollbar", "󰍻", 4),
-            MenuItem::with_icon("StatusLine", "", 5),
-            MenuItem::with_icon("Terminal", "", 6),
-            MenuItem::with_icon("Theme", "", 7),
+            MenuItem::with_icon("File Tree", "", 2),
+            MenuItem::with_icon("Tree", "", 3),
+            MenuItem::with_icon("Dialogs", "󰍉", 4),
+            MenuItem::with_icon("Scrollbar", "󰍻", 5),
+            MenuItem::with_icon("StatusLine", "", 6),
+            MenuItem::with_icon("Terminal", "", 7),
+            MenuItem::with_icon("Theme", "", 8),
         ])
         .with_selected(0)
         .with_theme(&theme);
 
         let mut tree_state = TreeViewState::new();
         tree_state.select(vec![0]);
+
+        // Create file system tree for current directory
+        let file_tree = FileSystemTree::new(PathBuf::from(".")).ok();
+        let mut file_tree_state = TreeViewState::new();
+        file_tree_state.select(vec![0]);
 
         // Generate scroll content
         let scroll_content: Vec<String> = (1..=100)
@@ -103,6 +110,9 @@ impl App {
             current_tab: DemoTab::Markdown,
             menu_bar,
             code_diff,
+            file_tree,
+            file_tree_state,
+            file_tree_navigator: TreeNavigator::new(),
             tree_state,
             tree_navigator: TreeNavigator::new(),
             show_dialog: false,

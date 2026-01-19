@@ -37,9 +37,9 @@ use app::App;
 use demo_tab::DemoTab;
 use helpers::{all_app_themes, get_app_theme_display_name};
 use render::{
-    get_filtered_themes, render_code_diff_demo, render_dialogs_demo, render_markdown_demo,
-    render_scrollbar_demo, render_statusline_demo, render_terminal_demo, render_theme_picker,
-    render_tree_demo,
+    get_filtered_themes, render_code_diff_demo, render_dialogs_demo, render_file_tree_demo,
+    render_markdown_demo, render_scrollbar_demo, render_statusline_demo, render_terminal_demo,
+    render_theme_picker, render_tree_demo,
 };
 
 fn main() -> io::Result<()> {
@@ -84,6 +84,9 @@ fn main() -> io::Result<()> {
             match app.current_tab {
                 DemoTab::Markdown => render_markdown_demo(frame, content_area, &mut app, &theme),
                 DemoTab::CodeDiff => render_code_diff_demo(frame, content_area, &app),
+                DemoTab::FileTree => {
+                    render_file_tree_demo(frame, content_area, &mut app, &theme)
+                }
                 DemoTab::Tree => {
                     render_tree_demo(frame, content_area, &mut app, &tree_nodes, &theme)
                 }
@@ -98,7 +101,7 @@ fn main() -> io::Result<()> {
             // Hotkey footer with theme
             let footer_items = vec![
                 HotkeyItem::new("Tab", "switch"),
-                HotkeyItem::new("1-7", "tabs"),
+                HotkeyItem::new("1-8", "tabs"),
                 HotkeyItem::new("T", "theme"),
                 HotkeyItem::new("t", "toast"),
                 HotkeyItem::new("?", "help"),
@@ -228,6 +231,20 @@ fn main() -> io::Result<()> {
                     // Line focus is handled internally by the widget
                 }
                 _ => {}
+            }
+
+            // Check for copied text (shows toast)
+            if let Some(text) = widget.take_last_copied() {
+                let display_text = if text.len() > 30 {
+                    format!("{}...", &text[..30])
+                } else {
+                    text
+                };
+                app.toast_manager.add(Toast::new(
+                    &format!("Copied: {}", display_text),
+                    ToastLevel::Success,
+                    None,
+                ));
             }
         }
 
@@ -365,11 +382,12 @@ fn main() -> io::Result<()> {
                         }
                         KeyCode::Char('1') => app.select_tab(DemoTab::Markdown),
                         KeyCode::Char('2') => app.select_tab(DemoTab::CodeDiff),
-                        KeyCode::Char('3') => app.select_tab(DemoTab::Tree),
-                        KeyCode::Char('4') => app.select_tab(DemoTab::Dialogs),
-                        KeyCode::Char('5') => app.select_tab(DemoTab::Scrollbar),
-                        KeyCode::Char('6') => app.select_tab(DemoTab::StatusLine),
-                        KeyCode::Char('7') => app.select_tab(DemoTab::Terminal),
+                        KeyCode::Char('3') => app.select_tab(DemoTab::FileTree),
+                        KeyCode::Char('4') => app.select_tab(DemoTab::Tree),
+                        KeyCode::Char('5') => app.select_tab(DemoTab::Dialogs),
+                        KeyCode::Char('6') => app.select_tab(DemoTab::Scrollbar),
+                        KeyCode::Char('7') => app.select_tab(DemoTab::StatusLine),
+                        KeyCode::Char('8') => app.select_tab(DemoTab::Terminal),
                         KeyCode::Char('t') => {
                             let messages = [
                                 ("Info toast", ToastLevel::Info),
@@ -398,6 +416,34 @@ fn main() -> io::Result<()> {
                                 // Delegate all key handling to the CodeDiff widget
                                 // It handles: [=toggle sidebar, h/l=focus, j/k=nav, g/G=top/bottom, H/L=resize
                                 app.code_diff.handle_key(key.code);
+                            }
+                            DemoTab::FileTree => {
+                                // Handle file tree navigation (similar to Tree tab)
+                                if app.file_tree_state.is_filter_mode() {
+                                    match key.code {
+                                        KeyCode::Esc => {
+                                            app.file_tree_state.clear_filter();
+                                        }
+                                        KeyCode::Enter => {
+                                            app.file_tree_state.exit_filter_mode();
+                                        }
+                                        KeyCode::Backspace => {
+                                            app.file_tree_state.backspace_filter();
+                                        }
+                                        KeyCode::Char(c) => {
+                                            app.file_tree_state.append_to_filter(c);
+                                        }
+                                        _ => {}
+                                    }
+                                } else if key.code == KeyCode::Char('/') {
+                                    app.file_tree_state.enter_filter_mode();
+                                } else if let Some(ref file_tree) = app.file_tree {
+                                    app.file_tree_navigator.handle_key(
+                                        key,
+                                        &file_tree.nodes,
+                                        &mut app.file_tree_state,
+                                    );
+                                }
                             }
                             DemoTab::Tree => {
                                 // Check if in filter mode first
@@ -526,7 +572,7 @@ fn main() -> io::Result<()> {
                     // Handle menu bar clicks
                     if mouse.kind == MouseEventKind::Down(MouseButton::Left) {
                         if let Some(idx) = app.menu_bar.handle_click(mouse.column, mouse.row) {
-                            if idx == 7 {
+                            if idx == 8 {
                                 // Theme button clicked - open theme picker
                                 app.original_theme = Some(app.current_theme.clone());
                                 app.show_theme_picker = true;
@@ -669,13 +715,23 @@ fn main() -> io::Result<()> {
                         // Update app's TOC scroll offset after handling
                         app.toc_scroll_offset = widget.get_toc_scroll_offset();
 
+                        // Check for copied text (reliable method via selection state)
+                        if let Some(copied_text) = widget.take_last_copied() {
+                            let display = if copied_text.len() > 30 {
+                                format!("{}...", &copied_text[..30])
+                            } else {
+                                copied_text
+                            };
+                            app.toast_manager.add(Toast::new(
+                                &format!("Copied: {}", display),
+                                ToastLevel::Success,
+                                None,
+                            ));
+                        }
+
                         match event {
                             MarkdownEvent::Copied { .. } => {
-                                app.toast_manager.add(Toast::new(
-                                    "Copied to clipboard!",
-                                    ToastLevel::Success,
-                                    None,
-                                ));
+                                // Already handled above via take_last_copied
                             }
                             MarkdownEvent::DoubleClick {
                                 line_number,

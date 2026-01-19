@@ -4,4 +4,4 @@
 
 dev:
     @echo "Starting showcase demo..."
-    cargo run --example showcase
+    cargo run --example showcase --features full
