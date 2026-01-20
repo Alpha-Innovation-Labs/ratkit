@@ -3,7 +3,7 @@
 use crossterm::event::KeyCode;
 
 use crate::file_system_tree::FileSystemTree;
-use crate::tree_view::{TreeNavigator, TreeViewState};
+use crate::primitives::tree_view::{TreeNavigator, TreeViewState};
 
 impl<'a> FileSystemTree<'a> {
     /// Handles a key press while in filter mode.

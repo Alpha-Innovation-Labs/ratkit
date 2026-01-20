@@ -9,8 +9,8 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::Widget;
 
 use crate::diff_file_tree::{DiffFileEntry, DiffFileTree};
+use crate::primitives::tree_view::{matches_filter, TreeViewRef};
 use crate::services::theme::AppTheme;
-use crate::tree_view::{matches_filter, TreeViewRef};
 
 use super::render_entry::render_entry;
 

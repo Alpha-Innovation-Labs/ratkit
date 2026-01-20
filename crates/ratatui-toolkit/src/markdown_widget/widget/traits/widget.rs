@@ -4,7 +4,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::Widget,
+    widgets::{Block, Borders, Widget},
 };
 
 use crate::markdown_widget::extensions::scrollbar::CustomScrollbar;
@@ -17,6 +17,7 @@ use crate::markdown_widget::state::toc_state::TocState;
 use crate::markdown_widget::state::{ParsedCache, RenderCache};
 use crate::markdown_widget::widget::helpers::apply_selection_highlighting;
 use crate::markdown_widget::widget::MarkdownWidget;
+use crate::primitives::pane::Pane;
 
 /// Current line highlight color (normal - dark blue-gray)
 const CURRENT_LINE_BG: Color = Color::Rgb(38, 52, 63);
@@ -25,6 +26,80 @@ const CURRENT_LINE_DRAG_BG: Color = Color::Rgb(70, 80, 100);
 
 impl<'a> Widget for MarkdownWidget<'a> {
     fn render(mut self, area: Rect, buf: &mut ratatui::buffer::Buffer) {
+        // Handle pane wrapping if enabled
+        let (area, _pane_footer_area) = if self.has_pane {
+            let title = self
+                .pane_title
+                .clone()
+                .unwrap_or_else(|| "Markdown".to_string());
+            let pane = self.pane.take().unwrap_or_else(|| {
+                let mut p = Pane::new(title);
+                if let Some(color) = self.pane_color {
+                    p = p.border_style(ratatui::style::Style::default().fg(color));
+                }
+                p
+            });
+
+            // Build the block
+            let mut block = Block::default()
+                .borders(Borders::ALL)
+                .border_type(pane.border_type)
+                .border_style(pane.border_style)
+                .title(pane.title);
+
+            if let Some(icon) = &pane.icon {
+                use ratatui::text::Span;
+                let title = format!(" {} ", icon);
+                block = block.title(Line::from(vec![Span::styled(
+                    title,
+                    pane.title_style.clone(),
+                )]));
+            }
+
+            if let Some(ref footer) = pane.text_footer {
+                block = block.title_bottom(footer.clone().style(pane.footer_style));
+            }
+
+            // Get the inner area (inside the border) BEFORE rendering
+            let inner = block.inner(area);
+
+            // Render the block
+            block.render(area, buf);
+
+            // Calculate footer area if needed
+            let (inner, pane_footer) = if pane.footer_height > 0 {
+                let chunks = ratatui::layout::Layout::default()
+                    .direction(ratatui::layout::Direction::Vertical)
+                    .constraints([
+                        ratatui::layout::Constraint::Min(0),
+                        ratatui::layout::Constraint::Length(pane.footer_height),
+                    ])
+                    .split(inner);
+                (chunks[0], Some(chunks[1]))
+            } else {
+                (inner, None)
+            };
+
+            // Calculate padded inner area
+            let padded = Rect {
+                x: inner.x + pane.padding.3,
+                y: inner.y + pane.padding.0,
+                width: inner.width.saturating_sub(pane.padding.1 + pane.padding.3),
+                height: inner.height.saturating_sub(pane.padding.0 + pane.padding.2),
+            };
+
+            // Render footer if exists
+            if let Some(footer_area) = pane_footer {
+                if let Some(ref footer) = pane.text_footer {
+                    footer.render(footer_area, buf);
+                }
+            }
+
+            (padded, None::<Rect>)
+        } else {
+            (area, None::<Rect>)
+        };
+
         // Reserve space for statusline if enabled
         let (main_area, statusline_area) = if self.show_statusline && area.height > 1 {
             (

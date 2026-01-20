@@ -7,7 +7,7 @@ pub mod functions;
 pub mod methods;
 pub mod traits;
 
-use crate::termtui::Parser;
+use crate::primitives::termtui::Parser;
 use portable_pty::{Child, MasterPty};
 use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};

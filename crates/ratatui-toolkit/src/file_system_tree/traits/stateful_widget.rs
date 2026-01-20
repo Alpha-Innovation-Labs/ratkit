@@ -7,7 +7,7 @@ use ratatui::{
 };
 
 use crate::file_system_tree::{FileSystemEntry, FileSystemTree};
-use crate::tree_view::{matches_filter, TreeViewRef, TreeViewState};
+use crate::primitives::tree_view::{matches_filter, TreeViewRef, TreeViewState};
 
 use crate::file_system_tree::traits::get_ayu_dark_color::get_ayu_dark_color;
 use crate::file_system_tree::traits::get_custom_icon::get_custom_icon;

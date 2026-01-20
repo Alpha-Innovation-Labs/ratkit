@@ -1,6 +1,6 @@
 use crate::code_diff::code_diff::CodeDiff;
 use crate::code_diff::diff_config::DiffConfig;
-use crate::resizable_split::ResizableSplit;
+use crate::primitives::resizable_split::ResizableSplit;
 
 impl CodeDiff {
     /// Sets the configuration for this diff widget.

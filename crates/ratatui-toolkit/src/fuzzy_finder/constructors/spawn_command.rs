@@ -1,5 +1,5 @@
 use crate::fuzzy_finder::{FuzzyFinder, FuzzyFinderTerminal};
-use crate::termtui::Parser;
+use crate::primitives::termtui::Parser;
 use anyhow::{Context, Result};
 use portable_pty::{native_pty_system, CommandBuilder, PtySize};
 use std::io::Write;

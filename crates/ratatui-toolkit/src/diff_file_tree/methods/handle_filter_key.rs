@@ -3,7 +3,7 @@
 use crossterm::event::KeyCode;
 
 use crate::diff_file_tree::DiffFileTree;
-use crate::tree_view::TreeNavigator;
+use crate::primitives::tree_view::TreeNavigator;
 
 impl DiffFileTree {
     /// Handles a key press while in filter mode.

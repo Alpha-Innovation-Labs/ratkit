@@ -1,0 +1,14 @@
+[package]
+name = "ratatui_demo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[dependencies]
+ratatui = "0.29"
+crossterm = "0.28"
+ratatui-interact = "0.2"

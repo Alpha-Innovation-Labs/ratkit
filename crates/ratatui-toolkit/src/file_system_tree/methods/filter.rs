@@ -1,7 +1,7 @@
 //! Filter-related methods for FileSystemTree.
 
 use crate::file_system_tree::FileSystemTree;
-use crate::tree_view::TreeViewState;
+use crate::primitives::tree_view::TreeViewState;
 
 impl<'a> FileSystemTree<'a> {
     /// Enters filter mode, initializing an empty filter.

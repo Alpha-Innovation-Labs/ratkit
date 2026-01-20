@@ -7,10 +7,8 @@ mod methods;
 pub enum DemoTab {
     Markdown,
     CodeDiff,
-    FileTree,
     Tree,
     Dialogs,
-    Scrollbar,
     StatusLine,
     Terminal,
 }

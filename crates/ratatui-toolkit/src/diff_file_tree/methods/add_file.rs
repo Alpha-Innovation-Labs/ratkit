@@ -3,7 +3,7 @@
 use crate::diff_file_tree::DiffFileEntry;
 use crate::diff_file_tree::DiffFileTree;
 use crate::diff_file_tree::FileStatus;
-use crate::tree_view::TreeNode;
+use crate::primitives::tree_view::TreeNode;
 
 impl DiffFileTree {
     /// Adds a file to the tree, creating intermediate directories as needed.

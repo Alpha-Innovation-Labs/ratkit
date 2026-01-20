@@ -26,10 +26,8 @@ use ratatui::{
 use ratatui_toolkit::services::theme::loader::load_builtin_theme;
 use ratatui_toolkit::services::theme::persistence::save_theme;
 use ratatui_toolkit::{
-    render_hotkey_modal, render_toasts, ClickableScrollbarStateMouseExt,
-    ClickableScrollbarStateScrollExt, Dialog, DialogType, DialogWidget, Hotkey, HotkeyFooter,
-    HotkeyItem, HotkeyModalConfig, HotkeySection, MarkdownEvent, MarkdownWidget, ScrollbarEvent,
-    ThemeVariant, Toast, ToastLevel,
+    render_toasts, Dialog, DialogType, DialogWidget, HotkeyFooter, HotkeyItem, MarkdownEvent,
+    MarkdownWidget, ThemeVariant, Toast, ToastLevel,
 };
 use std::io;
 
@@ -37,9 +35,8 @@ use app::App;
 use demo_tab::DemoTab;
 use helpers::{all_app_themes, get_app_theme_display_name};
 use render::{
-    get_filtered_themes, render_code_diff_demo, render_dialogs_demo, render_file_tree_demo,
-    render_markdown_demo, render_scrollbar_demo, render_statusline_demo, render_terminal_demo,
-    render_theme_picker, render_tree_demo,
+    get_filtered_themes, render_code_diff_demo, render_dialogs_demo, render_markdown_demo,
+    render_statusline_demo, render_terminal_demo, render_theme_picker, render_trees_demo,
 };
 
 fn main() -> io::Result<()> {
@@ -84,12 +81,8 @@ fn main() -> io::Result<()> {
             match app.current_tab {
                 DemoTab::Markdown => render_markdown_demo(frame, content_area, &mut app, &theme),
                 DemoTab::CodeDiff => render_code_diff_demo(frame, content_area, &app),
-                DemoTab::FileTree => render_file_tree_demo(frame, content_area, &mut app, &theme),
-                DemoTab::Tree => {
-                    render_tree_demo(frame, content_area, &mut app, &tree_nodes, &theme)
-                }
+                DemoTab::Tree => render_trees_demo(frame, content_area, &mut app, &tree_nodes, &theme),
                 DemoTab::Dialogs => render_dialogs_demo(frame, content_area, &mut app, &theme),
-                DemoTab::Scrollbar => render_scrollbar_demo(frame, content_area, &mut app),
                 DemoTab::StatusLine => {
                     render_statusline_demo(frame, content_area, &mut app, &theme)
                 }
@@ -99,10 +92,9 @@ fn main() -> io::Result<()> {
             // Hotkey footer with theme
             let footer_items = vec![
                 HotkeyItem::new("Tab", "switch"),
-                HotkeyItem::new("1-8", "tabs"),
+                HotkeyItem::new("1-6", "tabs"),
                 HotkeyItem::new("T", "theme"),
                 HotkeyItem::new("t", "toast"),
-                HotkeyItem::new("?", "help"),
                 HotkeyItem::new("q", "quit"),
             ];
             let footer = HotkeyFooter::new(footer_items).with_theme(&app.current_theme);
@@ -130,42 +122,6 @@ fn main() -> io::Result<()> {
                     .with_theme(&app.current_theme);
                 let dialog_widget = DialogWidget::new(&mut dialog);
                 frame.render_widget(dialog_widget, area);
-            }
-
-            // Hotkey modal overlay
-            if app.show_hotkey_modal {
-                let sections = vec![
-                    HotkeySection {
-                        title: "Navigation".to_string(),
-                        hotkeys: vec![
-                            Hotkey::new("Tab", "Next tab"),
-                            Hotkey::new("Shift+Tab", "Previous tab"),
-                            Hotkey::new("1-7", "Jump to tab"),
-                        ],
-                    },
-                    HotkeySection {
-                        title: "Tree View".to_string(),
-                        hotkeys: vec![
-                            Hotkey::new("j/↓", "Move down"),
-                            Hotkey::new("k/↑", "Move up"),
-                            Hotkey::new("l/→", "Expand"),
-                            Hotkey::new("h/←", "Collapse"),
-                        ],
-                    },
-                    HotkeySection {
-                        title: "General".to_string(),
-                        hotkeys: vec![
-                            Hotkey::new("t", "Show toast"),
-                            Hotkey::new("?", "Toggle help"),
-                            Hotkey::new("q", "Quit"),
-                        ],
-                    },
-                ];
-                let config = HotkeyModalConfig {
-                    title: "Keyboard Shortcuts".to_string(),
-                    ..Default::default()
-                };
-                render_hotkey_modal(frame, &sections, &config);
             }
 
             // Theme picker popup
@@ -258,10 +214,6 @@ fn main() -> io::Result<()> {
             match event::read()? {
                 Event::Key(key) if key.kind == KeyEventKind::Press => {
                     // Handle modal dismissals first
-                    if app.show_hotkey_modal {
-                        app.show_hotkey_modal = false;
-                        continue;
-                    }
                     if app.show_dialog {
                         app.show_dialog = false;
                         continue;
@@ -380,12 +332,10 @@ fn main() -> io::Result<()> {
                         }
                         KeyCode::Char('1') => app.select_tab(DemoTab::Markdown),
                         KeyCode::Char('2') => app.select_tab(DemoTab::CodeDiff),
-                        KeyCode::Char('3') => app.select_tab(DemoTab::FileTree),
-                        KeyCode::Char('4') => app.select_tab(DemoTab::Tree),
-                        KeyCode::Char('5') => app.select_tab(DemoTab::Dialogs),
-                        KeyCode::Char('6') => app.select_tab(DemoTab::Scrollbar),
-                        KeyCode::Char('7') => app.select_tab(DemoTab::StatusLine),
-                        KeyCode::Char('8') => app.select_tab(DemoTab::Terminal),
+                        KeyCode::Char('3') => app.select_tab(DemoTab::Tree),
+                        KeyCode::Char('4') => app.select_tab(DemoTab::Dialogs),
+                        KeyCode::Char('5') => app.select_tab(DemoTab::StatusLine),
+                        KeyCode::Char('6') => app.select_tab(DemoTab::Terminal),
                         KeyCode::Char('t') => {
                             let messages = [
                                 ("Info toast", ToastLevel::Info),
@@ -401,9 +351,6 @@ fn main() -> io::Result<()> {
                                 None,
                             ));
                         }
-                        KeyCode::Char('?') => {
-                            app.show_hotkey_modal = !app.show_hotkey_modal;
-                        }
                         KeyCode::Char('T') => {
                             // Open theme picker and store original theme for cancel
                             app.original_theme = Some(app.current_theme.clone());
@@ -418,64 +365,73 @@ fn main() -> io::Result<()> {
                                 // It handles: [=toggle sidebar, h/l=focus, j/k=nav, g/G=top/bottom, H/L=resize
                                 app.code_diff.handle_key(key.code);
                             }
-                            DemoTab::FileTree => {
-                                // Handle file tree navigation (similar to Tree tab)
-                                if app.file_tree_state.is_filter_mode() {
-                                    match key.code {
-                                        KeyCode::Esc => {
-                                            app.file_tree_state.clear_filter();
-                                        }
-                                        KeyCode::Enter => {
-                                            app.file_tree_state.exit_filter_mode();
-                                        }
-                                        KeyCode::Backspace => {
-                                            app.file_tree_state.backspace_filter();
-                                        }
-                                        KeyCode::Char(c) => {
-                                            app.file_tree_state.append_to_filter(c);
-                                        }
-                                        _ => {}
-                                    }
-                                } else if key.code == KeyCode::Char('/') {
-                                    app.file_tree_state.enter_filter_mode();
-                                } else if let Some(ref file_tree) = app.file_tree {
-                                    app.file_tree_navigator.handle_key(
-                                        key,
-                                        &file_tree.nodes,
-                                        &mut app.file_tree_state,
-                                    );
-                                }
-                            }
                             DemoTab::Tree => {
-                                // Check if in filter mode first
-                                if app.tree_state.is_filter_mode() {
-                                    // Handle filter mode keys
-                                    match key.code {
-                                        KeyCode::Esc => {
-                                            app.tree_state.clear_filter();
+                                match app.tree_focus {
+                                    app::TreePaneFocus::FileTree => {
+                                        if key.code == KeyCode::Char('c') {
+                                            app.tree_focus = app::TreePaneFocus::ComponentTree;
+                                            continue;
                                         }
-                                        KeyCode::Enter => {
-                                            app.tree_state.exit_filter_mode();
+
+                                        if app.file_tree_state.is_filter_mode() {
+                                            match key.code {
+                                                KeyCode::Esc => {
+                                                    app.file_tree_state.clear_filter();
+                                                }
+                                                KeyCode::Enter => {
+                                                    app.file_tree_state.exit_filter_mode();
+                                                }
+                                                KeyCode::Backspace => {
+                                                    app.file_tree_state.backspace_filter();
+                                                }
+                                                KeyCode::Char(c) => {
+                                                    app.file_tree_state.append_to_filter(c);
+                                                }
+                                                _ => {}
+                                            }
+                                        } else if key.code == KeyCode::Char('/') {
+                                            app.file_tree_state.enter_filter_mode();
+                                        } else if let Some(ref file_tree) = app.file_tree {
+                                            app.file_tree_navigator.handle_key(
+                                                key,
+                                                &file_tree.nodes,
+                                                &mut app.file_tree_state,
+                                            );
                                         }
-                                        KeyCode::Backspace => {
-                                            app.tree_state.backspace_filter();
-                                        }
-                                        KeyCode::Char(c) => {
-                                            app.tree_state.append_to_filter(c);
-                                        }
-                                        _ => {}
                                     }
-                                } else if key.code == KeyCode::Char('/') {
-                                    // Enter filter mode
-                                    app.tree_state.enter_filter_mode();
-                                } else {
-                                    // Normal tree navigation
-                                    let tree_nodes = app.build_tree();
-                                    app.tree_navigator.handle_key(
-                                        key,
-                                        &tree_nodes,
-                                        &mut app.tree_state,
-                                    );
+                                    app::TreePaneFocus::ComponentTree => {
+                                        if key.code == KeyCode::Char('f') {
+                                            app.tree_focus = app::TreePaneFocus::FileTree;
+                                            continue;
+                                        }
+
+                                        if app.tree_state.is_filter_mode() {
+                                            match key.code {
+                                                KeyCode::Esc => {
+                                                    app.tree_state.clear_filter();
+                                                }
+                                                KeyCode::Enter => {
+                                                    app.tree_state.exit_filter_mode();
+                                                }
+                                                KeyCode::Backspace => {
+                                                    app.tree_state.backspace_filter();
+                                                }
+                                                KeyCode::Char(c) => {
+                                                    app.tree_state.append_to_filter(c);
+                                                }
+                                                _ => {}
+                                            }
+                                        } else if key.code == KeyCode::Char('/') {
+                                            app.tree_state.enter_filter_mode();
+                                        } else {
+                                            let tree_nodes = app.build_tree();
+                                            app.tree_navigator.handle_key(
+                                                key,
+                                                &tree_nodes,
+                                                &mut app.tree_state,
+                                            );
+                                        }
+                                    }
                                 }
                             }
                             DemoTab::Dialogs => match key.code {
@@ -534,15 +490,6 @@ fn main() -> io::Result<()> {
                                     _ => {}
                                 }
                             }
-                            DemoTab::Scrollbar => match key.code {
-                                KeyCode::Char('j') | KeyCode::Down => {
-                                    app.scrollbar_state.scroll_down(1);
-                                }
-                                KeyCode::Char('k') | KeyCode::Up => {
-                                    app.scrollbar_state.scroll_up(1);
-                                }
-                                _ => {}
-                            },
                             DemoTab::StatusLine => match key.code {
                                 KeyCode::Char('n') => {
                                     app.status_mode = demo_mode::DemoMode::Normal;
@@ -573,7 +520,7 @@ fn main() -> io::Result<()> {
                     // Handle menu bar clicks
                     if mouse.kind == MouseEventKind::Down(MouseButton::Left) {
                         if let Some(idx) = app.menu_bar.handle_click(mouse.column, mouse.row) {
-                            if idx == 8 {
+                            if idx == 7 {
                                 // Theme button clicked - open theme picker
                                 app.original_theme = Some(app.current_theme.clone());
                                 app.show_theme_picker = true;
@@ -582,22 +529,6 @@ fn main() -> io::Result<()> {
                             } else if idx < DemoTab::all().len() {
                                 app.select_tab(DemoTab::all()[idx]);
                             }
-                        }
-                    }
-
-                    // Handle scrollbar in Scrollbar tab
-                    if app.current_tab == DemoTab::Scrollbar {
-                        match app.scrollbar_state.handle_mouse_event(&mouse) {
-                            ScrollbarEvent::Up(n) => {
-                                app.scrollbar_state.scroll_up(n);
-                            }
-                            ScrollbarEvent::Down(n) => {
-                                app.scrollbar_state.scroll_down(n);
-                            }
-                            ScrollbarEvent::Position(pos) => {
-                                app.scrollbar_state.set_offset(pos);
-                            }
-                            ScrollbarEvent::None => {}
                         }
                     }
 

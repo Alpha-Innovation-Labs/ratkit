@@ -14,8 +14,8 @@ categories = ["command-line-interface", "gui"]
 readme = "README.md"
 
 [features]
-default = ["markdown", "tree", "dialog", "toast", "split", "menu", "statusbar", "hotkey", "terminal", "theme"]
-full = ["default", "terminal", "fuzzy", "master-layout", "file-tree", "theme"]
+default = ["markdown", "tree", "dialog", "toast", "split", "menu", "statusline", "hotkey", "terminal", "theme"]
+full = ["default", "terminal", "fuzzy", "file-tree", "theme"]
 
 # Core UI components
 markdown = ["dep:pulldown-cmark", "dep:syntect", "dep:syntect-tui", "dep:serde", "dep:serde_json", "dep:notify", "dep:arboard"]
@@ -24,13 +24,12 @@ dialog = []
 toast = []
 split = []
 menu = []
-statusbar = []
+statusline = []
 hotkey = []
 
 # Advanced components
 terminal = ["dep:termwiz", "dep:libc", "dep:arboard", "dep:base64", "dep:portable-pty"]
 fuzzy = ["dep:portable-pty"]
-master-layout = ["split", "menu", "statusbar", "hotkey"]
 file-tree = ["tree", "dep:devicons"]
 theme = ["dep:serde", "dep:serde_json", "dep:dirs"]
 

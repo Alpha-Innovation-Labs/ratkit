@@ -9,7 +9,7 @@ use unicode_width::UnicodeWidthStr;
 
 use crate::markdown_widget::widget::enums::MarkdownWidgetMode;
 use crate::markdown_widget::widget::MarkdownWidget;
-use crate::statusline_stacked::{StatusLineStacked, SLANT_BL_TR, SLANT_TL_BR};
+use crate::primitives::statusline::{StatusLineStacked, SLANT_BL_TR, SLANT_TL_BR};
 
 impl<'a> MarkdownWidget<'a> {
     /// Render the statusline using StatusLineStacked (powerline style).

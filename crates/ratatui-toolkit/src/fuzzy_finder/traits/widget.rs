@@ -1,7 +1,7 @@
 use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
 
 use crate::fuzzy_finder::FuzzyFinder;
-use crate::termtui::Color as TermColor;
+use crate::primitives::termtui::Color as TermColor;
 
 impl Widget for FuzzyFinder {
     fn render(self, area: Rect, buf: &mut Buffer) {

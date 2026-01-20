@@ -124,7 +124,7 @@ pub fn render_statusline_demo(
             Span::from(" 󰈙 ").style(Style::new().fg(theme.primary)),
             Span::from("").style(Style::new()),
         )
-        .center("Press ? for help")
+        .center("StatusLineStacked demo")
         .end(
             Span::from(" 100% ").style(Style::new().fg(theme.success)),
             Span::from("").style(Style::new()),

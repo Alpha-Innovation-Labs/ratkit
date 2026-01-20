@@ -74,6 +74,10 @@ impl<'a> MarkdownWidget<'a> {
             filter: None,
             filter_mode: false,
             bordered: false,
+            has_pane: true,
+            pane: None,
+            pane_title: None,
+            pane_color: None,
         }
     }
 }

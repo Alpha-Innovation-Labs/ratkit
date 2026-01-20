@@ -8,10 +8,8 @@ impl DemoTab {
         vec![
             Self::Markdown,
             Self::CodeDiff,
-            Self::FileTree,
             Self::Tree,
             Self::Dialogs,
-            Self::Scrollbar,
             Self::StatusLine,
             Self::Terminal,
         ]
@@ -22,10 +20,8 @@ impl DemoTab {
         match self {
             Self::Markdown => "Markdown",
             Self::CodeDiff => "Code Diff",
-            Self::FileTree => "File Tree",
-            Self::Tree => "Tree View",
+            Self::Tree => "Trees",
             Self::Dialogs => "Dialogs",
-            Self::Scrollbar => "Scrollbar",
             Self::StatusLine => "StatusLine",
             Self::Terminal => "Terminal",
         }

@@ -53,8 +53,8 @@ pub mod traits;
 
 pub use helpers::file_icon;
 
+use crate::primitives::tree_view::{TreeNode, TreeViewState};
 use crate::services::theme::AppTheme;
-use crate::tree_view::{TreeNode, TreeViewState};
 use ratatui::style::Color;
 
 /// The modification status of a file in a diff.
@@ -100,7 +100,7 @@ impl FileStatus {
 
 /// A single file or directory entry in a diff tree.
 ///
-/// This is the data type stored in each [`TreeNode`](crate::tree_view::TreeNode).
+/// This is the data type stored in each [`TreeNode`](crate::primitives::tree_view::TreeNode).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DiffFileEntry {
     /// The display name (filename or directory name).
@@ -142,7 +142,7 @@ impl DiffFileEntry {
 /// Renders a hierarchical view of files with their modification status,
 /// similar to gitui's file tree in the changes panel.
 ///
-/// This is a wrapper around [`TreeView`](crate::tree_view::TreeView) that
+/// This is a wrapper around [`TreeView`](crate::primitives::tree_view::TreeView) that
 /// provides a specialized API for diff file trees.
 #[derive(Debug, Clone)]
 pub struct DiffFileTree {

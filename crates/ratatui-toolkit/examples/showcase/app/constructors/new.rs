@@ -10,14 +10,14 @@ use ratatui_toolkit::services::theme::loader::load_builtin_theme;
 use ratatui_toolkit::services::theme::persistence::load_saved_theme;
 use ratatui_toolkit::ThemeVariant;
 use ratatui_toolkit::{
-    AppTheme, ClickableScrollbarState, ClickableScrollbarStateScrollExt, CodeDiff, DiffConfig,
-    DoubleClickState, FileSystemTree, MenuBar, MenuItem, ResizableSplit, SelectionState, TermTui,
-    ToastManager, TreeNavigator, TreeViewState,
+    AppTheme, CodeDiff, DiffConfig, DoubleClickState, FileSystemTree, MenuBar, MenuItem,
+    ResizableSplit, SelectionState, TermTui, ToastManager, TreeNavigator, TreeViewState,
 };
 use std::path::PathBuf;
 use std::time::Instant;
 
 use super::super::App;
+use crate::app::TreePaneFocus;
 use crate::constants::SAMPLE_MARKDOWN_FILE;
 use crate::demo_mode::DemoMode;
 use crate::demo_tab::DemoTab;
@@ -44,13 +44,11 @@ impl App {
         let menu_bar = MenuBar::new(vec![
             MenuItem::with_icon("Markdown", "", 0),
             MenuItem::with_icon("Code Diff", "", 1),
-            MenuItem::with_icon("File Tree", "", 2),
-            MenuItem::with_icon("Tree", "", 3),
-            MenuItem::with_icon("Dialogs", "󰍉", 4),
-            MenuItem::with_icon("Scrollbar", "󰍻", 5),
-            MenuItem::with_icon("StatusLine", "", 6),
-            MenuItem::with_icon("Terminal", "", 7),
-            MenuItem::with_icon("Theme", "", 8),
+            MenuItem::with_icon("Trees", "", 2),
+            MenuItem::with_icon("Dialogs", "󰍉", 3),
+            MenuItem::with_icon("StatusLine", "", 4),
+            MenuItem::with_icon("Terminal", "", 5),
+            MenuItem::with_icon("Theme", "", 6),
         ])
         .with_selected(0)
         .with_theme(&theme);
@@ -62,20 +60,6 @@ impl App {
         let file_tree = FileSystemTree::new(PathBuf::from(".")).ok();
         let mut file_tree_state = TreeViewState::new();
         file_tree_state.select(vec![0]);
-
-        // Generate scroll content
-        let scroll_content: Vec<String> = (1..=100)
-            .map(|i| {
-                format!(
-                    "Line {}: This is content for the scrollbar demonstration",
-                    i
-                )
-            })
-            .collect();
-
-        let scrollbar_state = ClickableScrollbarState::new()
-            .set_content(scroll_content.len(), 20)
-            .position(0);
 
         // Create terminal - spawn a shell
         let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string());
@@ -115,9 +99,9 @@ impl App {
             file_tree_navigator: TreeNavigator::new(),
             tree_state,
             tree_navigator: TreeNavigator::new(),
+            tree_focus: TreePaneFocus::FileTree,
             show_dialog: false,
             dialog_type: ratatui_toolkit::DialogType::Info,
-            show_hotkey_modal: false,
             markdown_scroll: ScrollState::default(),
             markdown_source,
             markdown_cache: CacheState::default(),
@@ -147,8 +131,6 @@ impl App {
             toc_hovered: false,
             toc_hovered_entry: None,
             toc_scroll_offset: 0,
-            scrollbar_state,
-            scroll_content,
             status_mode: DemoMode::Normal,
             terminal,
             terminal2,

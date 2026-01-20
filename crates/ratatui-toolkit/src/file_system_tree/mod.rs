@@ -8,7 +8,7 @@ pub mod traits;
 
 use std::path::PathBuf;
 
-use crate::tree_view::TreeNode;
+use crate::primitives::tree_view::TreeNode;
 
 use ratatui::style::Style;
 use ratatui::widgets::Block;

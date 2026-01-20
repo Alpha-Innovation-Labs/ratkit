@@ -50,7 +50,7 @@ use std::collections::HashMap;
 use crate::code_diff::diff_config::DiffConfig;
 use crate::code_diff::diff_hunk::DiffHunk;
 use crate::diff_file_tree::DiffFileTree;
-use crate::resizable_split::ResizableSplit;
+use crate::primitives::resizable_split::ResizableSplit;
 use crate::services::theme::AppTheme;
 
 /// A widget for displaying code diffs in a terminal UI.

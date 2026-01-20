@@ -16,6 +16,7 @@ use crate::markdown_widget::state::{
     CacheState, CollapseState, DisplaySettings, DoubleClickState, ExpandableState, GitStatsState,
     ScrollState, SelectionState, SourceState, TocState, VimState,
 };
+use crate::primitives::pane::Pane;
 
 /// A scrollable, interactive markdown widget.
 ///
@@ -114,4 +115,12 @@ pub struct MarkdownWidget<'a> {
     pub(crate) filter_mode: bool,
     /// Whether to render a border around the widget.
     pub(crate) bordered: bool,
+    /// Whether to wrap the widget in a Pane.
+    pub(crate) has_pane: bool,
+    /// Optional Pane configuration for wrapping the widget.
+    pub(crate) pane: Option<Pane<'a>>,
+    /// Title to use for the default Pane (e.g., filename).
+    pub(crate) pane_title: Option<String>,
+    /// Color for the Pane border.
+    pub(crate) pane_color: Option<ratatui::style::Color>,
 }

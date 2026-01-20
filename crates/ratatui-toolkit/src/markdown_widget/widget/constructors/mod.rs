@@ -1,7 +1,11 @@
 //! Constructors for MarkdownWidget.
 
 mod from_state;
+mod has_pane;
 mod new;
+mod pane;
+mod pane_color;
+mod pane_title;
 mod scrollbar_config;
 mod selection_active;
 mod show_scrollbar;

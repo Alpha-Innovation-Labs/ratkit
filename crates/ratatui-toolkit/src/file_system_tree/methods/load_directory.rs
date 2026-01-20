@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 
 use crate::file_system_tree::{FileSystemEntry, FileSystemTree, FileSystemTreeConfig};
-use crate::tree_view::TreeNode;
+use crate::primitives::tree_view::TreeNode;
 
 impl<'a> FileSystemTree<'a> {
     pub(crate) fn load_directory(

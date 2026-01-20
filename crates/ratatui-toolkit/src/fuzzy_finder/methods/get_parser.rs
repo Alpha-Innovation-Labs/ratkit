@@ -1,5 +1,5 @@
 use crate::fuzzy_finder::FuzzyFinder;
-use crate::termtui::Parser;
+use crate::primitives::termtui::Parser;
 use std::sync::{Arc, Mutex};
 
 impl FuzzyFinder {

@@ -7,10 +7,10 @@
 //!
 //! This crate provides production-ready, reusable widgets for building terminal user interfaces:
 //!
-//! - **Layout Components**: [`ResizableSplit`], [`MasterLayout`] for flexible UI layouts
+//! - **Layout Components**: [`ResizableSplit`] for flexible UI layouts
 //! - **UI Components**: [`Button`], [`Dialog`], [`Toast`], [`Pane`] for common UI elements
-//! - **Widgets**: [`TreeView`], [`ClickableScrollbar`], [`FuzzyFinder`] for data display
-//! - **Navigation**: [`MenuBar`], [`HotkeyFooter`], [`StatusBar`] for navigation aids
+//! - **Widgets**: [`TreeView`], [`FuzzyFinder`] for data display
+//! - **Navigation**: [`MenuBar`], [`HotkeyFooter`] for navigation aids
 //! - **Rendering**: [`render_markdown`] for markdown to ratatui text conversion
 //! - **Terminal**: [`TermTui`] for embedded terminal emulation
 //! - **Theming**: [`theme`] module with 33 builtin themes and JSON loader
@@ -27,11 +27,10 @@
 //! | `toast` | Yes | Toast notification system |
 //! | `split` | Yes | Resizable split panels |
 //! | `menu` | Yes | Menu bar component |
-//! | `statusbar` | Yes | Status bar components |
+//! | `statusline` | Yes | Powerline-style statusline |
 //! | `hotkey` | Yes | Hotkey footer and modal |
 //! | `terminal` | No | Terminal emulator (TermTui) |
 //! | `fuzzy` | No | Fuzzy finder component |
-//! | `master-layout` | No | Full application layout framework |
 //! | `file-tree` | No | File system tree with devicons |
 //! | `theme` | No | Theme system with 33 builtin themes |
 //! | `full` | No | Enable all features |
@@ -66,56 +65,19 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 // Core components - always available
-pub mod button;
-pub mod clickable_scrollbar;
+pub mod primitives;
+
 pub mod code_diff;
 pub mod diff_file_tree;
-pub mod pane;
 
 // Feature-gated components
-#[cfg(feature = "dialog")]
-#[cfg_attr(docsrs, doc(cfg(feature = "dialog")))]
-pub mod dialog;
-
-#[cfg(feature = "toast")]
-#[cfg_attr(docsrs, doc(cfg(feature = "toast")))]
-pub mod toast;
-
-#[cfg(feature = "split")]
-#[cfg_attr(docsrs, doc(cfg(feature = "split")))]
-pub mod resizable_split;
-
-#[cfg(feature = "tree")]
-#[cfg_attr(docsrs, doc(cfg(feature = "tree")))]
-pub mod tree_view;
-
-#[cfg(feature = "menu")]
-#[cfg_attr(docsrs, doc(cfg(feature = "menu")))]
-pub mod menu_bar;
-
-#[cfg(feature = "statusbar")]
-#[cfg_attr(docsrs, doc(cfg(feature = "statusbar")))]
-pub mod statusbar;
-
-#[cfg(feature = "statusbar")]
-#[cfg_attr(docsrs, doc(cfg(feature = "statusbar")))]
-pub mod statusline_stacked;
-
 #[cfg(feature = "hotkey")]
 #[cfg_attr(docsrs, doc(cfg(feature = "hotkey")))]
 pub mod hotkey_footer;
 
-#[cfg(feature = "hotkey")]
-#[cfg_attr(docsrs, doc(cfg(feature = "hotkey")))]
-pub mod hotkey_modal;
-
 #[cfg(feature = "markdown")]
 #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
 pub mod markdown_widget;
-
-#[cfg(feature = "terminal")]
-#[cfg_attr(docsrs, doc(cfg(feature = "terminal")))]
-pub mod termtui;
 
 #[cfg(feature = "fuzzy")]
 #[cfg_attr(docsrs, doc(cfg(feature = "fuzzy")))]
@@ -125,52 +87,41 @@ pub mod fuzzy_finder;
 #[cfg_attr(docsrs, doc(cfg(feature = "file-tree")))]
 pub mod file_system_tree;
 
-#[cfg(feature = "master-layout")]
-#[cfg_attr(docsrs, doc(cfg(feature = "master-layout")))]
-pub mod master_layout;
-
 // Services module - shared infrastructure
 pub mod services;
 
 // Re-export commonly used types - always available
-pub use button::render_title_with_buttons::render_title_with_buttons;
-pub use button::Button;
-pub use clickable_scrollbar::{
-    ClickableScrollbar, ClickableScrollbarState, ClickableScrollbarStateMouseExt,
-    ClickableScrollbarStateScrollExt, ClickableScrollbarStatefulWidgetExt, ScrollbarEvent,
-};
 pub use code_diff::{CodeDiff, DiffConfig, DiffHunk, DiffLine, DiffLineKind, DiffStyle};
 pub use diff_file_tree::{DiffFileTree, FileStatus};
-pub use pane::Pane;
+pub use primitives::button::render_title_with_buttons::render_title_with_buttons;
+pub use primitives::button::Button;
+pub use primitives::pane::Pane;
 
 // Feature-gated re-exports
 #[cfg(feature = "dialog")]
-pub use dialog::widget::DialogWidget;
+pub use primitives::dialog::widget::DialogWidget;
 #[cfg(feature = "dialog")]
-pub use dialog::{Dialog, DialogType};
+pub use primitives::dialog::{Dialog, DialogType};
 
 #[cfg(feature = "toast")]
-pub use toast::methods::render_toasts::render_toasts;
+pub use primitives::toast::methods::render_toasts::render_toasts;
 #[cfg(feature = "toast")]
-pub use toast::{Toast, ToastLevel, ToastManager};
+pub use primitives::toast::{Toast, ToastLevel, ToastManager};
 
 #[cfg(feature = "split")]
-pub use resizable_split::{ResizableSplit, SplitDirection};
+pub use primitives::resizable_split::{ResizableSplit, SplitDirection};
 
 #[cfg(feature = "tree")]
-pub use tree_view::{
+pub use primitives::tree_view::{
     get_visible_paths, matches_filter, NodeState, TreeKeyBindings, TreeNavigator, TreeNode,
     TreeView, TreeViewRef, TreeViewState,
 };
 
 #[cfg(feature = "menu")]
-pub use menu_bar::{MenuBar, MenuItem};
+pub use primitives::menu_bar::{MenuBar, MenuItem};
 
-#[cfg(feature = "statusbar")]
-pub use statusbar::{StatusBar, StatusItem};
-
-#[cfg(feature = "statusbar")]
-pub use statusline_stacked::{
+#[cfg(feature = "statusline")]
+pub use primitives::statusline::{
     OperationalMode, StatusLineStacked, StyledStatusLine, SLANT_BL_TR, SLANT_TL_BR,
 };
 
@@ -178,8 +129,6 @@ pub use statusline_stacked::{
 pub use hotkey_footer::{HotkeyFooter, HotkeyFooterBuilder, HotkeyItem};
 
 #[cfg(feature = "hotkey")]
-pub use hotkey_modal::{functions::render_hotkey_modal, Hotkey, HotkeyModalConfig, HotkeySection};
-
 #[cfg(feature = "markdown")]
 pub use markdown_widget::{
     render_markdown, render_markdown_with_style, CacheState, CodeBlockTheme, CollapseState,
@@ -189,19 +138,13 @@ pub use markdown_widget::{
 };
 
 #[cfg(feature = "terminal")]
-pub use termtui::{TermTui, TermTuiKeyBindings};
+pub use primitives::termtui::{TermTui, TermTuiKeyBindings};
 
 #[cfg(feature = "fuzzy")]
 pub use fuzzy_finder::FuzzyFinder;
 
 #[cfg(feature = "file-tree")]
 pub use file_system_tree::{FileSystemEntry, FileSystemTree, FileSystemTreeConfig};
-
-#[cfg(feature = "master-layout")]
-pub use master_layout::{
-    EventResult, InteractionMode, MasterLayout, NavigationBar, PaneContent, PaneId, PaneLayout,
-    Tab, TabButton,
-};
 
 #[cfg(feature = "theme")]
 pub use services::theme::{AppTheme, DiffColors, MarkdownColors, SyntaxColors, ThemeVariant};
@@ -218,58 +161,42 @@ pub use services::file_watcher::{FileWatcher, WatchConfig, WatchMode};
 /// ```
 pub mod prelude {
     // Core components
-    pub use crate::button::render_title_with_buttons::render_title_with_buttons;
-    pub use crate::button::Button;
-    pub use crate::clickable_scrollbar::{
-        ClickableScrollbar, ClickableScrollbarState, ClickableScrollbarStateMouseExt,
-        ClickableScrollbarStateScrollExt, ClickableScrollbarStatefulWidgetExt, ScrollbarEvent,
-    };
     pub use crate::code_diff::{CodeDiff, DiffConfig, DiffHunk, DiffLine, DiffLineKind, DiffStyle};
     pub use crate::diff_file_tree::{DiffFileTree, FileStatus};
-    pub use crate::pane::Pane;
+    pub use crate::primitives::button::render_title_with_buttons::render_title_with_buttons;
+    pub use crate::primitives::button::Button;
+    pub use crate::primitives::pane::Pane;
 
     // Feature-gated components
     #[cfg(feature = "dialog")]
-    pub use crate::dialog::widget::DialogWidget;
+    pub use crate::primitives::dialog::widget::DialogWidget;
     #[cfg(feature = "dialog")]
-    pub use crate::dialog::{Dialog, DialogType};
+    pub use crate::primitives::dialog::{Dialog, DialogType};
 
     #[cfg(feature = "toast")]
-    pub use crate::toast::methods::render_toasts::render_toasts;
+    pub use crate::primitives::toast::methods::render_toasts::render_toasts;
     #[cfg(feature = "toast")]
-    pub use crate::toast::{Toast, ToastLevel, ToastManager};
+    pub use crate::primitives::toast::{Toast, ToastLevel, ToastManager};
 
     #[cfg(feature = "split")]
-    pub use crate::resizable_split::{ResizableSplit, SplitDirection};
+    pub use crate::primitives::resizable_split::{ResizableSplit, SplitDirection};
 
     #[cfg(feature = "tree")]
-    pub use crate::tree_view::{
+    pub use crate::primitives::tree_view::{
         get_visible_paths, matches_filter, NodeState, TreeKeyBindings, TreeNavigator, TreeNode,
         TreeView, TreeViewRef, TreeViewState,
     };
 
     #[cfg(feature = "menu")]
-    pub use crate::menu_bar::{MenuBar, MenuItem};
+    pub use crate::primitives::menu_bar::{MenuBar, MenuItem};
 
-    #[cfg(feature = "statusbar")]
-    pub use crate::statusbar::{StatusBar, StatusItem};
-
-    #[cfg(feature = "statusbar")]
-    pub use crate::statusline_stacked::{
+    #[cfg(feature = "statusline")]
+    pub use crate::primitives::statusline::{
         OperationalMode, StatusLineStacked, StyledStatusLine, SLANT_BL_TR, SLANT_TL_BR,
     };
 
     #[cfg(feature = "hotkey")]
     pub use crate::hotkey_footer::{HotkeyFooter, HotkeyFooterBuilder, HotkeyItem};
-
-    #[cfg(feature = "hotkey")]
-    pub use crate::hotkey_modal::functions::render_hotkey_modal;
-    #[cfg(feature = "hotkey")]
-    pub use crate::hotkey_modal::Hotkey;
-    #[cfg(feature = "hotkey")]
-    pub use crate::hotkey_modal::HotkeyModalConfig;
-    #[cfg(feature = "hotkey")]
-    pub use crate::hotkey_modal::HotkeySection;
 
     #[cfg(feature = "markdown")]
     pub use crate::markdown_widget::{
@@ -279,19 +206,13 @@ pub mod prelude {
     };
 
     #[cfg(feature = "terminal")]
-    pub use crate::termtui::{TermTui, TermTuiKeyBindings};
+    pub use crate::primitives::termtui::{TermTui, TermTuiKeyBindings};
 
     #[cfg(feature = "fuzzy")]
     pub use crate::fuzzy_finder::FuzzyFinder;
 
     #[cfg(feature = "file-tree")]
     pub use crate::file_system_tree::{FileSystemEntry, FileSystemTree, FileSystemTreeConfig};
-
-    #[cfg(feature = "master-layout")]
-    pub use crate::master_layout::{
-        EventResult, InteractionMode, MasterLayout, NavigationBar, PaneContent, PaneId, PaneLayout,
-        Tab, TabButton,
-    };
 
     #[cfg(feature = "theme")]
     pub use crate::services::theme::{

@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 use crate::file_system_tree::{FileSystemEntry, FileSystemTree, FileSystemTreeConfig};
-use crate::tree_view::TreeNode;
+use crate::primitives::tree_view::TreeNode;
 
 impl<'a> FileSystemTree<'a> {
     pub fn expand_directory(&mut self, path: &[usize]) -> Result<()> {

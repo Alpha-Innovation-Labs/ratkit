@@ -19,13 +19,10 @@ A comprehensive collection of reusable TUI components for [ratatui](https://rata
 | **Toast** | Toast notifications with auto-expiry and severity levels |
 | **Dialog** | Modal dialogs (Info/Success/Warning/Error/Confirm) |
 | **Button** | Clickable buttons with hover states |
-| **ClickableScrollbar** | Scrollbar with drag and click support |
 | **HotkeyFooter** | Keyboard shortcut display footer |
-| **HotkeyModal** | Help overlay for key bindings |
 | **MenuBar** | Horizontal menu bar with icons |
 | **StatusBar** | Customizable status bar |
 | **StatusLineStacked** | Neovim-style powerline status |
-| **MasterLayout** | Application shell with tabs, panes, vim-like navigation |
 | **TermTui** | Terminal emulator with mprocs-style copy mode |
 | **FuzzyFinder** | PTY-based fuzzy search popup |
 
@@ -253,27 +250,12 @@ let bindings = TreeKeyBindings::new()
 let navigator = TreeNavigator::with_keybindings(bindings);
 ```
 
-### MasterLayout
-
-```rust
-use ratatui_toolkit::{MasterLayout, MasterLayoutKeyBindings};
-use crossterm::event::KeyCode;
-
-let mut bindings = MasterLayoutKeyBindings::default();
-bindings.navigate_left = KeyCode::Char('a');
-bindings.navigate_right = KeyCode::Char('d');
-
-let layout = MasterLayout::new()
-    .with_keybindings(bindings);
-```
-
 ### Available Keybinding Configs
 
 | Component | Config Struct | Builder Method |
 |-----------|--------------|----------------|
 | TermTui | `TermTuiKeyBindings` | `.with_keybindings()` |
 | TreeView | `TreeKeyBindings` | `TreeNavigator::with_keybindings()` |
-| MasterLayout | `MasterLayoutKeyBindings` | `.with_keybindings()` |
 
 ## Architecture
 

@@ -1,5 +1,5 @@
 use crate::file_system_tree::FileSystemTree;
-use crate::tree_view::TreeViewState;
+use crate::primitives::tree_view::TreeViewState;
 
 impl<'a> FileSystemTree<'a> {
     pub fn select_next(&mut self, state: &mut TreeViewState) {

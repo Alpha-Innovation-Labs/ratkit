@@ -18,17 +18,13 @@ impl App {
                 ],
             ),
             TreeNode::with_children(
-                "󰙀 Layout".to_string(),
-                vec![
-                    TreeNode::new("󰯋 ResizableSplit".to_string()),
-                    TreeNode::new("󰕰 MasterLayout".to_string()),
-                ],
+                " Layout".to_string(),
+                vec![TreeNode::new("󰯋 ResizableSplit".to_string())],
             ),
             TreeNode::with_children(
                 " Widgets".to_string(),
                 vec![
                     TreeNode::new(" TreeView".to_string()),
-                    TreeNode::new("󰍻 ClickableScrollbar".to_string()),
                     TreeNode::new(" MenuBar".to_string()),
                     TreeNode::new("󌌌 HotkeyFooter".to_string()),
                 ],

@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Constructors in `constructors/` directory (`new`, `with_*`, builders)
   - Instance methods in `methods/` directory
   - Trait implementations in `traits/` directory
-  - Components restructured: Button, ClickableScrollbar, Dialog, FileSystemTree, FuzzyFinder, HotkeyFooter, HotkeyModal, MenuBar, Pane, ResizableSplit, StatusBar, StatusLineStacked
+  - Components restructured: Button, Dialog, FileSystemTree, FuzzyFinder, HotkeyFooter, MenuBar, Pane, ResizableSplit, StatusBar, StatusLineStacked
 
 - **Markdown Renderer** - Complete rewrite with new `styled_line` system
   - Added syntax highlighting support for code blocks
@@ -62,13 +62,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Widget Components**
   - `TreeView` - Generic tree widget with expand/collapse and navigation
   - `FileSystemTree` - File browser with devicons and sorting
-  - `ClickableScrollbar` - Scrollbar with mouse interaction support
   - `FuzzyFinder` - PTY-based fuzzy search popup
   - `MenuBar` - Horizontal menu bar with icon support
   - `StatusBar` - Customizable status bar
   - `StatusLineStacked` - Neovim-style powerline status
   - `HotkeyFooter` - Keyboard shortcut display footer
-  - `HotkeyModal` - Help overlay for key bindings
 
 - **Markdown Rendering**
   - Full markdown to ratatui `Text` conversion

@@ -82,6 +82,10 @@ impl<'a> MarkdownWidget<'a> {
             filter: state.filter.clone(),
             filter_mode: state.filter_mode,
             bordered: false,
+            has_pane: true,
+            pane: None,
+            pane_title: None,
+            pane_color: None,
         }
     }
 }

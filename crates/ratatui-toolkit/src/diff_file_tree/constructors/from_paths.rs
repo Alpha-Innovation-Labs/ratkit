@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use crate::diff_file_tree::DiffFileEntry;
 use crate::diff_file_tree::DiffFileTree;
 use crate::diff_file_tree::FileStatus;
-use crate::tree_view::TreeNode;
+use crate::primitives::tree_view::TreeNode;
 
 impl DiffFileTree {
     /// Creates a `DiffFileTree` from a list of (path, status) pairs.

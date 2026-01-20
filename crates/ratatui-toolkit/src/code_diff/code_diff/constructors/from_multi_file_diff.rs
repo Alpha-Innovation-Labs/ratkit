@@ -7,7 +7,7 @@ use crate::code_diff::diff_config::DiffConfig;
 use crate::code_diff::diff_hunk::DiffHunk;
 use crate::code_diff::diff_line::DiffLine;
 use crate::diff_file_tree::{DiffFileTree, FileStatus};
-use crate::resizable_split::ResizableSplit;
+use crate::primitives::resizable_split::ResizableSplit;
 use crate::services::theme::AppTheme;
 
 impl CodeDiff {

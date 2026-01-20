@@ -10,13 +10,19 @@ use ratatui_toolkit::markdown_widget::state::{
 };
 use ratatui_toolkit::services::file_watcher::FileWatcher;
 use ratatui_toolkit::{
-    AppTheme, ClickableScrollbarState, CodeDiff, DoubleClickState, FileSystemTree, MenuBar,
-    ResizableSplit, SelectionState, TermTui, ToastManager, TreeNavigator, TreeViewState,
+    AppTheme, CodeDiff, DoubleClickState, FileSystemTree, MenuBar, ResizableSplit, SelectionState,
+    TermTui, ToastManager, TreeNavigator, TreeViewState,
 };
 use std::time::Instant;
 
 use super::demo_mode::DemoMode;
 use super::demo_tab::DemoTab;
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum TreePaneFocus {
+    FileTree,
+    ComponentTree,
+}
 
 /// Main application state for the showcase.
 pub struct App {
@@ -35,13 +41,11 @@ pub struct App {
     // Tree demo
     pub tree_state: TreeViewState,
     pub tree_navigator: TreeNavigator,
+    pub tree_focus: TreePaneFocus,
 
     // Dialog demo
     pub show_dialog: bool,
     pub dialog_type: ratatui_toolkit::DialogType,
-
-    // Hotkey modal
-    pub show_hotkey_modal: bool,
 
     // Markdown demo - new focused state modules
     pub markdown_scroll: ScrollState,
@@ -77,10 +81,6 @@ pub struct App {
     pub toc_hovered_entry: Option<usize>,
     /// Scroll offset for the TOC list
     pub toc_scroll_offset: usize,
-
-    // Scrollbar demo
-    pub scrollbar_state: ClickableScrollbarState,
-    pub scroll_content: Vec<String>,
 
     // StatusLine demo
     pub status_mode: DemoMode,

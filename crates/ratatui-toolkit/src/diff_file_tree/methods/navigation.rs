@@ -3,7 +3,7 @@
 //! These methods delegate to TreeNavigator for centralized keyboard handling.
 
 use crate::diff_file_tree::{DiffFileEntry, DiffFileTree};
-use crate::tree_view::{get_visible_paths_filtered, matches_filter, TreeNavigator};
+use crate::primitives::tree_view::{get_visible_paths_filtered, matches_filter, TreeNavigator};
 
 impl DiffFileTree {
     /// Returns the filter matcher function for DiffFileEntry nodes.
@@ -133,7 +133,7 @@ impl DiffFileTree {
     pub(crate) fn get_node_at_path(
         &self,
         path: &[usize],
-    ) -> Option<&crate::tree_view::TreeNode<crate::diff_file_tree::DiffFileEntry>> {
+    ) -> Option<&crate::primitives::tree_view::TreeNode<crate::diff_file_tree::DiffFileEntry>> {
         if path.is_empty() {
             return None;
         }
