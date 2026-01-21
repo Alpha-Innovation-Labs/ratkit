@@ -4,4 +4,8 @@
 
 dev:
     @echo "Starting showcase demo..."
-    cargo run --example showcase --features full
+    @if tty -s; then \
+        cargo run --example showcase --features full; \
+    else \
+        script -q /dev/null cargo run --example showcase --features full; \
+    fi

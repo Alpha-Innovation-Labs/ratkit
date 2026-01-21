@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "crates/ratatui-toolkit",
-    "crates/markdown-viewer", "playground",
+    "crates/markdown-viewer",
 ]
 
 [workspace.package]

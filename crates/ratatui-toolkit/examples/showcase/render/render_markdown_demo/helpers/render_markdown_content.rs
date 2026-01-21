@@ -2,11 +2,8 @@
 
 use ratatui::{buffer::Buffer, layout::Rect, text::Line, widgets::Widget};
 use ratatui_toolkit::{
-    markdown_widget::state::{
-        CacheState, CollapseState, DisplaySettings, ExpandableState, GitStatsState, ScrollState,
-        SourceState, VimState,
-    },
-    AppTheme, DoubleClickState, MarkdownWidget, SelectionState,
+    AppTheme, CacheState, CollapseState, DisplaySettings, DoubleClickState, ExpandableState,
+    GitStatsState, MarkdownWidget, ScrollState, SelectionState, SourceState, VimState,
 };
 
 /// Render the markdown content with TOC and statusline.

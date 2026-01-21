@@ -1,6 +1,8 @@
 use ratatui::style::Color;
 
 use crate::hotkey_footer::{HotkeyFooter, HotkeyFooterBuilder, HotkeyItem};
+#[cfg(feature = "hotkey")]
+use crate::services::hotkey::HotkeyRegistry;
 
 impl HotkeyItem {
     pub fn new(key: impl Into<String>, description: impl Into<String>) -> Self {
@@ -19,6 +21,39 @@ impl HotkeyFooter {
             description_color: Color::DarkGray,
             background_color: Color::Black,
         }
+    }
+
+    /// Create a HotkeyFooter from a HotkeyRegistry.
+    ///
+    /// This constructor extracts all global hotkeys from the registry
+    /// and converts them to HotkeyItems for display.
+    ///
+    /// # Arguments
+    ///
+    /// * `registry` - The HotkeyRegistry to extract hotkeys from
+    ///
+    /// # Returns
+    ///
+    /// A new HotkeyFooter with items from the registry's global hotkeys.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use ratatui_toolkit::services::hotkey::{Hotkey, HotkeyRegistry, HotkeyScope};
+    /// use ratatui_toolkit::hotkey_footer::HotkeyFooter;
+    ///
+    /// let registry = HotkeyRegistry::new();
+    /// let footer = HotkeyFooter::from_registry(&registry);
+    /// ```
+    #[cfg(feature = "hotkey")]
+    pub fn from_registry(registry: &HotkeyRegistry) -> Self {
+        let items: Vec<HotkeyItem> = registry
+            .get_global()
+            .iter()
+            .map(|h| HotkeyItem::new(&h.key, &h.description))
+            .collect();
+
+        Self::new(items)
     }
 
     pub fn key_color(mut self, color: Color) -> Self {

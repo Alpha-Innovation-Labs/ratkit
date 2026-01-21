@@ -5,7 +5,6 @@
 
 mod app;
 mod constants;
-mod demo_mode;
 mod demo_tab;
 mod helpers;
 mod render;
@@ -21,22 +20,23 @@ use crossterm::{
 use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
+    widgets::{Block, BorderType, Borders},
     Terminal,
 };
 use ratatui_toolkit::services::theme::loader::load_builtin_theme;
 use ratatui_toolkit::services::theme::persistence::save_theme;
 use ratatui_toolkit::{
     render_toasts, Dialog, DialogType, DialogWidget, HotkeyFooter, HotkeyItem, MarkdownEvent,
-    MarkdownWidget, ThemeVariant, Toast, ToastLevel,
+    MarkdownWidget, Message, ThemeVariant, Toast, ToastLevel,
 };
 use std::io;
 
-use app::App;
+use app::{App, TreePaneFocus};
 use demo_tab::DemoTab;
 use helpers::{all_app_themes, get_app_theme_display_name};
 use render::{
-    get_filtered_themes, render_code_diff_demo, render_dialogs_demo, render_markdown_demo,
-    render_statusline_demo, render_terminal_demo, render_theme_picker, render_trees_demo,
+    get_filtered_themes, render_ai_chat_demo, render_code_diff_demo, render_markdown_demo,
+    render_split_layout_grid_demo, render_terminal_demo, render_theme_picker, render_trees_demo,
 };
 
 fn main() -> io::Result<()> {
@@ -49,11 +49,6 @@ fn main() -> io::Result<()> {
     let mut app = App::new();
     app.toast_manager
         .info("Welcome to ratatui-toolkit showcase!");
-    app.toast_manager.add(Toast::new(
-        "Press Tab to switch demos",
-        ToastLevel::Info,
-        None,
-    ));
 
     loop {
         let tree_nodes = app.build_tree();
@@ -81,12 +76,14 @@ fn main() -> io::Result<()> {
             match app.current_tab {
                 DemoTab::Markdown => render_markdown_demo(frame, content_area, &mut app, &theme),
                 DemoTab::CodeDiff => render_code_diff_demo(frame, content_area, &app),
-                DemoTab::Tree => render_trees_demo(frame, content_area, &mut app, &tree_nodes, &theme),
-                DemoTab::Dialogs => render_dialogs_demo(frame, content_area, &mut app, &theme),
-                DemoTab::StatusLine => {
-                    render_statusline_demo(frame, content_area, &mut app, &theme)
+                DemoTab::Tree => {
+                    render_trees_demo(frame, content_area, &mut app, &tree_nodes, &theme)
                 }
                 DemoTab::Terminal => render_terminal_demo(frame, content_area, &mut app, &theme),
+                DemoTab::SplitLayoutGrid => {
+                    render_split_layout_grid_demo(frame, content_area, &mut app, &theme)
+                }
+                DemoTab::AiChat => render_ai_chat_demo(frame, content_area, &mut app, &theme),
             }
 
             // Hotkey footer with theme
@@ -108,7 +105,7 @@ fn main() -> io::Result<()> {
                 let (title, message) = match app.dialog_type {
                     DialogType::Info => (
                         "Information",
-                        "This is an info dialog.\n\nPress Enter or Esc to close.",
+                        "Button pressed.\n\nPress Enter or Esc to close.",
                     ),
                     DialogType::Success => ("Success!", "Operation completed successfully!"),
                     DialogType::Warning => ("Warning", "This action may have consequences."),
@@ -203,7 +200,11 @@ fn main() -> io::Result<()> {
         }
 
         // Adaptive polling: fast during drag for smooth resize, slower otherwise to save CPU
-        let poll_timeout = if app.terminal_split.is_dragging || app.code_diff.is_sidebar_dragging()
+        let poll_timeout = if app.terminal_split.is_dragging
+            || app.code_diff.is_sidebar_dragging()
+            || app.grid_row_split.is_dragging
+            || app.grid_left_split.is_dragging
+            || app.grid_right_split.is_dragging
         {
             std::time::Duration::from_millis(8) // ~120fps for smooth dragging
         } else {
@@ -333,9 +334,9 @@ fn main() -> io::Result<()> {
                         KeyCode::Char('1') => app.select_tab(DemoTab::Markdown),
                         KeyCode::Char('2') => app.select_tab(DemoTab::CodeDiff),
                         KeyCode::Char('3') => app.select_tab(DemoTab::Tree),
-                        KeyCode::Char('4') => app.select_tab(DemoTab::Dialogs),
-                        KeyCode::Char('5') => app.select_tab(DemoTab::StatusLine),
-                        KeyCode::Char('6') => app.select_tab(DemoTab::Terminal),
+                        KeyCode::Char('4') => app.select_tab(DemoTab::Terminal),
+                        KeyCode::Char('5') => app.select_tab(DemoTab::SplitLayoutGrid),
+                        KeyCode::Char('6') => app.select_tab(DemoTab::AiChat),
                         KeyCode::Char('t') => {
                             let messages = [
                                 ("Info toast", ToastLevel::Info),
@@ -365,97 +366,72 @@ fn main() -> io::Result<()> {
                                 // It handles: [=toggle sidebar, h/l=focus, j/k=nav, g/G=top/bottom, H/L=resize
                                 app.code_diff.handle_key(key.code);
                             }
-                            DemoTab::Tree => {
-                                match app.tree_focus {
-                                    app::TreePaneFocus::FileTree => {
-                                        if key.code == KeyCode::Char('c') {
-                                            app.tree_focus = app::TreePaneFocus::ComponentTree;
-                                            continue;
-                                        }
-
-                                        if app.file_tree_state.is_filter_mode() {
-                                            match key.code {
-                                                KeyCode::Esc => {
-                                                    app.file_tree_state.clear_filter();
-                                                }
-                                                KeyCode::Enter => {
-                                                    app.file_tree_state.exit_filter_mode();
-                                                }
-                                                KeyCode::Backspace => {
-                                                    app.file_tree_state.backspace_filter();
-                                                }
-                                                KeyCode::Char(c) => {
-                                                    app.file_tree_state.append_to_filter(c);
-                                                }
-                                                _ => {}
-                                            }
-                                        } else if key.code == KeyCode::Char('/') {
-                                            app.file_tree_state.enter_filter_mode();
-                                        } else if let Some(ref file_tree) = app.file_tree {
-                                            app.file_tree_navigator.handle_key(
-                                                key,
-                                                &file_tree.nodes,
-                                                &mut app.file_tree_state,
-                                            );
-                                        }
+                            DemoTab::Tree => match app.tree_focus {
+                                TreePaneFocus::FileTree => {
+                                    if key.code == KeyCode::Char('c') {
+                                        app.tree_focus = TreePaneFocus::ComponentTree;
+                                        continue;
                                     }
-                                    app::TreePaneFocus::ComponentTree => {
-                                        if key.code == KeyCode::Char('f') {
-                                            app.tree_focus = app::TreePaneFocus::FileTree;
-                                            continue;
-                                        }
 
-                                        if app.tree_state.is_filter_mode() {
-                                            match key.code {
-                                                KeyCode::Esc => {
-                                                    app.tree_state.clear_filter();
-                                                }
-                                                KeyCode::Enter => {
-                                                    app.tree_state.exit_filter_mode();
-                                                }
-                                                KeyCode::Backspace => {
-                                                    app.tree_state.backspace_filter();
-                                                }
-                                                KeyCode::Char(c) => {
-                                                    app.tree_state.append_to_filter(c);
-                                                }
-                                                _ => {}
+                                    if app.file_tree_state.is_filter_mode() {
+                                        match key.code {
+                                            KeyCode::Esc => {
+                                                app.file_tree_state.clear_filter();
                                             }
-                                        } else if key.code == KeyCode::Char('/') {
-                                            app.tree_state.enter_filter_mode();
-                                        } else {
-                                            let tree_nodes = app.build_tree();
-                                            app.tree_navigator.handle_key(
-                                                key,
-                                                &tree_nodes,
-                                                &mut app.tree_state,
-                                            );
+                                            KeyCode::Enter => {
+                                                app.file_tree_state.exit_filter_mode();
+                                            }
+                                            KeyCode::Backspace => {
+                                                app.file_tree_state.backspace_filter();
+                                            }
+                                            KeyCode::Char(c) => {
+                                                app.file_tree_state.append_to_filter(c);
+                                            }
+                                            _ => {}
                                         }
+                                    } else if key.code == KeyCode::Char('/') {
+                                        app.file_tree_state.enter_filter_mode();
+                                    } else if let Some(ref file_tree) = app.file_tree {
+                                        app.file_tree_navigator.handle_key(
+                                            key,
+                                            &file_tree.nodes,
+                                            &mut app.file_tree_state,
+                                        );
                                     }
                                 }
-                            }
-                            DemoTab::Dialogs => match key.code {
-                                KeyCode::Char('i') => {
-                                    app.dialog_type = DialogType::Info;
-                                    app.show_dialog = true;
+                                TreePaneFocus::ComponentTree => {
+                                    if key.code == KeyCode::Char('f') {
+                                        app.tree_focus = TreePaneFocus::FileTree;
+                                        continue;
+                                    }
+
+                                    if app.tree_state.is_filter_mode() {
+                                        match key.code {
+                                            KeyCode::Esc => {
+                                                app.tree_state.clear_filter();
+                                            }
+                                            KeyCode::Enter => {
+                                                app.tree_state.exit_filter_mode();
+                                            }
+                                            KeyCode::Backspace => {
+                                                app.tree_state.backspace_filter();
+                                            }
+                                            KeyCode::Char(c) => {
+                                                app.tree_state.append_to_filter(c);
+                                            }
+                                            _ => {}
+                                        }
+                                    } else if key.code == KeyCode::Char('/') {
+                                        app.tree_state.enter_filter_mode();
+                                    } else {
+                                        let tree_nodes = app.build_tree();
+                                        app.tree_navigator.handle_key(
+                                            key,
+                                            &tree_nodes,
+                                            &mut app.tree_state,
+                                        );
+                                    }
                                 }
-                                KeyCode::Char('s') => {
-                                    app.dialog_type = DialogType::Success;
-                                    app.show_dialog = true;
-                                }
-                                KeyCode::Char('w') => {
-                                    app.dialog_type = DialogType::Warning;
-                                    app.show_dialog = true;
-                                }
-                                KeyCode::Char('e') => {
-                                    app.dialog_type = DialogType::Error;
-                                    app.show_dialog = true;
-                                }
-                                KeyCode::Char('c') => {
-                                    app.dialog_type = DialogType::Confirm;
-                                    app.show_dialog = true;
-                                }
-                                _ => {}
                             },
                             DemoTab::Markdown => {
                                 // Use widget's unified key event handler
@@ -490,25 +466,28 @@ fn main() -> io::Result<()> {
                                     _ => {}
                                 }
                             }
-                            DemoTab::StatusLine => match key.code {
-                                KeyCode::Char('n') => {
-                                    app.status_mode = demo_mode::DemoMode::Normal;
-                                }
-                                KeyCode::Char('i') => {
-                                    app.status_mode = demo_mode::DemoMode::Insert;
-                                }
-                                KeyCode::Char('v') => {
-                                    app.status_mode = demo_mode::DemoMode::Visual;
-                                }
-                                KeyCode::Char('c') => {
-                                    app.status_mode = demo_mode::DemoMode::Command;
-                                }
-                                _ => {}
-                            },
                             DemoTab::Terminal => {
                                 // Forward key to terminal
                                 if let Some(ref mut term) = app.terminal {
                                     term.handle_key(key);
+                                }
+                            }
+                            DemoTab::SplitLayoutGrid => {}
+                            DemoTab::AiChat => {
+                                if key.code == KeyCode::Enter {
+                                    if let Some(text) = app.ai_chat_input.handle_key(key) {
+                                        app.ai_chat_messages.add(Message::user(text.clone()));
+                                        app.ai_chat_loading = true;
+                                        app.toast_manager.info("Generating response...");
+
+                                        // After a delay, add AI response
+                                        tokio::spawn(async move {
+                                            tokio::time::sleep(tokio::time::Duration::from_secs(1))
+                                                .await;
+                                        });
+                                    }
+                                } else {
+                                    app.ai_chat_input.handle_key(key);
                                 }
                             }
                         },
@@ -520,7 +499,10 @@ fn main() -> io::Result<()> {
                     // Handle menu bar clicks
                     if mouse.kind == MouseEventKind::Down(MouseButton::Left) {
                         if let Some(idx) = app.menu_bar.handle_click(mouse.column, mouse.row) {
-                            if idx == 7 {
+                            if idx == 6 {
+                                // AI Chat button clicked
+                                app.select_tab(DemoTab::AiChat);
+                            } else if idx == 7 {
                                 // Theme button clicked - open theme picker
                                 app.original_theme = Some(app.current_theme.clone());
                                 app.show_theme_picker = true;
@@ -760,6 +742,111 @@ fn main() -> io::Result<()> {
                             if let Some(ref mut term) = app.terminal {
                                 term.handle_mouse(mouse, left_terminal_area);
                             }
+                        }
+                    }
+
+                    // Handle split layout grid mouse events
+                    if app.current_tab == DemoTab::SplitLayoutGrid {
+                        let main_chunks = Layout::default()
+                            .direction(Direction::Vertical)
+                            .constraints([
+                                Constraint::Length(3), // Menu bar
+                                Constraint::Min(0),    // Content
+                                Constraint::Length(1), // Hotkey footer
+                            ])
+                            .split(area);
+                        let content_area = main_chunks[1];
+                        let grid_area = Block::default()
+                            .borders(Borders::ALL)
+                            .border_type(BorderType::Rounded)
+                            .inner(content_area);
+
+                        app.grid_row_split.update_divider_position(grid_area);
+                        app.grid_left_split.update_divider_position(grid_area);
+
+                        let left_width = (grid_area.width as u32
+                            * app.grid_left_split.split_percent as u32
+                            / 100) as u16;
+                        let right_area = Rect {
+                            x: grid_area.x + left_width,
+                            y: grid_area.y,
+                            width: grid_area.width.saturating_sub(left_width),
+                            height: grid_area.height,
+                        };
+                        app.grid_right_split.update_divider_position(right_area);
+
+                        match mouse.kind {
+                            MouseEventKind::Down(MouseButton::Left) => {
+                                if app.grid_right_split.is_on_divider(
+                                    mouse.column,
+                                    mouse.row,
+                                    right_area,
+                                ) {
+                                    app.grid_right_split.start_drag();
+                                } else if app.grid_left_split.is_on_divider(
+                                    mouse.column,
+                                    mouse.row,
+                                    grid_area,
+                                ) {
+                                    app.grid_left_split.start_drag();
+                                } else if app.grid_row_split.is_on_divider(
+                                    mouse.column,
+                                    mouse.row,
+                                    grid_area,
+                                ) {
+                                    app.grid_row_split.start_drag();
+                                }
+                            }
+                            MouseEventKind::Drag(MouseButton::Left) => {
+                                if app.grid_right_split.is_dragging {
+                                    app.grid_right_split.update_from_mouse(
+                                        mouse.column,
+                                        mouse.row,
+                                        right_area,
+                                    );
+                                } else if app.grid_left_split.is_dragging {
+                                    app.grid_left_split.update_from_mouse(
+                                        mouse.column,
+                                        mouse.row,
+                                        grid_area,
+                                    );
+                                } else if app.grid_row_split.is_dragging {
+                                    app.grid_row_split.update_from_mouse(
+                                        mouse.column,
+                                        mouse.row,
+                                        grid_area,
+                                    );
+                                }
+                            }
+                            MouseEventKind::Up(MouseButton::Left) => {
+                                app.grid_right_split.stop_drag();
+                                app.grid_left_split.stop_drag();
+                                app.grid_row_split.stop_drag();
+                            }
+                            MouseEventKind::Moved => {
+                                let on_right_divider = app.grid_right_split.is_on_divider(
+                                    mouse.column,
+                                    mouse.row,
+                                    right_area,
+                                );
+                                let on_left_divider = app.grid_left_split.is_on_divider(
+                                    mouse.column,
+                                    mouse.row,
+                                    grid_area,
+                                );
+                                let on_row_divider = app.grid_row_split.is_on_divider(
+                                    mouse.column,
+                                    mouse.row,
+                                    grid_area,
+                                );
+
+                                app.grid_right_split.is_hovering = on_right_divider;
+                                app.grid_left_split.is_hovering =
+                                    !on_right_divider && on_left_divider;
+                                app.grid_row_split.is_hovering =
+                                    !on_right_divider && !on_left_divider && on_row_divider;
+                            }
+                            _ => {}
                         }
                     }
 

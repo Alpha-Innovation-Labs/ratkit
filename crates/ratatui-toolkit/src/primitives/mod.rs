@@ -3,6 +3,7 @@ pub mod dialog;
 pub mod menu_bar;
 pub mod pane;
 pub mod resizable_split;
+pub mod split_layout;
 pub mod statusline;
 pub mod termtui;
 pub mod toast;

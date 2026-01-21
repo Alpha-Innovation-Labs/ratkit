@@ -67,17 +67,13 @@
 // Core components - always available
 pub mod primitives;
 
-pub mod code_diff;
 pub mod diff_file_tree;
+pub mod widgets;
 
 // Feature-gated components
 #[cfg(feature = "hotkey")]
 #[cfg_attr(docsrs, doc(cfg(feature = "hotkey")))]
 pub mod hotkey_footer;
-
-#[cfg(feature = "markdown")]
-#[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
-pub mod markdown_widget;
 
 #[cfg(feature = "fuzzy")]
 #[cfg_attr(docsrs, doc(cfg(feature = "fuzzy")))]
@@ -91,11 +87,14 @@ pub mod file_system_tree;
 pub mod services;
 
 // Re-export commonly used types - always available
-pub use code_diff::{CodeDiff, DiffConfig, DiffHunk, DiffLine, DiffLineKind, DiffStyle};
 pub use diff_file_tree::{DiffFileTree, FileStatus};
 pub use primitives::button::render_title_with_buttons::render_title_with_buttons;
 pub use primitives::button::Button;
 pub use primitives::pane::Pane;
+pub use widgets::ai_chat::{AIChat, AIChatEvent, InputState, Message, MessageRole, MessageStore};
+pub use widgets::code_diff::{CodeDiff, DiffConfig, DiffHunk, DiffLine, DiffLineKind, DiffStyle};
+pub use widgets::split_layout::SplitLayoutWidget;
+pub use widgets::split_layout::SplitLayoutWidgetState;
 
 // Feature-gated re-exports
 #[cfg(feature = "dialog")]
@@ -110,6 +109,8 @@ pub use primitives::toast::{Toast, ToastLevel, ToastManager};
 
 #[cfg(feature = "split")]
 pub use primitives::resizable_split::{ResizableSplit, SplitDirection};
+#[cfg(feature = "split")]
+pub use primitives::split_layout::{PaneId, PaneLayout, SplitAxis, SplitLayout};
 
 #[cfg(feature = "tree")]
 pub use primitives::tree_view::{
@@ -130,7 +131,7 @@ pub use hotkey_footer::{HotkeyFooter, HotkeyFooterBuilder, HotkeyItem};
 
 #[cfg(feature = "hotkey")]
 #[cfg(feature = "markdown")]
-pub use markdown_widget::{
+pub use widgets::markdown_widget::{
     render_markdown, render_markdown_with_style, CacheState, CodeBlockTheme, CollapseState,
     DisplaySettings, DoubleClickState, ExpandableState, GitStats, GitStatsState,
     MarkdownDoubleClickEvent, MarkdownEvent, MarkdownState, MarkdownStyle, MarkdownWidget,
@@ -161,11 +162,16 @@ pub use services::file_watcher::{FileWatcher, WatchConfig, WatchMode};
 /// ```
 pub mod prelude {
     // Core components
-    pub use crate::code_diff::{CodeDiff, DiffConfig, DiffHunk, DiffLine, DiffLineKind, DiffStyle};
     pub use crate::diff_file_tree::{DiffFileTree, FileStatus};
     pub use crate::primitives::button::render_title_with_buttons::render_title_with_buttons;
     pub use crate::primitives::button::Button;
     pub use crate::primitives::pane::Pane;
+    pub use crate::widgets::ai_chat::{
+        AIChat, AIChatEvent, InputState, Message, MessageRole, MessageStore,
+    };
+    pub use crate::widgets::code_diff::{
+        CodeDiff, DiffConfig, DiffHunk, DiffLine, DiffLineKind, DiffStyle,
+    };
 
     // Feature-gated components
     #[cfg(feature = "dialog")]
@@ -180,6 +186,10 @@ pub mod prelude {
 
     #[cfg(feature = "split")]
     pub use crate::primitives::resizable_split::{ResizableSplit, SplitDirection};
+    #[cfg(feature = "split")]
+    pub use crate::primitives::split_layout::{PaneId, PaneLayout, SplitAxis, SplitLayout};
+    #[cfg(feature = "split")]
+    pub use crate::widgets::split_layout::{SplitLayoutWidget, SplitLayoutWidgetState};
 
     #[cfg(feature = "tree")]
     pub use crate::primitives::tree_view::{
@@ -199,7 +209,7 @@ pub mod prelude {
     pub use crate::hotkey_footer::{HotkeyFooter, HotkeyFooterBuilder, HotkeyItem};
 
     #[cfg(feature = "markdown")]
-    pub use crate::markdown_widget::{
+    pub use crate::widgets::markdown_widget::{
         render_markdown, render_markdown_with_style, CacheState, CollapseState, DisplaySettings,
         DoubleClickState, ExpandableState, GitStatsState, MarkdownState, MarkdownStyle,
         MarkdownWidget, ScrollState, SelectionState, SourceState, VimState,

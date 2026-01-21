@@ -9,21 +9,21 @@ impl DemoTab {
             Self::Markdown,
             Self::CodeDiff,
             Self::Tree,
-            Self::Dialogs,
-            Self::StatusLine,
             Self::Terminal,
+            Self::SplitLayoutGrid,
+            Self::AiChat,
         ]
     }
 
-    /// Get the display name for this tab.
+    /// Get display name for this tab.
     pub fn name(&self) -> &'static str {
         match self {
             Self::Markdown => "Markdown",
             Self::CodeDiff => "Code Diff",
             Self::Tree => "Trees",
-            Self::Dialogs => "Dialogs",
-            Self::StatusLine => "StatusLine",
             Self::Terminal => "Terminal",
+            Self::SplitLayoutGrid => "Split Grid",
+            Self::AiChat => "AI Chat",
         }
     }
 }

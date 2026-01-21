@@ -15,9 +15,8 @@ use crossterm::{
 };
 use ratatui::{backend::CrosstermBackend, layout::Rect, Terminal};
 use ratatui_toolkit::{
-    markdown_widget::foundation::elements::CodeBlockTheme, render_toasts,
-    services::theme::loader::load_builtin_theme, AppTheme, MarkdownState, MarkdownWidget,
-    ThemeVariant, Toast, ToastLevel, ToastManager,
+    render_toasts, services::theme::loader::load_builtin_theme, AppTheme, CodeBlockTheme,
+    MarkdownEvent, MarkdownState, MarkdownWidget, ThemeVariant, Toast, ToastLevel, ToastManager,
 };
 
 /// Application state containing the unified markdown state and app-level settings.
@@ -176,7 +175,6 @@ fn run_demo(
                     };
 
                     // Handle filter mode events
-                    use ratatui_toolkit::markdown_widget::foundation::events::MarkdownEvent;
                     match event {
                         MarkdownEvent::FilterModeChanged { active, filter } => {
                             app.markdown.filter_mode = active;

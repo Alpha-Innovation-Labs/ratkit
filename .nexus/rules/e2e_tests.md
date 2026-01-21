@@ -117,6 +117,60 @@ fn get_oauth_token() -> String {
 20. **Error conditions** - Verify graceful handling of real failures (network errors, invalid data, service unavailability).
 21. **Edge cases in production context** - Test edge cases using real services, not mocked edge responses.
 
+## Ratatui TUI E2E Tests
+
+Use the in-memory terminal backend to validate user-visible output while still exercising the full rendering and event loop.
+
+- Use `ratatui::backend::TestBackend` + `ratatui::Terminal` for drawing into a `Buffer`.
+- Drive input with real `crossterm::event::Event` values through the app's public event handler.
+- Assert on rendered output (`Buffer` cells or rendered lines). Avoid inspecting internal state.
+- Prefer snapshot comparisons for complex screens by converting the buffer into text.
+
+Example:
+```rust
+use crossterm::event::{Event, KeyCode, KeyEvent};
+use ratatui::backend::TestBackend;
+use ratatui::Terminal;
+
+#[test]
+fn test_sidebar_renders_items() {
+    let _guard = test_utils::setup_test_env();
+
+    let backend = TestBackend::new(80, 24);
+    let mut terminal = Terminal::new(backend).unwrap();
+    let mut app = App::new();
+
+    terminal.draw(|frame| app.render(frame)).unwrap();
+
+    app.handle_event(Event::Key(KeyEvent::from(KeyCode::Down)));
+    terminal.draw(|frame| app.render(frame)).unwrap();
+
+    let buffer = terminal.backend().buffer();
+    assert_eq!(buffer.get(1, 1).symbol(), "▶");
+}
+```
+
+## Playwright Web App E2E Tests
+
+When the app is a web UI, use Playwright to exercise full browser workflows.
+
+- Use real endpoints and services per the no-mocks policy.
+- Prefer role-based selectors (`getByRole`, `getByLabel`) for stable tests.
+- Keep tests user-focused: navigation, form submission, error handling, and rendering outcomes.
+- Use environment variables to point at test data and isolate user state.
+
+Example:
+```ts
+import { test, expect } from '@playwright/test';
+
+test('user can filter results', async ({ page }) => {
+  await page.goto(process.env.APP_BASE_URL ?? 'http://localhost:3000');
+  await page.getByRole('textbox', { name: 'Filter' }).fill('alpha');
+  await page.getByRole('button', { name: 'Apply' }).click();
+  await expect(page.getByRole('listitem', { name: /alpha/i })).toBeVisible();
+});
+```
+
 ## Public API Only
 
 22. **No private member access** - E2E tests must only use the public API (`pub` items exported from `lib.rs`). Never access private modules, internal constants, or unexported functions.

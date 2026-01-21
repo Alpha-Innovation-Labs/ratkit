@@ -24,7 +24,6 @@ A comprehensive collection of reusable TUI components for [ratatui](https://rata
 | **StatusBar** | Customizable status bar |
 | **StatusLineStacked** | Neovim-style powerline status |
 | **TermTui** | Terminal emulator with mprocs-style copy mode |
-| **FuzzyFinder** | PTY-based fuzzy search popup |
 
 ## Installation
 
@@ -55,7 +54,6 @@ ratatui-toolkit = { version = "0.1", default-features = false, features = ["tree
 | `statusbar` | ✅ | Status bar components |
 | `hotkey` | ✅ | Hotkey footer and modal |
 | `terminal` | ✅ | Terminal emulator (TermTui) |
-| `fuzzy` | ❌ | Fuzzy finder component |
 | `file-tree` | ❌ | File system tree with devicons |
 | `full` | ❌ | Enable all features |
 

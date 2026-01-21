@@ -53,6 +53,9 @@ help:
     @echo "  just \033[0;33mdemo-gif\033[0m                \033[0;32mConvert demo to GIF\033[0m"
     @echo "  just \033[0;33mdemo-md\033[0m                \033[0;32mRun standalone Markdown Widget demo\033[0m"
     @echo "  just \033[0;33mdemo-term\033[0m               \033[0;32mRun standalone Terminal Pane demo\033[0m"
+    @echo "  just \033[0;33mdemo-codediff\033[0m           \033[0;32mRun standalone Code Diff demo\033[0m"
+    @echo "  just \033[0;33mdemo-aichat\033[0m             \033[0;32mRun standalone AI Chat demo\033[0m"
+    @echo "  just \033[0;33mdemo-split\033[0m              \033[0;32mRun standalone Split Layout demo\033[0m"
     @echo "  just \033[0;33mdemo-clean\033[0m              \033[0;32mRemove all demo files\033[0m"
     @echo ""
 

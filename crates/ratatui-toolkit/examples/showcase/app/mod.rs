@@ -4,18 +4,18 @@ mod constructors;
 mod methods;
 
 use ratatui::layout::Rect;
-use ratatui_toolkit::markdown_widget::state::{
+use ratatui_toolkit::services::file_watcher::FileWatcher;
+use ratatui_toolkit::{
+    AppTheme, CodeDiff, DoubleClickState, FileSystemTree, InputState, MenuBar, MessageRole,
+    MessageStore, ResizableSplit, SelectionState, TermTui, ToastManager,
+    TreeNavigator, TreeViewState,
+};
+use ratatui_toolkit::{
     CacheState, CollapseState, DisplaySettings, ExpandableState, GitStatsState, ScrollState,
     SourceState, VimState,
 };
-use ratatui_toolkit::services::file_watcher::FileWatcher;
-use ratatui_toolkit::{
-    AppTheme, CodeDiff, DoubleClickState, FileSystemTree, MenuBar, ResizableSplit, SelectionState,
-    TermTui, ToastManager, TreeNavigator, TreeViewState,
-};
 use std::time::Instant;
 
-use super::demo_mode::DemoMode;
 use super::demo_tab::DemoTab;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -79,16 +79,22 @@ pub struct App {
     pub toc_hovered: bool,
     /// Index of the currently hovered TOC entry
     pub toc_hovered_entry: Option<usize>,
-    /// Scroll offset for the TOC list
     pub toc_scroll_offset: usize,
-
-    // StatusLine demo
-    pub status_mode: DemoMode,
 
     // Terminal demo
     pub terminal: Option<TermTui>,
     pub terminal2: Option<TermTui>,
     pub terminal_split: ResizableSplit,
+
+    // Grid demo splits
+    pub grid_row_split: ResizableSplit,
+    pub grid_left_split: ResizableSplit,
+    pub grid_right_split: ResizableSplit,
+
+    // AI Chat demo
+    pub ai_chat_messages: MessageStore,
+    pub ai_chat_input: InputState,
+    pub ai_chat_loading: bool,
 
     // Toast notifications
     pub toast_manager: ToastManager,

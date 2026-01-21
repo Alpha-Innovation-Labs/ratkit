@@ -18,6 +18,16 @@ pub struct HotkeyItem {
     pub description: String,
 }
 
+#[cfg(feature = "hotkey")]
+impl From<crate::services::hotkey::Hotkey> for HotkeyItem {
+    fn from(hotkey: crate::services::hotkey::Hotkey) -> Self {
+        Self {
+            key: hotkey.key,
+            description: hotkey.description,
+        }
+    }
+}
+
 /// A styled hotkey footer bar component (aerospace-tui style)
 #[derive(Clone, Debug)]
 pub struct HotkeyFooter {

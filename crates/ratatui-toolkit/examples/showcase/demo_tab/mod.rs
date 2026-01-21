@@ -8,7 +8,7 @@ pub enum DemoTab {
     Markdown,
     CodeDiff,
     Tree,
-    Dialogs,
-    StatusLine,
     Terminal,
+    SplitLayoutGrid,
+    AiChat,
 }

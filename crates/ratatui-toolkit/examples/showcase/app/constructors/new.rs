@@ -1,17 +1,18 @@
 //! App constructor.
 
 use ratatui::layout::Rect;
-use ratatui_toolkit::markdown_widget::state::{
-    CacheState, CollapseState, DisplaySettings, ExpandableState, GitStatsState, ScrollState,
-    SourceState, VimState,
-};
 use ratatui_toolkit::services::file_watcher::FileWatcher;
 use ratatui_toolkit::services::theme::loader::load_builtin_theme;
 use ratatui_toolkit::services::theme::persistence::load_saved_theme;
 use ratatui_toolkit::ThemeVariant;
 use ratatui_toolkit::{
-    AppTheme, CodeDiff, DiffConfig, DoubleClickState, FileSystemTree, MenuBar, MenuItem,
-    ResizableSplit, SelectionState, TermTui, ToastManager, TreeNavigator, TreeViewState,
+    AppTheme, CodeDiff, DiffConfig, DoubleClickState, FileSystemTree, InputState, MarkdownState,
+    MenuBar, MenuItem, MessageStore, ResizableSplit, SelectionState, SplitDirection, TermTui,
+    ToastManager, TreeNavigator, TreeViewState,
+};
+use ratatui_toolkit::{
+    CacheState, CollapseState, DisplaySettings, ExpandableState, GitStatsState, ScrollState,
+    SourceState, VimState,
 };
 use std::path::PathBuf;
 use std::time::Instant;
@@ -19,7 +20,6 @@ use std::time::Instant;
 use super::super::App;
 use crate::app::TreePaneFocus;
 use crate::constants::SAMPLE_MARKDOWN_FILE;
-use crate::demo_mode::DemoMode;
 use crate::demo_tab::DemoTab;
 use crate::helpers::all_app_themes;
 
@@ -45,9 +45,9 @@ impl App {
             MenuItem::with_icon("Markdown", "", 0),
             MenuItem::with_icon("Code Diff", "", 1),
             MenuItem::with_icon("Trees", "", 2),
-            MenuItem::with_icon("Dialogs", "󰍉", 3),
-            MenuItem::with_icon("StatusLine", "", 4),
-            MenuItem::with_icon("Terminal", "", 5),
+            MenuItem::with_icon("Terminal", "", 3),
+            MenuItem::with_icon("Split Grid", "", 4),
+            MenuItem::with_icon("AI Chat", "", 5),
             MenuItem::with_icon("Theme", "", 6),
         ])
         .with_selected(0)
@@ -73,6 +73,11 @@ impl App {
                 .sidebar_enabled(true),
         )
         .with_theme(&theme);
+
+        // Create resizable grid splits
+        let grid_row_split = ResizableSplit::new_with_direction(60, SplitDirection::Horizontal);
+        let grid_left_split = ResizableSplit::new_with_direction(33, SplitDirection::Vertical);
+        let grid_right_split = ResizableSplit::new_with_direction(50, SplitDirection::Vertical);
 
         // Create markdown state modules
         let mut markdown_source = SourceState::default();
@@ -131,10 +136,15 @@ impl App {
             toc_hovered: false,
             toc_hovered_entry: None,
             toc_scroll_offset: 0,
-            status_mode: DemoMode::Normal,
             terminal,
             terminal2,
             terminal_split: ResizableSplit::new(50),
+            grid_row_split,
+            grid_left_split,
+            grid_right_split,
+            ai_chat_messages: MessageStore::new(),
+            ai_chat_input: InputState::new(),
+            ai_chat_loading: false,
             toast_manager: ToastManager::new(),
             start_time: Instant::now(),
         }

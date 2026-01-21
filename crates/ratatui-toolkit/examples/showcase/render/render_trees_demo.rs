@@ -76,7 +76,9 @@ pub fn render_trees_demo(
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(chunks[0]);
 
-    let focus_style = Style::default().fg(theme.primary).add_modifier(Modifier::BOLD);
+    let focus_style = Style::default()
+        .fg(theme.primary)
+        .add_modifier(Modifier::BOLD);
     let file_tree_focused = app.tree_focus == TreePaneFocus::FileTree;
     let component_tree_focused = app.tree_focus == TreePaneFocus::ComponentTree;
 
@@ -152,7 +154,9 @@ pub fn render_trees_demo(
         .highlight_style(Style::default().bg(theme.background_panel))
         .render_fn(move |data: &String, state| {
             let style = if state.is_selected {
-                Style::default().fg(theme.primary).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(theme.primary)
+                    .add_modifier(Modifier::BOLD)
             } else {
                 Style::default()
             };

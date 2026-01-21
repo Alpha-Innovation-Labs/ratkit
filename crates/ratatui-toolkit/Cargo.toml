@@ -15,7 +15,7 @@ readme = "README.md"
 
 [features]
 default = ["markdown", "tree", "dialog", "toast", "split", "menu", "statusline", "hotkey", "terminal", "theme"]
-full = ["default", "terminal", "fuzzy", "file-tree", "theme"]
+full = ["default", "terminal", "file-tree", "theme"]
 
 # Core UI components
 markdown = ["dep:pulldown-cmark", "dep:syntect", "dep:syntect-tui", "dep:serde", "dep:serde_json", "dep:notify", "dep:arboard"]
@@ -29,7 +29,6 @@ hotkey = []
 
 # Advanced components
 terminal = ["dep:termwiz", "dep:libc", "dep:arboard", "dep:base64", "dep:portable-pty"]
-fuzzy = ["dep:portable-pty"]
 file-tree = ["tree", "dep:devicons"]
 theme = ["dep:serde", "dep:serde_json", "dep:dirs"]
 
@@ -81,11 +80,6 @@ tokio-test = "0.4"
 name = "showcase"
 path = "examples/showcase/main.rs"
 required-features = ["file-tree"]
-
-[[example]]
-name = "termtui_demo"
-path = "examples/termtui_demo.rs"
-required-features = ["terminal"]
 
 [[example]]
 name = "markdown_demo"
