@@ -5,4 +5,4 @@
 doc:
     @echo "Starting documentation server..."
     pkill -f "next dev" || true
-    cd docs && npm run dev
+    cd docs && npm run dev -- -p 3000
