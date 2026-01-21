@@ -1,8 +1,8 @@
 # Convert interactive demo to GIF (requires agg)
-# Usage: just demo-gif
-# Example: just demo-gif
+# Usage: just cast-gif
+# Example: just cast-gif
 
-demo-gif:
+cast-gif:
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -11,7 +11,7 @@ demo-gif:
     mkdir -p demo
 
     if [ ! -f demo/ratatui-toolkit-demo.cast ]; then
-        echo "❌ Error: demo/ratatui-toolkit-demo.cast not found. Run 'just demo-interactive' first"
+        echo "❌ Error: demo/ratatui-toolkit-demo.cast not found. Run 'just cast-interactive' first"
         exit 1
     fi
 

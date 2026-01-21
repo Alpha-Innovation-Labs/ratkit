@@ -1,10 +1,10 @@
 # Start documentation server
-# Usage: just doc
-# Example: just doc
+# Usage: just docs
+# Example: just docs
 
-doc:
+docs:
     @echo "Generating documentation from rustdoc..."
-    python3 scripts/generate_docs.py
+    python3 docs/scripts/generate_docs.py
     @echo "Starting documentation server on port 3000..."
     mkdir -p logs
     cd docs && npm run dev >> ../logs/docs.log 2>&1

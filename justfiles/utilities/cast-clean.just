@@ -1,8 +1,8 @@
 # Remove all demo files
-# Usage: just demo-clean
-# Example: just demo-clean
+# Usage: just cast-clean
+# Example: just cast-clean
 
-demo-clean:
+cast-clean:
     @echo "🧹 Cleaning demo files..."
     @rm -rf demo/
     @echo "✅ Demo files removed"

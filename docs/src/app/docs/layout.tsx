@@ -7,9 +7,6 @@ export default function Layout({ children }: LayoutProps<'/docs'>) {
     <DocsLayout
       tree={source.getPageTree()}
       {...baseOptions()}
-      sidebar={{
-        iconLinks: [], // Disable icon links (Open in markdown buttons)
-      }}
     >
       {children}
     </DocsLayout>

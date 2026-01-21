@@ -1,7 +1,7 @@
 # Run the standalone Terminal Pane demo
 demo-term:
     @echo "Running Terminal Pane Demo..."
-    cargo run --example terminal_demo --features terminal
+    cargo run --example showcase --features terminal
 
 # ============================================================================
 # Demo Widget Commands

@@ -1,8 +1,8 @@
 # Record an interactive manual demo session
-# Usage: just demo-interactive
-# Example: just demo-interactive
+# Usage: just cast-interactive
+# Example: just cast-interactive
 
-demo-interactive:
+cast-interactive:
     @echo "🗑️  Removing existing demo file..."
     @rm -f demo/ratatui-toolkit-demo.cast
     @echo "🎬 Starting interactive demo recording..."
@@ -13,6 +13,6 @@ demo-interactive:
     asciinema rec demo/ratatui-toolkit-demo.cast
     @echo "✅ Demo recorded to demo/ratatui-toolkit-demo.cast"
     @echo "🎬 Converting to GIF..."
-    @just demo-gif
+    @just cast-gif
     @echo "▶️  Playing GIF with mpv..."
     @mpv demo/ratatui-toolkit-demo.gif
