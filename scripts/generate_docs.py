@@ -58,7 +58,7 @@ def format_rustdoc_to_markdown(doc_text: str) -> str:
 
         # Handle rustdoc headings (#)
         if stripped.startswith("#") and not code_block:
-            level = len(stripped) - len(stripped.lstrip("#"))
+            level = len(stripped - len(stripped.lstrip("#"))
             # Increase level by 1 for main doc
             lines.append("#" * (level + 1) + " " + stripped.lstrip("#").strip())
         # Handle rustdoc lists (-, *)
