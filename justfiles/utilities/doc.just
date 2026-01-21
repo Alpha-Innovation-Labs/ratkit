@@ -3,6 +3,5 @@
 # Example: just doc
 
 doc:
-    @echo "Starting documentation server..."
-    pkill -f "next dev" || true
+    @echo "Starting documentation server on port 3000..."
     cd docs && npm run dev -- -p 3000
