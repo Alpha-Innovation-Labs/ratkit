@@ -21,7 +21,6 @@ A comprehensive collection of reusable TUI components for [ratatui](https://rata
 | **Button** | Clickable buttons with hover states |
 | **HotkeyFooter** | Keyboard shortcut display footer |
 | **MenuBar** | Horizontal menu bar with icons |
-| **StatusBar** | Customizable status bar |
 | **StatusLineStacked** | Neovim-style powerline status |
 | **TermTui** | Terminal emulator with mprocs-style copy mode |
 
@@ -51,8 +50,7 @@ ratatui-toolkit = { version = "0.1", default-features = false, features = ["tree
 | `toast` | ✅ | Toast notification system |
 | `split` | ✅ | Resizable split panels |
 | `menu` | ✅ | Menu bar component |
-| `statusbar` | ✅ | Status bar components |
-| `hotkey` | ✅ | Hotkey footer and modal |
+| `statusline` | ✅ | Powerline-style statusline |
 | `terminal` | ✅ | Terminal emulator (TermTui) |
 | `file-tree` | ❌ | File system tree with devicons |
 | `full` | ❌ | Enable all features |

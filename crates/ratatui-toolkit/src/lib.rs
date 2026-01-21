@@ -9,7 +9,7 @@
 //!
 //! - **Layout Components**: [`ResizableSplit`] for flexible UI layouts
 //! - **UI Components**: [`Button`], [`Dialog`], [`Toast`], [`Pane`] for common UI elements
-//! - **Widgets**: [`TreeView`], [`FuzzyFinder`] for data display
+//! - **Widgets**: [`TreeView`] for data display
 //! - **Navigation**: [`MenuBar`], [`HotkeyFooter`] for navigation aids
 //! - **Rendering**: [`render_markdown`] for markdown to ratatui text conversion
 //! - **Terminal**: [`TermTui`] for embedded terminal emulation
@@ -30,7 +30,6 @@
 //! | `statusline` | Yes | Powerline-style statusline |
 //! | `hotkey` | Yes | Hotkey footer and modal |
 //! | `terminal` | No | Terminal emulator (TermTui) |
-//! | `fuzzy` | No | Fuzzy finder component |
 //! | `file-tree` | No | File system tree with devicons |
 //! | `theme` | No | Theme system with 33 builtin themes |
 //! | `full` | No | Enable all features |
@@ -67,27 +66,12 @@
 // Core components - always available
 pub mod primitives;
 
-pub mod diff_file_tree;
 pub mod widgets;
-
-// Feature-gated components
-#[cfg(feature = "hotkey")]
-#[cfg_attr(docsrs, doc(cfg(feature = "hotkey")))]
-pub mod hotkey_footer;
-
-#[cfg(feature = "fuzzy")]
-#[cfg_attr(docsrs, doc(cfg(feature = "fuzzy")))]
-pub mod fuzzy_finder;
-
-#[cfg(feature = "file-tree")]
-#[cfg_attr(docsrs, doc(cfg(feature = "file-tree")))]
-pub mod file_system_tree;
 
 // Services module - shared infrastructure
 pub mod services;
 
 // Re-export commonly used types - always available
-pub use diff_file_tree::{DiffFileTree, FileStatus};
 pub use primitives::button::render_title_with_buttons::render_title_with_buttons;
 pub use primitives::button::Button;
 pub use primitives::pane::Pane;
@@ -127,7 +111,7 @@ pub use primitives::statusline::{
 };
 
 #[cfg(feature = "hotkey")]
-pub use hotkey_footer::{HotkeyFooter, HotkeyFooterBuilder, HotkeyItem};
+pub use widgets::hotkey_footer::{HotkeyFooter, HotkeyFooterBuilder, HotkeyItem};
 
 #[cfg(feature = "hotkey")]
 #[cfg(feature = "markdown")]
@@ -141,11 +125,8 @@ pub use widgets::markdown_widget::{
 #[cfg(feature = "terminal")]
 pub use primitives::termtui::{TermTui, TermTuiKeyBindings};
 
-#[cfg(feature = "fuzzy")]
-pub use fuzzy_finder::FuzzyFinder;
-
 #[cfg(feature = "file-tree")]
-pub use file_system_tree::{FileSystemEntry, FileSystemTree, FileSystemTreeConfig};
+pub use widgets::file_system_tree::{FileSystemEntry, FileSystemTree, FileSystemTreeConfig};
 
 #[cfg(feature = "theme")]
 pub use services::theme::{AppTheme, DiffColors, MarkdownColors, SyntaxColors, ThemeVariant};
@@ -162,7 +143,6 @@ pub use services::file_watcher::{FileWatcher, WatchConfig, WatchMode};
 /// ```
 pub mod prelude {
     // Core components
-    pub use crate::diff_file_tree::{DiffFileTree, FileStatus};
     pub use crate::primitives::button::render_title_with_buttons::render_title_with_buttons;
     pub use crate::primitives::button::Button;
     pub use crate::primitives::pane::Pane;
@@ -206,7 +186,7 @@ pub mod prelude {
     };
 
     #[cfg(feature = "hotkey")]
-    pub use crate::hotkey_footer::{HotkeyFooter, HotkeyFooterBuilder, HotkeyItem};
+    pub use crate::widgets::hotkey_footer::{HotkeyFooter, HotkeyFooterBuilder, HotkeyItem};
 
     #[cfg(feature = "markdown")]
     pub use crate::widgets::markdown_widget::{
@@ -218,11 +198,10 @@ pub mod prelude {
     #[cfg(feature = "terminal")]
     pub use crate::primitives::termtui::{TermTui, TermTuiKeyBindings};
 
-    #[cfg(feature = "fuzzy")]
-    pub use crate::fuzzy_finder::FuzzyFinder;
-
     #[cfg(feature = "file-tree")]
-    pub use crate::file_system_tree::{FileSystemEntry, FileSystemTree, FileSystemTreeConfig};
+    pub use crate::widgets::file_system_tree::{
+        FileSystemEntry, FileSystemTree, FileSystemTreeConfig,
+    };
 
     #[cfg(feature = "theme")]
     pub use crate::services::theme::{

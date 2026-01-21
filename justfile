@@ -41,6 +41,9 @@ help:
     @echo "\033[1;35m  Utilities:\033[0m"
     @echo "  just \033[0;33mfmt\033[0m                     \033[0;32mFormat code\033[0m"
     @echo "  just \033[0;33mdoc\033[0m                     \033[0;32mBuild documentation\033[0m"
+    @echo "  just \033[0;33mdocs\033[0m                    \033[0;32mRun Fumadocs site\033[0m"
+    @echo "  just \033[0;33mdocs-build\033[0m              \033[0;32mBuild Fumadocs site\033[0m"
+    @echo "  just \033[0;33mdocs-install\033[0m            \033[0;32mInstall Fumadocs deps\033[0m"
     @echo "  just \033[0;33mpackage\033[0m                 \033[0;32mPackage for crates.io (dry run)\033[0m"
     @echo "  just \033[0;33mclean\033[0m                   \033[0;32mClean build artifacts\033[0m"
     @echo "  just \033[0;33mpub\033[0m                     \033[0;32mPublish to crates.io\033[0m"
@@ -90,6 +93,7 @@ import 'justfiles/testing/test.just'
 # ============================================================================
 import 'justfiles/utilities/fmt.just'
 import 'justfiles/utilities/doc.just'
+import 'justfiles/utilities/docs.just'
 import 'justfiles/utilities/package.just'
 import 'justfiles/utilities/clean.just'
 import 'justfiles/utilities/pub.just'
