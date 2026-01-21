@@ -47,7 +47,8 @@ impl<'a> MarkdownWidget<'a> {
             return MarkdownEvent::None;
         }
 
-        let relative_y = event.row.saturating_sub(area.y) as usize;
+        let border_offset = if self.bordered { 1 } else { 0 };
+        let relative_y = event.row.saturating_sub(area.y + border_offset) as usize;
         let relative_x = event.column.saturating_sub(area.x) as usize;
         let width = area.width as usize;
 

@@ -7,8 +7,8 @@ use ratatui::layout::Rect;
 use ratatui_toolkit::services::file_watcher::FileWatcher;
 use ratatui_toolkit::{
     AppTheme, CodeDiff, DoubleClickState, FileSystemTree, InputState, MenuBar, MessageRole,
-    MessageStore, ResizableSplit, SelectionState, TermTui, ToastManager,
-    TreeNavigator, TreeViewState,
+    MessageStore, ResizableSplit, SelectionState, TermTui, ToastManager, TreeNavigator,
+    TreeViewState,
 };
 use ratatui_toolkit::{
     CacheState, CollapseState, DisplaySettings, ExpandableState, GitStatsState, ScrollState,

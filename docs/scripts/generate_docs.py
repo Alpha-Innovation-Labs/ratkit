@@ -42,9 +42,17 @@ def format_rustdoc_to_markdown(doc_text: str) -> str:
         if stripped.startswith("```"):
             code_block = not code_block
             # Fix rust,no_run -> rust
-            if "rust,no_run" in stripped or "rust,ignore" in stripped:
-                stripped = stripped.replace("rust,no_run", "rust").replace(
-                    "rust,ignore", "rust"
+            if (
+                "rust,no_run" in stripped
+                or "rust,ignore" in stripped
+                or stripped.startswith("```no_run")
+                or stripped.startswith("```ignore")
+            ):
+                stripped = (
+                    stripped.replace("rust,no_run", "rust")
+                    .replace("rust,ignore", "rust")
+                    .replace("```no_run", "```rust")
+                    .replace("```ignore", "```rust")
                 )
                 lines.append(stripped)
                 continue
@@ -58,7 +66,7 @@ def format_rustdoc_to_markdown(doc_text: str) -> str:
 
         # Handle rustdoc headings (#)
         if stripped.startswith("#") and not code_block:
-            level = len(stripped - len(stripped.lstrip("#"))
+            level = len(stripped) - len(stripped.lstrip("#"))
             # Increase level by 1 for main doc
             lines.append("#" * (level + 1) + " " + stripped.lstrip("#").strip())
         # Handle rustdoc lists (-, *)
