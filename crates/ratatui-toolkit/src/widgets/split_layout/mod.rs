@@ -614,31 +614,36 @@ mod tests {
         let _pane_3 = layout.split_pane_vertically(pane_2).unwrap();
         let _pane_4 = layout.split_pane_vertically(1).unwrap();
 
-        let mut widget = SplitLayoutWidget::new(&mut layout);
-
         let area = Rect::new(0, 0, 80, 24);
-        let dividers = layout.layout_dividers(area);
-        let divider = dividers
-            .iter()
-            .find(|divider| divider.axis() == SplitAxis::Vertical)
-            .unwrap();
-        let divider_area = divider.area();
-        let divider_x = divider_area
-            .x
-            .saturating_add(((divider_area.width as u32 * divider.ratio() as u32) / 100) as u16);
+        let (divider_x, divider_split_index) = {
+            let dividers = layout.layout_dividers(area);
+            let divider = dividers
+                .iter()
+                .find(|divider| divider.axis() == SplitAxis::Vertical)
+                .unwrap();
+            let divider_area = divider.area();
+            (
+                divider_area.x.saturating_add(
+                    ((divider_area.width as u32 * divider.ratio() as u32) / 100) as u16,
+                ),
+                divider.split_index(),
+            )
+        };
+
+        let mut widget = SplitLayoutWidget::new(&mut layout);
 
         // Hover over pane 2's divider
         let mouse = MouseEvent {
             kind: MouseEventKind::Moved,
             column: divider_x.saturating_sub(1),
-            row: divider_area.y + divider_area.height / 2,
+            row: 5,
             modifiers: KeyModifiers::empty(),
         };
 
         widget.handle_mouse(mouse, area);
 
         // Should detect hover on the divider
-        assert_eq!(widget.hovered_divider(), Some(divider.split_index()));
+        assert_eq!(widget.hovered_divider(), Some(divider_split_index));
     }
 
     #[test]
@@ -648,18 +653,20 @@ mod tests {
         let pane_2 = layout.split_pane_horizontally(0).unwrap();
         let _pane_3 = layout.split_pane_vertically(pane_2).unwrap();
 
-        let mut widget = SplitLayoutWidget::new(&mut layout);
-
         let area = Rect::new(0, 0, 80, 24);
 
-        // Get initial layout
-        let initial_layouts = layout.layout_panes(area);
-        let initial_pane_0_width = initial_layouts
-            .iter()
-            .find(|p| p.pane_id() == 0)
-            .unwrap()
-            .area()
-            .width;
+        // Get initial layout before creating widget
+        let initial_pane_0_width = {
+            let initial_layouts = layout.layout_panes(area);
+            initial_layouts
+                .iter()
+                .find(|p| p.pane_id() == 0)
+                .unwrap()
+                .area()
+                .width
+        };
+
+        let mut widget = SplitLayoutWidget::new(&mut layout);
 
         // Start drag on pane 0's divider
         let mouse_down = MouseEvent {
