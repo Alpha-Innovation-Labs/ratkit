@@ -326,7 +326,13 @@ def main():
     """Main entry point."""
     print("Generating documentation from Rust source...")
 
+    DOCS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
     # Generate index files
+    (DOCS_OUTPUT_DIR / "primitives").mkdir(exist_ok=True)
+    (DOCS_OUTPUT_DIR / "services").mkdir(exist_ok=True)
+    (DOCS_OUTPUT_DIR / "widgets").mkdir(exist_ok=True)
+
     (DOCS_OUTPUT_DIR / "primitives" / "index.mdx").write_text("""---
 title: Primitives
 description: Basic UI building blocks

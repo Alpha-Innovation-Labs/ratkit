@@ -19,13 +19,11 @@ help:
     @echo "  just \033[0;33mcheck\033[0m                     \033[0;32mRun all checks\033[0m"
     @echo ""
     @echo "\033[1;35m  Development:\033[0m"
-    @echo "  just \033[0;33mweb\033[0m                       \033[0;32mStart web dev server\033[0m"
-    @echo "  just \033[0;33mrun\033[0m                       \033[0;32mRun the showcase\033[0m"
+    @echo "  just \033[0;33mdev\033[0m                       \033[0;32mStart showcase demo\033[0m"
     @echo "  just \033[0;33mexample NAME\033[0m              \033[0;32mRun a specific example\033[0m"
     @echo ""
     @echo "\033[1;35m  Building:\033[0m"
     @echo "  just \033[0;33mbuild\033[0m                     \033[0;32mBuild the project\033[0m"
-    @echo "  just \033[0;33mpackage\033[0m                   \033[0;32mPackage for release\033[0m"
     @echo ""
     @echo "\033[1;35m  Verification:\033[0m"
     @echo "  just \033[0;33mlint\033[0m                      \033[0;32mRun linter\033[0m"
@@ -38,7 +36,7 @@ help:
     @echo ""
     @echo "\033[1;35m  Utilities:\033[0m"
     @echo "  just \033[0;33mclean\033[0m                     \033[0;32mClean build artifacts\033[0m"
-    @echo "  just \033[0;33mdocs\033[0m                      \033[0;32mBuild documentation\033[0m"
+    @echo "  just \033[0;33mdocs\033[0m                      \033[0;32mBuild & serve documentation\033[0m"
     @echo ""
     @echo "\033[1;35m  Demos:\033[0m"
     @echo "  just \033[0;33mdemo-md\033[0m                   \033[0;32mMarkdown viewer demo\033[0m"
@@ -51,8 +49,6 @@ help:
 # ============================================================================
 # Development Commands
 # ============================================================================
-import 'justfiles/development/web.just'
-import 'justfiles/development/run.just'
 import 'justfiles/development/dev.just'
 import 'justfiles/development/example.just'
 
@@ -78,8 +74,6 @@ import 'justfiles/testing/test.just'
 # ============================================================================
 import 'justfiles/utilities/fmt.just'
 import 'justfiles/utilities/doc.just'
-import 'justfiles/utilities/docs-clean.just'
-import 'justfiles/utilities/package.just'
 import 'justfiles/utilities/clean.just'
 import 'justfiles/utilities/pub.just'
 import 'justfiles/utilities/cast-record.just'

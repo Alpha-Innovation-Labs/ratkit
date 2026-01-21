@@ -81,11 +81,6 @@ tempfile = "3"
 tokio-test = "0.4"
 
 [[example]]
-name = "screenshot_generator"
-path = "examples/screenshot_generator.rs"
-required-features = ["dialog", "theme"]
-
-[[example]]
 name = "showcase"
 path = "examples/showcase/main.rs"
 required-features = ["file-tree"]
