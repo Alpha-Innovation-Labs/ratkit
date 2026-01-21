@@ -1,8 +1,3 @@
----
-title: Markdown-Widget
-description: A feature-rich markdown rendering widget for ratatui TUI applications. Provides interactive markdown viewing with syntax highlighting, table of contents navigation, text selection, and more.
----
-
 # MarkdownWidget
 
 A feature-rich markdown rendering widget for ratatui TUI applications. Provides interactive markdown viewing with syntax highlighting, table of contents navigation, text selection, and more.
