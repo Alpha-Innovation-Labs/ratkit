@@ -7,4 +7,4 @@ doc:
     python3 scripts/generate_docs.py
     @echo "Starting documentation server on port 3000..."
     mkdir -p logs
-    cd docs && npm run dev -- -p 3000 >> ../logs/docs.log 2>&1
+    cd docs && npm run dev >> ../logs/docs.log 2>&1
