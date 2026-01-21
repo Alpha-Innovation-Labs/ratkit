@@ -1,0 +1,33 @@
+---
+title: MarkdownRenderer
+description: Renders Markdown content in the terminal
+---
+
+# MarkdownRenderer
+
+The `MarkdownRenderer` component renders Markdown-formatted text in the terminal.
+
+## Features
+
+- Full Markdown support
+- Code syntax highlighting
+- Table rendering
+- Link and list support
+
+## Usage
+
+```rust
+use ratatui_toolkit::MarkdownRenderer;
+
+let renderer = MarkdownRenderer::new("# Hello\n\nThis is **bold** text.")
+    .with_width(80)
+    .build();
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `content` | `String` | - | Markdown content |
+| `width` | `u16` | `80` | Render width |
+| `theme` | `Theme` | `Default` | Color theme |

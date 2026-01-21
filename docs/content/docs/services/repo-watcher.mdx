@@ -1,0 +1,35 @@
+---
+title: Repo-Watcher
+description: Auto-generated documentation from rustdoc
+---
+
+# Repo-Watcher
+
+Repository watcher for detecting git and working tree changes.
+Combines the git watcher (for `.git` state changes) with a file watcher
+(for working tree edits) and provides a cached list of modified files
+via `git status --porcelain`.
+## Example
+```rust
+use ratatui_toolkit::services::repo_watcher::RepoWatcher;
+use std::path::Path;
+let mut watcher = RepoWatcher::new().unwrap();
+watcher.watch(Path::new("/path/to/repo")).unwrap();
+In your event loop:
+if watcher.check_for_changes() {
+let changes = watcher.get_change_set();
+for path in changes.all_paths() {
+println!("Changed: {}", path.display());
+}
+}
+```
+
+## Struct: RepoWatcher
+
+A watcher that combines git and working tree signals.
+
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+

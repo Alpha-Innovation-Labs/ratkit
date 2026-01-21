@@ -1,0 +1,38 @@
+---
+title: Git-Watcher
+description: Auto-generated documentation from rustdoc
+---
+
+# Git-Watcher
+
+Git watching service for detecting git repository changes.
+A reusable, configurable git watcher that monitors the `.git` directory
+for changes and can be used to trigger updates only when git state changes.
+## Example
+```rust
+use ratatui_toolkit::services::git_watcher::GitWatcher;
+use std::path::Path;
+Create a watcher for a git repository
+let mut watcher = GitWatcher::new().unwrap();
+watcher.watch(Path::new("/path/to/repo")).unwrap();
+In your event loop:
+if watcher.check_for_changes() {
+println!("Git state changed!");
+}
+```
+
+## Struct: GitWatcher
+
+A git watcher for detecting git repository state changes.
+Uses the `notify` crate internally to watch the `.git` directory
+for changes. Provides a non-blocking interface suitable for use
+in TUI event loops.
+This is useful for caching git statistics and only recomputing
+them when the git state actually changes, rather than polling
+at a fixed interval.
+
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+

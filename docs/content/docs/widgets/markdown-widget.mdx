@@ -1,0 +1,85 @@
+---
+title: Markdown Widget
+description: Feature-rich markdown viewer with syntax highlighting
+---
+
+# Markdown Widget
+
+The MarkdownWidget is a feature-rich markdown viewer for ratatui applications.
+
+## Features
+
+- Syntax highlighting with Shiki code blocks
+- Table of contents (TOC) for navigation  
+- Text selection with click-to-highlight support
+- Line numbers with configurable themes
+- Keyboard modes including Vim-style navigation
+- Git statistics (lines added/removed, authors)
+- Collapsible code blocks and foldable sections
+- Custom themes with 33+ built-in color palettes
+
+## Quick Start
+
+```rust
+use ratatui_toolkit::MarkdownWidget;
+
+let mut state = MarkdownState::default();
+state.source.set_content("# Hello World\n\nWelcome!");
+
+let content = state.content().to_string();
+let widget = MarkdownWidget::from_state(&content, &mut state)
+    .show_toc(true)
+    .show_statusline(true)
+    .show_scrollbar(true);
+```
+
+## Helper Functions
+
+```rust
+use ratatui_toolkit::render_markdown;
+
+let elements = render_markdown("# Hello\n\n**Bold** text.", None);
+```
+
+## Event Handling
+
+```rust
+match event {
+    MarkdownEvent::SelectionChanged { start, end } => { /* handle selection */ }
+    MarkdownEvent::DoubleClick(line, column) => { /* handle double click */ }
+    MarkdownEvent::TocEntryClicked(entry) => { /* handle TOC click */ }
+}
+```
+
+## Configuration
+
+### Themes
+
+Built-in themes include: github-dark, github-light, dracula, nord, tokyo-night, and 30+ more.
+
+```rust
+let theme = AppTheme::from_theme_name("github-dark").unwrap();
+state.set_theme(theme);
+```
+
+### Display Settings
+
+Control what is visible:
+
+```rust
+display.set_show_line_numbers(true);
+display.set_code_block_theme(CodeBlockTheme::Light);
+display.set_scroll_multiplier(3.0);
+```
+
+## State Types
+
+- MarkdownState: Unified state
+- ScrollState: Viewport and scroll position
+- SourceState: Markdown content and file source
+- CacheState: Parsed element cache
+- DisplaySettings: Visual display configuration
+- CollapseState: Code block and section collapse state
+- GitStatsState: Git diff statistics
+- VimState: Vim-style keybindings and mode
+- SelectionState: Text selection with anchor and cursor tracking

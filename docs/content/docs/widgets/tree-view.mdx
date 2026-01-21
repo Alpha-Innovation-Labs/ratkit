@@ -1,0 +1,46 @@
+---
+title: TreeView
+description: A hierarchical tree view component for navigation
+---
+
+# TreeView
+
+The `TreeView` component provides a hierarchical tree structure for navigating nested data.
+
+## Features
+
+- Expandable and collapsible nodes
+- Keyboard navigation
+- Customizable icons and styling
+- Support for lazy loading
+
+## Usage
+
+```rust
+use ratatui_toolkit::TreeView;
+
+let tree = TreeView::new()
+    .with_root("Root")
+    .add_child("Child 1")
+    .add_child("Child 2")
+    .build();
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `root_label` | `String` | - | The label for the root node |
+| `expand_icon` | `char` | `▶` | Icon shown when collapsed |
+| `collapse_icon` | `char` | `▼` | Icon shown when expanded |
+| `indent_size` | `u16` | `2` | Spaces per indentation level |
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `↑` / `↓` | Navigate up/down |
+| `←` / `→` | Collapse/expand node |
+| `Enter` | Select node |
+| `Home` | Go to first node |
+| `End` | Go to last node |

@@ -1,0 +1,36 @@
+---
+title: Termtui
+description: Auto-generated documentation from rustdoc
+---
+
+# Termtui
+
+TermTui - Terminal emulator using mprocs architecture
+This module provides a terminal emulator with:
+- termwiz for VT100 escape sequence parsing
+- VecDeque-based infinite scrollback
+- Copy mode with frozen screen snapshots
+- Mouse and keyboard text selection
+Architecture (matching mprocs):
+```text
+bytes → termwiz Parser → actions → Screen.handle_action() → Grid (VecDeque<Row>)
+```
+
+## Struct: TermTui
+
+TermTui - Terminal widget with mprocs-style architecture
+Features:
+- termwiz-based VT100 parsing
+- VecDeque scrollback buffer
+- Copy mode with frozen screen snapshots
+- Mouse and keyboard selection
+
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `parser` | `Arc<Mutex<Parser>>` | |
+| `_master` | `Option<Arc<Mutex<Box<dyn MasterPty + Send>>>>` | |
+| `_child` | `Option<Box<dyn Child + Send + Sync>>` | |
+| `writer` | `Option<Arc<Mutex<Box<dyn Write + Send>>>>` | |
+

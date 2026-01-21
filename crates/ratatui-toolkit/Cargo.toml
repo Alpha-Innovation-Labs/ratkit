@@ -72,9 +72,18 @@ devicons = { version = "0.6", optional = true }
 # Directory paths (feature-gated)
 dirs = { version = "5", optional = true }
 
+# Screenshot generation (always available for examples)
+ansee = "0.1"
+image = "0.25"
+
 [dev-dependencies]
 tempfile = "3"
 tokio-test = "0.4"
+
+[[example]]
+name = "screenshot_generator"
+path = "examples/screenshot_generator.rs"
+required-features = ["dialog", "theme"]
 
 [[example]]
 name = "showcase"

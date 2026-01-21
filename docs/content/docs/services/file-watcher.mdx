@@ -1,0 +1,44 @@
+---
+title: File-Watcher
+description: Auto-generated documentation from rustdoc
+---
+
+# File-Watcher
+
+File watching service for detecting file system changes.
+A reusable, configurable file watcher that can be used across multiple
+components in the toolkit. Supports watching single files or entire
+directory trees.
+## Example
+```rust
+use ratatui_toolkit::services::file_watcher::{FileWatcher, WatchMode};
+use std::path::Path;
+Watch a single file
+let mut watcher = FileWatcher::for_file().unwrap();
+watcher.watch(Path::new("README.md")).unwrap();
+In your event loop:
+if watcher.check_for_changes() {
+println!("File changed!");
+}
+Watch a directory recursively
+let mut dir_watcher = FileWatcher::for_directory().unwrap();
+dir_watcher.watch(Path::new("./src")).unwrap();
+Get which paths changed
+let changed = dir_watcher.get_changed_paths();
+for path in changed {
+println!("Changed: {}", path.display());
+}
+```
+
+## Struct: FileWatcher
+
+A file watcher for detecting file system changes.
+Uses the `notify` crate internally to watch files and directories
+for changes. Provides a non-blocking interface suitable for use
+in TUI event loops.
+
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+

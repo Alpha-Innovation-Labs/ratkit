@@ -1,0 +1,32 @@
+---
+title: Tree-View
+description: Auto-generated documentation from rustdoc
+---
+
+# Tree-View
+
+Tree view widget for hierarchical data display.
+This module provides a complete tree view implementation with:
+- `TreeNode` - Hierarchical data structure for tree nodes
+- `NodeState` - State information for rendering nodes
+- `TreeViewState` - Selection, expansion, and filter state
+- `TreeView` - The main widget (takes ownership of nodes)
+- `TreeViewRef` - Widget that borrows nodes (avoids cloning)
+- `TreeNavigator` - Keyboard navigation with configurable keybindings
+- `TreeKeyBindings` - Customizable keybindings for navigation
+## Example
+```rust
+use ratatui_toolkit::tree_view::{TreeNode, TreeView, TreeViewState};
+let nodes = vec![
+TreeNode::with_children("Root", vec![
+TreeNode::new("Child 1"),
+TreeNode::new("Child 2"),
+]),
+];
+let tree = TreeView::new(nodes)
+.render_fn(|data, state| {
+ratatui::text::Line::from(*data)
+});
+let mut state = TreeViewState::new();
+```
+

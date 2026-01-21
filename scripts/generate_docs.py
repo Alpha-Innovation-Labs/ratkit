@@ -162,17 +162,19 @@ def extract_from_file(file_path: Path) -> Dict:
 
 def scan_component(component_dir: Path) -> Dict:
     """Scan a component directory and extract all documentation."""
-    # Collect all data from all Rust files in the directory tree
+    # Collect all data from all Rust files in directory tree
     combined_data = {"module_doc": "", "structs": [], "impls": [], "functions": []}
 
-    # First get the main mod.rs
+    # First get main mod.rs
     main_mod = component_dir / "mod.rs"
     if main_mod.exists():
         data = extract_from_file(main_mod)
         combined_data["module_doc"] = data["module_doc"]
         combined_data["structs"].extend(data["structs"])
+        combined_data["impls"].extend(data["impls"])
+        combined_data["functions"].extend(data["functions"])
 
-    # Then scan all .rs files in the directory tree
+    # Then scan all .rs files in directory tree
     for rust_file in component_dir.rglob("*.rs"):
         if rust_file.name == "mod.rs":
             continue
@@ -180,6 +182,19 @@ def scan_component(component_dir: Path) -> Dict:
         data = extract_from_file(rust_file)
         combined_data["impls"].extend(data["impls"])
         combined_data["functions"].extend(data["functions"])
+
+    # Remove duplicate functions/methods (deduplicate by name)
+    seen = {}
+    combined_data["impls"] = [
+        x
+        for x in combined_data["impls"]
+        if not (x["name"] in seen or seen.setdefault(x["name"], True))
+    ]
+    combined_data["functions"] = [
+        x
+        for x in combined_data["functions"]
+        if not (x["name"] in seen or seen.setdefault(x["name"], True))
+    ]
 
     return combined_data
 

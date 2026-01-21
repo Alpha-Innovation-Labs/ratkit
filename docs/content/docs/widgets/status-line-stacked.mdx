@@ -1,0 +1,33 @@
+---
+title: StatusLineStacked
+description: Stacked status lines for multiple information layers
+---
+
+# StatusLineStacked
+
+The `StatusLineStacked` component displays multiple stacked status lines.
+
+## Features
+
+- Multiple line support
+- Configurable heights
+- Per-line styling
+- Dynamic content
+
+## Usage
+
+```rust
+use ratatui_toolkit::StatusLineStacked;
+
+let stacked = StatusLineStacked::new()
+    .add_line("Primary status")
+    .add_line("Secondary status")
+    .build();
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `lines` | `Vec<StatusLine>` | `[]` | Status lines |
+| `line_height` | `u16` | `1` | Height per line |

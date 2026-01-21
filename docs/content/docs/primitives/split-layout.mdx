@@ -1,0 +1,16 @@
+---
+title: Split-Layout
+description: Auto-generated documentation from rustdoc
+---
+
+# Split-Layout
+
+Multi-split layout primitive.
+Provides a tree of resizable splits that yields pane rectangles for rendering.
+## Example
+```rust
+use ratatui_toolkit::primitives::split_layout::SplitLayout;
+let mut layout = SplitLayout::new(0);
+let _ = layout.split_pane_vertically(0);
+```
+
