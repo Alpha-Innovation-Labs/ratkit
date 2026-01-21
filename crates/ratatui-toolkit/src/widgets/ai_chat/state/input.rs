@@ -1,5 +1,4 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use ratatui::style::{Color, Modifier, Style};
 use std::fs;
 use std::path::Path;
 
@@ -190,19 +189,19 @@ impl InputState {
                 }
                 None
             }
-            KeyCode::Left | KeyCode::Char('h') => {
+            KeyCode::Left => {
                 if !self.is_file_mode && !self.is_command_mode && self.cursor > 0 {
                     self.cursor -= 1;
                 }
                 None
             }
-            KeyCode::Right | KeyCode::Char('l') => {
+            KeyCode::Right => {
                 if !self.is_file_mode && !self.is_command_mode && self.cursor < self.text.len() {
                     self.cursor += 1;
                 }
                 None
             }
-            KeyCode::Up | KeyCode::Char('k') => {
+            KeyCode::Up => {
                 if self.is_file_mode {
                     let filtered = self.filtered_files();
                     if !filtered.is_empty() {
@@ -215,7 +214,7 @@ impl InputState {
                 }
                 None
             }
-            KeyCode::Down | KeyCode::Char('j') => {
+            KeyCode::Down => {
                 if self.is_file_mode {
                     let filtered = self.filtered_files();
                     if !filtered.is_empty() {
@@ -303,6 +302,7 @@ impl InputState {
     }
 
     /// Update cursor position from current line.
+    #[allow(dead_code)]
     fn update_cursor_from_lines(&mut self) {
         let mut pos = 0;
         for (i, line) in self.lines.iter().enumerate() {

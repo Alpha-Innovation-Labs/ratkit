@@ -1,9 +1,5 @@
 //! Default constructor for FileWatcher.
 
-use notify::{Config, RecommendedWatcher, Watcher};
-use std::sync::mpsc::channel;
-use std::time::Duration;
-
 use crate::services::file_watcher::{FileWatcher, WatchConfig};
 
 impl FileWatcher {

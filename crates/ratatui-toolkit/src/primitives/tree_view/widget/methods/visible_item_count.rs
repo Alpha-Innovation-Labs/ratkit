@@ -1,7 +1,7 @@
 //! TreeView::visible_item_count method.
 
-use crate::primitives::tree_view::tree_view::TreeView;
 use crate::primitives::tree_view::tree_view_state::TreeViewState;
+use crate::primitives::tree_view::widget::TreeView;
 
 impl<'a, T> TreeView<'a, T> {
     /// Gets total visible item count.

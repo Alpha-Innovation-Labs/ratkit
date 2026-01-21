@@ -34,9 +34,9 @@ mod keybindings;
 mod node_state;
 mod tree_navigator;
 mod tree_node;
-mod tree_view;
 mod tree_view_ref;
 mod tree_view_state;
+mod widget;
 
 // Re-export keybindings
 pub use keybindings::TreeKeyBindings;
@@ -55,9 +55,9 @@ pub use tree_navigator::TreeNavigator;
 // Re-export tree_node
 pub use tree_node::TreeNode;
 
-// Re-export tree_view
-pub use tree_view::NodeRenderFn;
-pub use tree_view::TreeView;
+// Re-export widget
+pub use widget::NodeRenderFn;
+pub use widget::TreeView;
 
 // Re-export tree_view_ref
 pub use tree_view_ref::NodeFilterFn;

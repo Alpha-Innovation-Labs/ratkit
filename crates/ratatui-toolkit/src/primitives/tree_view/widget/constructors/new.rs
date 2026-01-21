@@ -3,7 +3,7 @@
 use ratatui::text::Line;
 
 use crate::primitives::tree_view::tree_node::TreeNode;
-use crate::primitives::tree_view::tree_view::TreeView;
+use crate::primitives::tree_view::widget::TreeView;
 
 impl<'a, T> TreeView<'a, T> {
     /// Creates a new tree view with nodes.
@@ -32,7 +32,6 @@ impl<'a, T> TreeView<'a, T> {
             expand_icon: "\u{25b6}",
             collapse_icon: "\u{25bc}",
             highlight_style: None,
-            icon_style: ratatui::style::Style::default(),
         }
     }
 }

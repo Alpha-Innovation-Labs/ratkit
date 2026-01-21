@@ -50,10 +50,7 @@ impl<'a> Widget for MarkdownWidget<'a> {
             if let Some(icon) = &pane.icon {
                 use ratatui::text::Span;
                 let title = format!(" {} ", icon);
-                block = block.title(Line::from(vec![Span::styled(
-                    title,
-                    pane.title_style.clone(),
-                )]));
+                block = block.title(Line::from(vec![Span::styled(title, pane.title_style)]));
             }
 
             if let Some(ref footer) = pane.text_footer {
@@ -382,7 +379,7 @@ impl<'a> Widget for MarkdownWidget<'a> {
                                 .push(Span::styled(padding, Style::default().bg(highlight_bg)));
                         }
                     } else {
-                        new_spans.extend(line.spans.drain(..));
+                        new_spans.append(&mut line.spans);
                     }
 
                     Line::from(new_spans)

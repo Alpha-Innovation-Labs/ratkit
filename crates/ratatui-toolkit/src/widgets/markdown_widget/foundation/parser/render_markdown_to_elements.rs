@@ -1,7 +1,6 @@
 //! Render markdown content to markdown elements.
 
 use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
-use unicode_width::UnicodeWidthStr;
 
 use crate::widgets::markdown_widget::extensions::theme::SyntaxHighlighter;
 use crate::widgets::markdown_widget::foundation::elements::{

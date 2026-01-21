@@ -22,12 +22,10 @@ pub fn should_render_line(
     // Headings: visible unless a parent section is collapsed (hierarchical collapse)
     if let ElementKind::Heading { section_id, .. } = &element.kind {
         // Check if any parent section is collapsed
-        if let Some((_level, parent_id)) = collapse.get_hierarchy(*section_id) {
-            if let Some(parent) = parent_id {
-                // If parent is collapsed, this heading is hidden
-                if collapse.is_section_collapsed(parent) {
-                    return false;
-                }
+        if let Some((_, Some(parent))) = collapse.get_hierarchy(*section_id) {
+            // If parent is collapsed, this heading is hidden
+            if collapse.is_section_collapsed(parent) {
+                return false;
             }
         }
         return true;

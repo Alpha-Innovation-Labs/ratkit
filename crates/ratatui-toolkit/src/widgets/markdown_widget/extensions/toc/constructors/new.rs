@@ -1,6 +1,6 @@
 //! Constructor for Toc widget.
 
-use crate::widgets::markdown_widget::extensions::toc::enums::TocConfig;
+use crate::widgets::markdown_widget::extensions::toc::enums::{TocConfig, TocStyle};
 use crate::widgets::markdown_widget::extensions::toc::Toc;
 use crate::widgets::markdown_widget::state::toc_state::TocState;
 
@@ -46,6 +46,20 @@ impl<'a> Toc<'a> {
     /// Self for method chaining.
     pub fn expanded(mut self, expanded: bool) -> Self {
         self.expanded = expanded;
+        self
+    }
+
+    /// Set the TOC visual style mode.
+    ///
+    /// # Arguments
+    ///
+    /// * `style` - The visual style mode (Normal or Clerk).
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    pub fn style(mut self, style: TocStyle) -> Self {
+        self.config.style = style;
         self
     }
 

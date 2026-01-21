@@ -6,8 +6,8 @@ use ratatui::{
     widgets::{StatefulWidget, Widget},
 };
 
-use crate::primitives::tree_view::tree_view::TreeView;
 use crate::primitives::tree_view::tree_view_state::TreeViewState;
+use crate::primitives::tree_view::widget::TreeView;
 
 impl<'a, T> StatefulWidget for TreeView<'a, T> {
     type State = TreeViewState;

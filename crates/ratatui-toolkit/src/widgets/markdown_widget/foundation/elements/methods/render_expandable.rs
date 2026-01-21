@@ -11,7 +11,6 @@ pub fn render_expandable(
     lines: &[MarkdownElement],
     max_lines: usize,
     collapsed: bool,
-    total_lines: usize,
     width: usize,
     app_theme: Option<&crate::services::theme::AppTheme>,
 ) -> Vec<Line<'static>> {
@@ -27,7 +26,7 @@ pub fn render_expandable(
             result.extend(rendered);
         }
 
-        let hidden_count = total_lines.saturating_sub(max_lines);
+        let hidden_count = lines.len().saturating_sub(max_lines);
         let toggle_text = format!("\u{25bc} Show more ({} hidden) ", hidden_count);
         let toggle_style = Style::default()
             .fg(toggle_color)

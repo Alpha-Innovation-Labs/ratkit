@@ -58,12 +58,10 @@ fn should_render_line(element: &MarkdownElement, _idx: usize, collapse: &Collaps
     // Headings: visible unless a parent section is collapsed (hierarchical collapse)
     if let ElementKind::Heading { section_id, .. } = &element.kind {
         // Check if any parent section is collapsed
-        if let Some((_level, parent_id)) = collapse.get_hierarchy(*section_id) {
-            if let Some(parent) = parent_id {
-                // If parent is collapsed, this heading is hidden
-                if collapse.is_section_collapsed(parent) {
-                    return false;
-                }
+        if let Some((_, Some(parent))) = collapse.get_hierarchy(*section_id) {
+            // If parent is collapsed, this heading is hidden
+            if collapse.is_section_collapsed(parent) {
+                return false;
             }
         }
         return true;
@@ -127,13 +125,13 @@ pub fn get_line_at_position(
     let mut logical_line_num = 0; // Track the visible logical line number (1-indexed for display)
 
     for (idx, element) in elements.iter().enumerate() {
-        if !should_render_line(&element, idx, collapse) {
+        if !should_render_line(element, idx, collapse) {
             continue;
         }
 
         logical_line_num += 1; // Increment for each visible logical line
 
-        let rendered = render(&element, width);
+        let rendered = render(element, width);
         let line_count = rendered.len();
 
         if document_y >= visual_line_idx && document_y < visual_line_idx + line_count {

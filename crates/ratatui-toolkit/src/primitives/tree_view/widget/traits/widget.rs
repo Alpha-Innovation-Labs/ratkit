@@ -2,8 +2,8 @@
 
 use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
 
-use crate::primitives::tree_view::tree_view::TreeView;
 use crate::primitives::tree_view::tree_view_state::TreeViewState;
+use crate::primitives::tree_view::widget::TreeView;
 
 impl<'a, T> Widget for &TreeView<'a, T> {
     fn render(self, area: Rect, buf: &mut Buffer) {

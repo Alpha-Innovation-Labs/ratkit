@@ -2,7 +2,7 @@
 
 use ratatui::style::{Color, Style};
 
-use crate::widgets::markdown_widget::extensions::toc::enums::TocConfig;
+use crate::widgets::markdown_widget::extensions::toc::enums::{TocConfig, TocStyle};
 
 impl Default for TocConfig {
     fn default() -> Self {
@@ -10,9 +10,12 @@ impl Default for TocConfig {
             compact_width: 12,
             expanded_width: 32,
             height: 20,
+            style: TocStyle::default(),
             text_style: Style::default().fg(Color::Rgb(160, 160, 160)),
             active_style: Style::default().fg(Color::Rgb(97, 175, 239)), // Blue
             hover_style: Style::default().fg(Color::White).bg(Color::Rgb(60, 60, 70)),
+            accent_style: Style::default().fg(Color::Rgb(138, 99, 210)), // Purple accent
+            active_accent_style: Style::default().fg(Color::Rgb(97, 175, 239)), // Blue accent
             background_style: Style::default().bg(Color::Rgb(30, 32, 38)),
             line_style: Style::default().fg(Color::Rgb(120, 120, 130)),
             active_line_style: Style::default().fg(Color::Rgb(230, 180, 80)), // Gold/yellow for visibility

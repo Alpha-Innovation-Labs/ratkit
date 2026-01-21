@@ -26,12 +26,12 @@
 //! }
 //! ```
 
-pub mod hotkey;
+pub mod hotkey_item;
 pub mod hotkey_registry;
 pub mod hotkey_scope;
 pub mod traits;
 
-pub use hotkey::Hotkey;
+pub use hotkey_item::Hotkey;
 pub use hotkey_registry::HotkeyRegistry;
 pub use hotkey_scope::HotkeyScope;
 pub use traits::HasHotkeys;

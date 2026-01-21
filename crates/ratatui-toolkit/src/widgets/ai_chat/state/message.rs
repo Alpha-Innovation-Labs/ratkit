@@ -1,5 +1,3 @@
-use ratatui::style::{Color, Modifier, Style};
-
 /// Role of a message sender.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MessageRole {

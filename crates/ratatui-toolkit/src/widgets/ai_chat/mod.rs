@@ -35,8 +35,6 @@ pub struct AIChat<'a> {
     messages: &'a mut MessageStore,
     /// Input state for text entry
     input: &'a mut InputState,
-    /// Currently attached files
-    attached_files: Vec<String>,
     /// Whether AI is generating a response
     is_loading: bool,
     /// Style for user messages

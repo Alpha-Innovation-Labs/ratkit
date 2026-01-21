@@ -1,9 +1,9 @@
-//! Methods for TreeViewRef.
+//! Methods for TreeView.
 
 pub mod block;
-pub mod filter_fn;
 pub mod flatten_tree;
 pub mod highlight_style;
-pub mod icon_style;
 pub mod icons;
+pub mod node_at_row;
 pub mod render_fn;
+pub mod visible_item_count;

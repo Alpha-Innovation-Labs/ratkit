@@ -6,7 +6,8 @@ use crate::widgets::markdown_widget::state::CollapseState;
 
 use super::should_render_collapsed_line;
 
-pub fn get_filtered_visual_lines(
+#[allow(dead_code)]
+fn get_filtered_visual_lines(
     content: &str,
     filter_text: &str,
     collapse: &CollapseState,
@@ -40,7 +41,8 @@ pub fn get_filtered_visual_lines(
     filtered_visual_lines
 }
 
-pub fn find_next_filtered_line(
+#[allow(dead_code)]
+fn find_next_filtered_line(
     content: &str,
     filter_text: &str,
     collapse: &CollapseState,
@@ -64,7 +66,8 @@ pub fn find_next_filtered_line(
     filtered.get(search_idx).copied()
 }
 
-pub fn find_prev_filtered_line(
+#[allow(dead_code)]
+fn find_prev_filtered_line(
     content: &str,
     filter_text: &str,
     collapse: &CollapseState,

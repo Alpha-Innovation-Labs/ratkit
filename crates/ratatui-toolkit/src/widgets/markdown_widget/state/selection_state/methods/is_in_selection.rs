@@ -38,10 +38,10 @@ pub fn is_pos_in_selection(x: i32, y: i32, start: &SelectionPos, end: &Selection
     // Multi-line selection
     if y == start.y {
         // First line: from start.x to end of line
-        return x >= start.x;
+        x >= start.x
     } else if y == end.y {
         // Last line: from start of line to end.x
-        return x <= end.x;
+        x <= end.x
     } else {
         // Middle lines: entire line is selected
         true

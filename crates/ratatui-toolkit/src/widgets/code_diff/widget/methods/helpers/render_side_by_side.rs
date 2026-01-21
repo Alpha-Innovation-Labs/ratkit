@@ -9,7 +9,7 @@ use crate::widgets::code_diff::code_diff::CodeDiff;
 use crate::widgets::code_diff::enums::DiffLineKind;
 
 use super::build_aligned_lines::build_aligned_lines;
-use super::render_line::render_line;
+use super::render_line::{render_line, RenderLineContext};
 use super::render_line_number::render_line_number;
 
 /// Renders the diff in side-by-side mode.
@@ -93,16 +93,14 @@ pub fn render_side_by_side(diff: &CodeDiff, area: Rect, buf: &mut Buffer) {
                     left_bg,
                 );
 
-                render_line(
-                    left.as_ref(),
-                    &diff.config,
-                    theme,
+                let ctx = RenderLineContext {
+                    buf,
                     x,
                     y,
-                    left_width - (x - area.x),
-                    buf,
-                    true,
-                );
+                    width: left_width - (x - area.x),
+                    is_left: true,
+                };
+                render_line(left.as_ref(), &diff.config, theme, ctx);
 
                 // Render center divider
                 let divider_x = area.x + left_width;
@@ -124,16 +122,14 @@ pub fn render_side_by_side(diff: &CodeDiff, area: Rect, buf: &mut Buffer) {
                     right_bg,
                 );
 
-                render_line(
-                    right.as_ref(),
-                    &diff.config,
-                    theme,
+                let ctx = RenderLineContext {
+                    buf,
                     x,
                     y,
-                    right_width.saturating_sub(x - right_start),
-                    buf,
-                    false,
-                );
+                    width: right_width.saturating_sub(x - right_start),
+                    is_left: false,
+                };
+                render_line(right.as_ref(), &diff.config, theme, ctx);
             }
         }
     }

@@ -1,10 +1,8 @@
 //! Filter line up method for ScrollState.
 
-use crate::widgets::markdown_widget::state::scroll_state::ScrollState;
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::widgets::markdown_widget::state::scroll_state::ScrollState;
 
     #[test]
     fn test_filter_line_down_empty_filter() {

@@ -14,9 +14,7 @@ impl SplitLayout {
             match node {
                 LayoutNode::Pane { id } => {
                     if *id == pane_id {
-                        let Some(parent_index) = parent_index else {
-                            return None;
-                        };
+                        let parent_index = parent_index?;
                         let Some(LayoutNode::Split { first, .. }) = self.nodes.get(parent_index)
                         else {
                             return None;

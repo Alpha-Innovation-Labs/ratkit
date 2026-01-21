@@ -1,5 +1,4 @@
-use crate::widgets::ai_chat::state::{InputState, MessageStore};
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::Style;
 
 use crate::widgets::ai_chat::AIChat;
 

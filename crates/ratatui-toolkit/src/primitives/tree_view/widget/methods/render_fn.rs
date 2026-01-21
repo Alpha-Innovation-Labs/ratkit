@@ -3,7 +3,7 @@
 use ratatui::text::Line;
 
 use crate::primitives::tree_view::node_state::NodeState;
-use crate::primitives::tree_view::tree_view::TreeView;
+use crate::primitives::tree_view::widget::TreeView;
 
 impl<'a, T> TreeView<'a, T> {
     /// Sets the render function for nodes.

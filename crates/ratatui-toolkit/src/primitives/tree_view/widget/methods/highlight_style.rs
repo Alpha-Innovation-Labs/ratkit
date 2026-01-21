@@ -2,7 +2,7 @@
 
 use ratatui::style::Style;
 
-use crate::primitives::tree_view::tree_view::TreeView;
+use crate::primitives::tree_view::widget::TreeView;
 
 impl<'a, T> TreeView<'a, T> {
     /// Sets the highlight style for selected rows (full-width background).

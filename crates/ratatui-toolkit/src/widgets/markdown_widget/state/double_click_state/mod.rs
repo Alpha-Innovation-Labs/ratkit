@@ -7,7 +7,7 @@ pub mod traits;
 use std::time::Instant;
 
 /// State for tracking double-click detection with deferred single-click handling.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct DoubleClickState {
     /// Time of the last click.
     pub(crate) last_click_time: Option<Instant>,

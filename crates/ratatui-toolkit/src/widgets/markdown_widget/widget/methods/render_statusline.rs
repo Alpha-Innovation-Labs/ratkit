@@ -47,7 +47,7 @@ impl<'a> MarkdownWidget<'a> {
                     .app_theme
                     .map(|t| t.success)
                     .unwrap_or(Color::Rgb(152, 195, 121)); // green
-                let filter_text = self.filter.clone().unwrap_or_default();
+                let filter_text = self.filter.as_deref().unwrap_or("");
                 let display_text = format!(" /{} ", filter_text);
                 (display_text, color)
             }
@@ -138,7 +138,7 @@ impl<'a> MarkdownWidget<'a> {
         // Icons from lvim: LineAdded (U+EADC), LineModified (U+EADE), LineRemoved (U+EADF)
         // Get git stats from git_stats_state (which manages the caching/updates)
         // or fall back to manually-set widget stats
-        let git_stats = self.git_stats_state.git_stats().or(self.git_stats.clone());
+        let git_stats = self.git_stats_state.git_stats().or(self.git_stats);
         if let Some(stats) = &git_stats {
             // Use theme colors for git stats or fall back to defaults
             let green = Style::new().fg(self

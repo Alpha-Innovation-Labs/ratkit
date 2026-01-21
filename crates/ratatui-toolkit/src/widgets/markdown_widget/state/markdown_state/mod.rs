@@ -29,6 +29,7 @@ use crate::widgets::markdown_widget::state::{
 ///     .show_toc(true)
 ///     .show_statusline(true);
 /// ```
+#[derive(Default)]
 pub struct MarkdownState {
     /// Core scroll state (position, viewport, current line).
     pub scroll: ScrollState,

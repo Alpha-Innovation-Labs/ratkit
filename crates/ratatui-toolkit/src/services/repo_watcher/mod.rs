@@ -32,8 +32,6 @@ use std::path::PathBuf;
 use crate::services::file_watcher::{FileWatcher, WatchConfig, WatchMode};
 use crate::services::git_watcher::{GitWatchConfig, GitWatcher};
 
-pub use constructors::*;
-
 /// Configuration for the repository watcher.
 #[derive(Debug, Clone)]
 pub struct RepoWatchConfig {

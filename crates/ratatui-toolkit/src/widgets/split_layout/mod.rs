@@ -12,8 +12,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style},
     text::Line,
-    widgets::{Block, BorderType, Borders, StatefulWidget, Widget},
-    Frame,
+    widgets::{Block, BorderType, Borders, Widget},
 };
 
 /// State for SplitLayoutWidget interactions.
@@ -401,9 +400,10 @@ impl<'a> SplitLayoutWidget<'a> {
                 for y in rect.top()..rect.bottom() {
                     for dx in 0..width {
                         let x = divider_x.saturating_sub(dx);
-                        let cell = buf.get_mut(x, y);
-                        cell.set_style(style);
-                        cell.set_char('│');
+                        if let Some(cell) = buf.cell_mut((x, y)) {
+                            cell.set_style(style);
+                            cell.set_char('│');
+                        }
                     }
                 }
             }
@@ -414,9 +414,10 @@ impl<'a> SplitLayoutWidget<'a> {
                 for x in rect.left()..rect.right() {
                     for dy in 0..width {
                         let y = divider_y.saturating_sub(dy);
-                        let cell = buf.get_mut(x, y);
-                        cell.set_style(style);
-                        cell.set_char('─');
+                        if let Some(cell) = buf.cell_mut((x, y)) {
+                            cell.set_style(style);
+                            cell.set_char('─');
+                        }
                     }
                 }
             }

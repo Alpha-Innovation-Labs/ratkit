@@ -2,7 +2,7 @@
 
 use ratatui::widgets::Block;
 
-use crate::primitives::tree_view::tree_view::TreeView;
+use crate::primitives::tree_view::widget::TreeView;
 
 impl<'a, T> TreeView<'a, T> {
     /// Sets the block to wrap the tree.

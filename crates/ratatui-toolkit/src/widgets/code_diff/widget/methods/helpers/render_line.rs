@@ -9,6 +9,20 @@ use crate::widgets::code_diff::diff_config::DiffConfig;
 use crate::widgets::code_diff::diff_line::DiffLine;
 use crate::widgets::code_diff::enums::DiffLineKind;
 
+/// Context for rendering a diff line.
+pub struct RenderLineContext<'a> {
+    /// Buffer to render to.
+    pub buf: &'a mut Buffer,
+    /// Starting x position (after line number).
+    pub x: u16,
+    /// Y position.
+    pub y: u16,
+    /// Available width for content.
+    pub width: u16,
+    /// Whether this is the left (old) or right (new) panel.
+    pub is_left: bool,
+}
+
 /// Renders a single diff line content.
 ///
 /// # Arguments
@@ -16,20 +30,12 @@ use crate::widgets::code_diff::enums::DiffLineKind;
 /// * `line` - The diff line to render (None for empty filler)
 /// * `config` - Display configuration
 /// * `theme` - Application theme for colors
-/// * `x` - Starting x position (after line number)
-/// * `y` - Y position
-/// * `width` - Available width for content
-/// * `buf` - The buffer to render to
-/// * `is_left` - Whether this is the left (old) or right (new) panel
+/// * `ctx` - Rendering context with position, width, buffer, and panel info
 pub fn render_line(
     line: Option<&DiffLine>,
     config: &DiffConfig,
     theme: &AppTheme,
-    x: u16,
-    y: u16,
-    width: u16,
-    buf: &mut Buffer,
-    is_left: bool,
+    ctx: RenderLineContext,
 ) {
     let (bg_color, fg_color, prefix) = match line.map(|l| l.kind) {
         Some(DiffLineKind::Added) => (theme.diff.added_bg, theme.diff.added, '+'),
@@ -38,7 +44,7 @@ pub fn render_line(
         Some(DiffLineKind::HunkHeader) => (theme.background_panel, theme.text_muted, '@'),
         None => {
             // Empty filler - use the diff background colors
-            let filler_bg = if is_left {
+            let filler_bg = if ctx.is_left {
                 theme.diff.removed_bg
             } else {
                 theme.diff.added_bg
@@ -50,17 +56,17 @@ pub fn render_line(
     let style = Style::default().bg(bg_color).fg(fg_color);
 
     // Clear the line area with background
-    for col in x..x + width {
-        if let Some(cell) = buf.cell_mut(Position::new(col, y)) {
+    for col in ctx.x..ctx.x + ctx.width {
+        if let Some(cell) = ctx.buf.cell_mut(Position::new(col, ctx.y)) {
             cell.set_char(' ');
             cell.set_style(style);
         }
     }
 
     // Render gutter prefix
-    let mut current_x = x;
+    let mut current_x = ctx.x;
     if config.gutter_width > 0 {
-        if let Some(cell) = buf.cell_mut(Position::new(current_x, y)) {
+        if let Some(cell) = ctx.buf.cell_mut(Position::new(current_x, ctx.y)) {
             cell.set_char(prefix);
             cell.set_style(style);
         }
@@ -68,8 +74,8 @@ pub fn render_line(
 
         // Padding after prefix
         for _ in 1..config.gutter_width {
-            if current_x < x + width {
-                if let Some(cell) = buf.cell_mut(Position::new(current_x, y)) {
+            if current_x < ctx.x + ctx.width {
+                if let Some(cell) = ctx.buf.cell_mut(Position::new(current_x, ctx.y)) {
                     cell.set_char(' ');
                     cell.set_style(style);
                 }
@@ -81,10 +87,10 @@ pub fn render_line(
     // Render content
     if let Some(line) = line {
         for ch in line.content.chars() {
-            if current_x >= x + width {
+            if current_x >= ctx.x + ctx.width {
                 break;
             }
-            if let Some(cell) = buf.cell_mut(Position::new(current_x, y)) {
+            if let Some(cell) = ctx.buf.cell_mut(Position::new(current_x, ctx.y)) {
                 cell.set_char(ch);
                 cell.set_style(style);
             }

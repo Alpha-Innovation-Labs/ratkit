@@ -28,8 +28,6 @@ use notify::{Event, RecommendedWatcher};
 use std::path::PathBuf;
 use std::sync::mpsc::Receiver;
 
-pub use constructors::*;
-
 /// Configuration for the git watcher.
 #[derive(Debug, Clone)]
 pub struct GitWatchConfig {

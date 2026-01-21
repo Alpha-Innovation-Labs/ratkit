@@ -77,7 +77,7 @@ impl Widget for DiffFileTree {
         let focused = self.focused;
         let theme = self.theme.clone();
         let filter_mode = self.state.filter_mode;
-        let has_filter = self.state.filter.as_ref().map_or(false, |f| !f.is_empty());
+        let has_filter = self.state.filter.as_ref().is_some_and(|f| !f.is_empty());
         let show_filter_line = filter_mode || has_filter;
 
         // Calculate tree area (leave room for filter line if needed)
@@ -125,7 +125,7 @@ impl Widget for &DiffFileTree {
         let focused = self.focused;
         let theme = self.theme.clone();
         let filter_mode = self.state.filter_mode;
-        let has_filter = self.state.filter.as_ref().map_or(false, |f| !f.is_empty());
+        let has_filter = self.state.filter.as_ref().is_some_and(|f| !f.is_empty());
         let show_filter_line = filter_mode || has_filter;
         let mut state = self.state.clone();
 

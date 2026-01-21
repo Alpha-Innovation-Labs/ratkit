@@ -70,7 +70,7 @@ impl DiffFileTree {
         // First add root-level files
         if let Some(root_files) = dir_map.get("") {
             for (path, status) in root_files {
-                let name = path.split('/').last().unwrap_or(path);
+                let name = path.split('/').next_back().unwrap_or(path);
                 let entry = DiffFileEntry::file(name, path, *status);
                 nodes.push(TreeNode::new(entry));
             }
@@ -159,7 +159,7 @@ fn build_directory_node(dir_name: &str, files: &[(String, FileStatus)]) -> TreeN
     // Add direct files
     direct_files.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
     for (path, status) in direct_files {
-        let name = path.split('/').last().unwrap_or(&path);
+        let name = path.split('/').next_back().unwrap_or(&path);
         let entry = DiffFileEntry::file(name, &path, status);
         children.push(TreeNode::new(entry));
     }
@@ -226,7 +226,7 @@ fn build_subdirectory_node(
     // Add direct files
     direct_files.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
     for (path, status) in direct_files {
-        let name = path.split('/').last().unwrap_or(&path);
+        let name = path.split('/').next_back().unwrap_or(&path);
         let entry = DiffFileEntry::file(name, &path, status);
         children.push(TreeNode::new(entry));
     }

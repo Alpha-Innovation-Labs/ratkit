@@ -7,8 +7,8 @@ use ratatui::{
 
 use crate::primitives::tree_view::node_state::NodeState;
 use crate::primitives::tree_view::tree_node::TreeNode;
-use crate::primitives::tree_view::tree_view::TreeView;
 use crate::primitives::tree_view::tree_view_state::TreeViewState;
+use crate::primitives::tree_view::widget::TreeView;
 
 impl<'a, T> TreeView<'a, T> {
     /// Flattens the tree into a list of visible items.

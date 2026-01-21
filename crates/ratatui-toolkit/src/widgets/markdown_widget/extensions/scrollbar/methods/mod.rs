@@ -7,4 +7,3 @@ mod render_track;
 mod thumb_bounds;
 
 pub use click_to_offset::*;
-pub use thumb_bounds::*;

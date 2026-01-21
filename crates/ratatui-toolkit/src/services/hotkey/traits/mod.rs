@@ -1,5 +1,3 @@
-use crate::services::hotkey::HotkeyScope;
-
 pub mod has_hotkeys;
 pub mod hotkey_handler;
 

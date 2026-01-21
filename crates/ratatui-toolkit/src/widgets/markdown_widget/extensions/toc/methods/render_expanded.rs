@@ -3,7 +3,7 @@
 use ratatui::{buffer::Buffer, layout::Rect};
 use unicode_width::UnicodeWidthStr;
 
-use crate::widgets::markdown_widget::extensions::toc::Toc;
+use crate::widgets::markdown_widget::extensions::toc::{Toc, TocStyle};
 
 impl<'a> Toc<'a> {
     /// Render the TOC in expanded mode (full heading text).
@@ -54,9 +54,30 @@ impl<'a> Toc<'a> {
                 (self.config.text_style, false)
             };
 
+            // Clerk-style accent line on the left
+            let accent_char = '│';
+            let is_active_or_hovered =
+                Some(entry_idx) == hovered_index || Some(entry_idx) == active_index;
+            let accent_style = if is_active_or_hovered {
+                self.config.active_accent_style
+            } else if self.config.style == TocStyle::Clerk {
+                // Subtle accent for inactive entries in clerk mode
+                self.config.accent_style
+            } else {
+                text_style
+            };
+
+            // Render clerk-style accent bar on left
+            if self.config.style == TocStyle::Clerk {
+                let accent_x = area.x;
+                if let Some(cell) = buf.cell_mut((accent_x, y)) {
+                    cell.set_char(accent_char).set_style(accent_style);
+                }
+            }
+
             // Fill background for hovered items
             if fill_bg {
-                for x in area.x..area.x + area.width {
+                for x in area.x + 1..area.x + area.width {
                     if let Some(cell) = buf.cell_mut((x, y)) {
                         cell.set_style(self.config.hover_style);
                     }

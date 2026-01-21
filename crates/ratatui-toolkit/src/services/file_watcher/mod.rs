@@ -39,8 +39,6 @@ use notify::{Event, RecommendedWatcher};
 use std::path::PathBuf;
 use std::sync::mpsc::Receiver;
 
-pub use constructors::*;
-
 /// Mode for file watching.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum WatchMode {

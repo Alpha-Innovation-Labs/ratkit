@@ -1,8 +1,8 @@
 use ratatui::{
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, Wrap},
+    widgets::{Block, BorderType, Borders, List, ListItem, Paragraph},
     Frame,
 };
 
@@ -117,7 +117,7 @@ impl<'a> AIChat<'a> {
         if cursor_pos < input_text.len() + prompt.len() {
             let cursor_x = area.x + cursor_pos as u16;
             let cursor_y = area.y;
-            frame.set_cursor(cursor_x, cursor_y);
+            frame.set_cursor_position((cursor_x, cursor_y));
         }
     }
 

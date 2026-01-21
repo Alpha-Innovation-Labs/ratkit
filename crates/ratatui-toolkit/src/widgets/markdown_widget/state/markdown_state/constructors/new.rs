@@ -1,10 +1,7 @@
 //! Constructor for MarkdownState.
 
 use crate::widgets::markdown_widget::state::markdown_state::MarkdownState;
-use crate::widgets::markdown_widget::state::{
-    CacheState, CollapseState, DisplaySettings, DoubleClickState, ExpandableState, GitStatsState,
-    ScrollState, SelectionState, SourceState, VimState,
-};
+use crate::widgets::markdown_widget::state::DisplaySettings;
 
 impl MarkdownState {
     /// Create a new MarkdownState with all default values.

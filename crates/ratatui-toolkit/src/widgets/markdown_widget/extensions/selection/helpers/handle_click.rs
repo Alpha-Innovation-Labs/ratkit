@@ -43,11 +43,11 @@ pub fn handle_click(
 
     for (idx, element) in elements.iter().enumerate() {
         // Skip elements that shouldn't be rendered (collapsed sections)
-        if !should_render_line(&element, idx, collapse) {
+        if !should_render_line(element, idx, collapse) {
             continue;
         }
 
-        let rendered = render(&element, width);
+        let rendered = render(element, width);
         let line_count = rendered.len();
 
         if document_y >= line_idx && document_y < line_idx + line_count {

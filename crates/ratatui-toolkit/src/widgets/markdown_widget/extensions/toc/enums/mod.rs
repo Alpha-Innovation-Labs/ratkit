@@ -2,4 +2,4 @@
 
 pub mod toc_config;
 
-pub use toc_config::TocConfig;
+pub use toc_config::{TocConfig, TocStyle};

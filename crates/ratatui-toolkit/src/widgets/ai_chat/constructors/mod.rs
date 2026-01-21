@@ -9,7 +9,6 @@ impl<'a> AIChat<'a> {
         Self {
             messages,
             input,
-            attached_files: Vec::new(),
             is_loading: false,
             user_message_style: Style::default()
                 .fg(Color::LightCyan)
