@@ -7,7 +7,7 @@ use ratatui::layout::Rect;
 use ratatui_toolkit::services::file_watcher::FileWatcher;
 use ratatui_toolkit::{
     AppTheme, CodeDiff, DoubleClickState, FileSystemTree, InputState, MenuBar, MessageRole,
-    MessageStore, ResizableSplit, SelectionState, TermTui, ToastManager, TreeNavigator,
+    MessageStore, ResizableGrid, SelectionState, TermTui, ToastManager, TreeNavigator,
     TreeViewState,
 };
 use ratatui_toolkit::{
@@ -84,12 +84,10 @@ pub struct App {
     // Terminal demo
     pub terminal: Option<TermTui>,
     pub terminal2: Option<TermTui>,
-    pub terminal_split: ResizableSplit,
+    pub terminal_split: ResizableGrid,
 
-    // Grid demo splits
-    pub grid_row_split: ResizableSplit,
-    pub grid_left_split: ResizableSplit,
-    pub grid_right_split: ResizableSplit,
+    // Grid demo splits - now a single unified grid
+    pub grid_split: ResizableGrid,
 
     // AI Chat demo
     pub ai_chat_messages: MessageStore,

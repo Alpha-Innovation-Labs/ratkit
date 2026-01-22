@@ -58,22 +58,22 @@ impl CodeDiff {
                 }
             }
             MouseEventKind::Drag(MouseButton::Left) => {
-                if self.sidebar_split.is_dragging {
+                if self.sidebar_split.is_dragging() {
                     self.sidebar_split
                         .update_from_mouse(event.column, event.row, area);
                     return true;
                 }
             }
             MouseEventKind::Up(MouseButton::Left) => {
-                if self.sidebar_split.is_dragging {
+                if self.sidebar_split.is_dragging() {
                     self.sidebar_split.stop_drag();
                     return true;
                 }
             }
             MouseEventKind::Moved => {
-                self.sidebar_split.is_hovering =
+                self.sidebar_split.hovered_split =
                     self.sidebar_split
-                        .is_on_divider(event.column, event.row, area);
+                        .find_divider_at(event.column, event.row, area);
             }
             _ => {}
         }

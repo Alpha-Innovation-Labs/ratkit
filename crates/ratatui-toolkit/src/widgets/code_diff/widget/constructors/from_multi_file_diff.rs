@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use crate::primitives::resizable_split::ResizableSplit;
+use crate::primitives::resizable_grid::ResizableGrid;
 use crate::services::theme::AppTheme;
 use crate::widgets::code_diff::code_diff::CodeDiff;
 use crate::widgets::code_diff::diff_config::DiffConfig;
@@ -91,10 +91,10 @@ impl CodeDiff {
         // Enable sidebar if multiple files
         let show_sidebar = files.len() > 1 || config.sidebar_enabled;
 
-        // Create ResizableSplit with config values
-        let mut sidebar_split = ResizableSplit::new(config.sidebar_default_width);
-        sidebar_split.min_percent = config.sidebar_min_width;
-        sidebar_split.max_percent = config.sidebar_max_width;
+        let mut sidebar_split = ResizableGrid::new(0);
+        sidebar_split.split_pane_vertically(0);
+        let split_index = 0;
+        sidebar_split.resize_split(split_index, config.sidebar_default_width);
 
         Self {
             file_path,

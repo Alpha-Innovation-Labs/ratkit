@@ -19,9 +19,8 @@ use ratatui::{
     Terminal,
 };
 use ratatui_toolkit::{
-    primitives::split_layout::SplitLayout,
+    primitives::resizable_grid::{ResizableGrid, ResizableGridWidget, ResizableGridWidgetState},
     services::theme::loader::load_builtin_theme,
-    widgets::split_layout::{SplitLayoutWidget, SplitLayoutWidgetState},
     AppTheme, ThemeVariant,
 };
 
@@ -42,7 +41,7 @@ fn main() -> io::Result<()> {
 
     let theme = load_builtin_theme("ayu", ThemeVariant::Dark).unwrap_or_default();
 
-    let mut split_layout = SplitLayout::new(0);
+    let mut split_layout = ResizableGrid::new(0);
     let pane_2 = split_layout.split_pane_horizontally(0).unwrap();
     let _pane_3 = split_layout.split_pane_vertically(pane_2).unwrap();
     let _pane_4 = split_layout.split_pane_vertically(1).unwrap();
@@ -52,9 +51,9 @@ fn main() -> io::Result<()> {
     let _ = split_layout.resize_divider(pane_2, 50);
     let _ = split_layout.resize_divider(1, 50);
 
-    let mut widget = SplitLayoutWidget::new(&mut split_layout)
+    let mut widget = ResizableGridWidget::new(&mut split_layout)
         .with_divider_style(Style::default().fg(theme.primary));
-    let mut widget_state = SplitLayoutWidgetState::default();
+    let mut widget_state = ResizableGridWidgetState::default();
 
     let result = run_demo(&mut terminal, &mut widget, &mut widget_state, &theme);
 
@@ -71,8 +70,8 @@ fn main() -> io::Result<()> {
 
 fn run_demo(
     terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
-    widget: &mut SplitLayoutWidget<'_>,
-    widget_state: &mut SplitLayoutWidgetState,
+    widget: &mut ResizableGridWidget<'_>,
+    widget_state: &mut ResizableGridWidgetState,
     theme: &AppTheme,
 ) -> io::Result<()> {
     let mut render_area = Rect::default();
@@ -88,7 +87,7 @@ fn run_demo(
         terminal.draw(|frame| {
             render_area = frame.area();
 
-            let render_widget = SplitLayoutWidget::new(widget.layout_mut())
+            let render_widget = ResizableGridWidget::new(widget.layout_mut())
                 .with_state(*widget_state)
                 .with_block(
                     Block::default()

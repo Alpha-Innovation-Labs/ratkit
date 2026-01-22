@@ -47,7 +47,7 @@ pub mod traits;
 
 use std::collections::HashMap;
 
-use crate::primitives::resizable_split::ResizableSplit;
+use crate::primitives::resizable_grid::ResizableGrid;
 use crate::services::theme::AppTheme;
 use crate::widgets::code_diff::diff_config::DiffConfig;
 use crate::widgets::code_diff::diff_file_tree::DiffFileTree;
@@ -114,8 +114,8 @@ pub struct CodeDiff {
     /// Whether the sidebar is currently visible.
     pub show_sidebar: bool,
 
-    /// Resizable split for sidebar/diff area division with mouse drag support.
-    pub sidebar_split: ResizableSplit,
+    /// Resizable grid for sidebar/diff area division with mouse drag support.
+    pub sidebar_split: ResizableGrid,
 
     /// Whether the sidebar has focus (vs diff view).
     pub sidebar_focused: bool,

@@ -7,6 +7,6 @@ impl CodeDiff {
     ///
     /// This can be used to change the cursor style.
     pub fn is_sidebar_hovering(&self) -> bool {
-        self.sidebar_split.is_hovering
+        self.sidebar_split.is_hovering()
     }
 }

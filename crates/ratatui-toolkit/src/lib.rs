@@ -77,8 +77,6 @@ pub use primitives::button::Button;
 pub use primitives::pane::Pane;
 pub use widgets::ai_chat::{AIChat, AIChatEvent, InputState, Message, MessageRole, MessageStore};
 pub use widgets::code_diff::{CodeDiff, DiffConfig, DiffHunk, DiffLine, DiffLineKind, DiffStyle};
-pub use widgets::split_layout::SplitLayoutWidget;
-pub use widgets::split_layout::SplitLayoutWidgetState;
 
 // Feature-gated re-exports
 #[cfg(feature = "dialog")]
@@ -91,10 +89,11 @@ pub use primitives::toast::render::render_toasts;
 #[cfg(feature = "toast")]
 pub use primitives::toast::{Toast, ToastLevel, ToastManager};
 
+// New unified resizable_grid module
 #[cfg(feature = "split")]
-pub use primitives::resizable_split::{ResizableSplit, SplitDirection};
-#[cfg(feature = "split")]
-pub use primitives::split_layout::{PaneId, PaneLayout, SplitAxis, SplitLayout};
+pub use primitives::resizable_grid::{
+    ResizableGrid, ResizableGridWidget, ResizableGridWidgetState,
+};
 
 #[cfg(feature = "tree")]
 pub use primitives::tree_view::{
@@ -164,12 +163,11 @@ pub mod prelude {
     #[cfg(feature = "toast")]
     pub use crate::primitives::toast::{Toast, ToastLevel, ToastManager};
 
+    // New unified resizable_grid module
     #[cfg(feature = "split")]
-    pub use crate::primitives::resizable_split::{ResizableSplit, SplitDirection};
-    #[cfg(feature = "split")]
-    pub use crate::primitives::split_layout::{PaneId, PaneLayout, SplitAxis, SplitLayout};
-    #[cfg(feature = "split")]
-    pub use crate::widgets::split_layout::{SplitLayoutWidget, SplitLayoutWidgetState};
+    pub use crate::primitives::resizable_grid::{
+        ResizableGrid, ResizableGridWidget, ResizableGridWidgetState,
+    };
 
     #[cfg(feature = "tree")]
     pub use crate::primitives::tree_view::{

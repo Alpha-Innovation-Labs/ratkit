@@ -7,8 +7,8 @@ use ratatui_toolkit::services::theme::persistence::load_saved_theme;
 use ratatui_toolkit::ThemeVariant;
 use ratatui_toolkit::{
     AppTheme, CodeDiff, DiffConfig, DoubleClickState, FileSystemTree, InputState, MarkdownState,
-    MenuBar, MenuItem, MessageStore, ResizableSplit, SelectionState, SplitDirection, TermTui,
-    ToastManager, TreeNavigator, TreeViewState,
+    MenuBar, MenuItem, MessageStore, ResizableGrid, SelectionState, TermTui, ToastManager,
+    TreeNavigator, TreeViewState,
 };
 use ratatui_toolkit::{
     CacheState, CollapseState, DisplaySettings, ExpandableState, GitStatsState, ScrollState,
@@ -76,9 +76,31 @@ impl App {
         .with_theme(&theme);
 
         // Create resizable grid splits
-        let grid_row_split = ResizableSplit::new_with_direction(60, SplitDirection::Horizontal);
-        let grid_left_split = ResizableSplit::new_with_direction(33, SplitDirection::Vertical);
-        let grid_right_split = ResizableSplit::new_with_direction(50, SplitDirection::Vertical);
+        // Terminal split: simple vertical split between terminal 1 and 2
+        let mut terminal_split = ResizableGrid::new(0);
+        let _ = terminal_split.split_pane_vertically(0);
+        let _ = terminal_split.resize_split(0, 50);
+
+        // Grid demo: create a grid with 5 panes (2x2 + 1)
+        // Structure: row split (top/bottom) -> left is pane 0, right is another split
+        // Right split -> left is pane 1, right is another split
+        // Right-right split -> left is pane 2, right is split for panes 3 and 4
+        let mut grid_split = ResizableGrid::new(0);
+        let _ = grid_split.split_pane_horizontally(0); // Split 0: row split (pane 0 | split 1)
+        let _ = grid_split.split_pane_vertically(0).unwrap(); // Split 1: left vertical (pane 1 | split 2)
+        let right_of_split1 = grid_split.split_pane_vertically(1).unwrap(); // Split 2: right vertical (pane 2 | split 3)
+        let _ = grid_split.split_pane_vertically(right_of_split1).unwrap(); // Split 3: bottom-right vertical (pane 3 | pane 4)
+
+        // Set initial split ratios
+        let _ = grid_split.resize_split(0, 60); // Row split at 60%
+        let _ = grid_split.resize_split(1, 33); // Left split at 33%
+        let _ = grid_split.resize_split(2, 50); // Middle split at 50%
+        let _ = grid_split.resize_split(3, 50); // Bottom-right split at 50%
+
+        // Grid demo splits - we use the same grid but track different parts
+        // These are just references to pane IDs for display purposes in the tree
+        let _grid_left_pane_id = 0; // Top-left
+        let _grid_right_pane_id = 2; // Top-middle
 
         // Create markdown state modules
         let mut markdown_source = SourceState::default();
@@ -95,6 +117,9 @@ impl App {
 
         let mut markdown_git_stats = GitStatsState::default();
         markdown_git_stats.set_show(true);
+
+        let mut terminal_split = ResizableGrid::new(2);
+        let _ = terminal_split.split_pane_vertically(2);
 
         Self {
             current_tab: DemoTab::Markdown,
@@ -139,10 +164,8 @@ impl App {
             toc_scroll_offset: 0,
             terminal,
             terminal2,
-            terminal_split: ResizableSplit::new(50),
-            grid_row_split,
-            grid_left_split,
-            grid_right_split,
+            terminal_split,
+            grid_split,
             ai_chat_messages: MessageStore::new(),
             ai_chat_input: InputState::new(),
             ai_chat_loading: false,

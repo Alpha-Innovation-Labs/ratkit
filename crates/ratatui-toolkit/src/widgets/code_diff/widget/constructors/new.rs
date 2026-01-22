@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::primitives::resizable_split::ResizableSplit;
+use crate::primitives::resizable_grid::ResizableGrid;
 use crate::services::theme::AppTheme;
 use crate::widgets::code_diff::code_diff::CodeDiff;
 use crate::widgets::code_diff::diff_config::DiffConfig;
@@ -23,9 +23,10 @@ impl CodeDiff {
     /// ```
     pub fn new() -> Self {
         let config = DiffConfig::new();
-        let mut sidebar_split = ResizableSplit::new(config.sidebar_default_width);
-        sidebar_split.min_percent = config.sidebar_min_width;
-        sidebar_split.max_percent = config.sidebar_max_width;
+        let mut sidebar_split = ResizableGrid::new(0);
+        sidebar_split.split_pane_vertically(0);
+        let split_index = 0;
+        sidebar_split.resize_split(split_index, config.sidebar_default_width);
         Self {
             file_path: None,
             hunks: Vec::new(),

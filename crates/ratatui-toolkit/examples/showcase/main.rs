@@ -201,11 +201,11 @@ fn main() -> io::Result<()> {
         }
 
         // Adaptive polling: fast during drag for smooth resize, slower otherwise to save CPU
-        let poll_timeout = if app.terminal_split.is_dragging
+        let poll_timeout = if app.terminal_split.is_dragging()
             || app.code_diff.is_sidebar_dragging()
-            || app.grid_row_split.is_dragging
-            || app.grid_left_split.is_dragging
-            || app.grid_right_split.is_dragging
+            || app.grid_split.is_dragging()
+            || app.grid_split.is_dragging()
+            || app.grid_split.is_dragging()
         {
             std::time::Duration::from_millis(8) // ~120fps for smooth dragging
         } else {
@@ -690,9 +690,9 @@ fn main() -> io::Result<()> {
                             .split(area);
                         let content_area = main_chunks[1];
 
-                        let left_width = (content_area.width as u32
-                            * app.terminal_split.split_percent as u32
-                            / 100) as u16;
+                        let left_width = ((content_area.width as u32
+                            * app.terminal_split.split_percent() as u32
+                            / 100)) as u16;
 
                         let left_terminal_area = Rect {
                             x: content_area.x,
@@ -720,7 +720,7 @@ fn main() -> io::Result<()> {
                                 }
                             }
                             MouseEventKind::Drag(MouseButton::Left) => {
-                                if app.terminal_split.is_dragging {
+                                if app.terminal_split.is_dragging() {
                                     app.terminal_split.update_from_mouse(
                                         mouse.column,
                                         mouse.row,
@@ -729,12 +729,12 @@ fn main() -> io::Result<()> {
                                 }
                             }
                             MouseEventKind::Up(MouseButton::Left) => {
-                                if app.terminal_split.is_dragging {
+                                if app.terminal_split.is_dragging() {
                                     app.terminal_split.stop_drag();
                                 }
                             }
                             MouseEventKind::Moved => {
-                                app.terminal_split.is_hovering = app.terminal_split.is_on_divider(
+                                app.terminal_split.hovered_split = app.terminal_split.find_divider_at(
                                     mouse.column,
                                     mouse.row,
                                     content_area,
@@ -744,7 +744,7 @@ fn main() -> io::Result<()> {
                         }
 
                         // Only handle terminal events when NOT dragging divider
-                        if !app.terminal_split.is_dragging {
+                        if !app.terminal_split.is_dragging() {
                             if let Some(ref mut term) = app.terminal {
                                 term.handle_mouse(mouse, left_terminal_area);
                             }
@@ -767,57 +767,47 @@ fn main() -> io::Result<()> {
                             .border_type(BorderType::Rounded)
                             .inner(content_area);
 
-                        app.grid_row_split.update_divider_position(grid_area);
-                        app.grid_left_split.update_divider_position(grid_area);
+                        app.grid_split.update_divider_position(grid_area);
+                        app.grid_split.update_divider_position(grid_area);
 
-                        let left_width = (grid_area.width as u32
-                            * app.grid_left_split.split_percent as u32
-                            / 100) as u16;
+                        let left_width = ((grid_area.width as u32
+                            * app.grid_split.split_percent() as u32
+                            / 100)) as u16;
                         let right_area = Rect {
                             x: grid_area.x + left_width,
                             y: grid_area.y,
                             width: grid_area.width.saturating_sub(left_width),
                             height: grid_area.height,
                         };
-                        app.grid_right_split.update_divider_position(right_area);
+                        app.grid_split.update_divider_position(right_area);
 
                         match mouse.kind {
                             MouseEventKind::Down(MouseButton::Left) => {
-                                if app.grid_right_split.is_on_divider(
+                                if app.grid_split.is_on_divider(
                                     mouse.column,
                                     mouse.row,
                                     right_area,
                                 ) {
-                                    app.grid_right_split.start_drag();
-                                } else if app.grid_left_split.is_on_divider(
+                                    app.grid_split.start_drag();
+                                } else if app.grid_split.is_on_divider(
                                     mouse.column,
                                     mouse.row,
                                     grid_area,
                                 ) {
-                                    app.grid_left_split.start_drag();
-                                } else if app.grid_row_split.is_on_divider(
+                                    app.grid_split.start_drag();
+                                } else if app.grid_split.is_on_divider(
                                     mouse.column,
                                     mouse.row,
                                     grid_area,
                                 ) {
-                                    app.grid_row_split.start_drag();
+                                    app.grid_split.start_drag();
                                 }
                             }
                             MouseEventKind::Drag(MouseButton::Left) => {
-                                if app.grid_right_split.is_dragging {
-                                    app.grid_right_split.update_from_mouse(
-                                        mouse.column,
-                                        mouse.row,
-                                        right_area,
-                                    );
-                                } else if app.grid_left_split.is_dragging {
-                                    app.grid_left_split.update_from_mouse(
-                                        mouse.column,
-                                        mouse.row,
-                                        grid_area,
-                                    );
-                                } else if app.grid_row_split.is_dragging {
-                                    app.grid_row_split.update_from_mouse(
+                                if app.grid_split.is_dragging() {
+                                } else if app.grid_split.is_dragging() {
+                                } else if app.grid_split.is_dragging() {
+                                    app.grid_split.update_from_mouse(
                                         mouse.column,
                                         mouse.row,
                                         grid_area,
@@ -825,32 +815,54 @@ fn main() -> io::Result<()> {
                                 }
                             }
                             MouseEventKind::Up(MouseButton::Left) => {
-                                app.grid_right_split.stop_drag();
-                                app.grid_left_split.stop_drag();
-                                app.grid_row_split.stop_drag();
+                                app.grid_split.stop_drag();
+                                app.grid_split.stop_drag();
+                                app.grid_split.stop_drag();
                             }
                             MouseEventKind::Moved => {
-                                let on_right_divider = app.grid_right_split.is_on_divider(
+                                let on_right_divider = app.grid_split.is_on_divider(
                                     mouse.column,
                                     mouse.row,
                                     right_area,
                                 );
-                                let on_left_divider = app.grid_left_split.is_on_divider(
+                                let on_left_divider = app.grid_split.is_on_divider(
                                     mouse.column,
                                     mouse.row,
                                     grid_area,
                                 );
-                                let on_row_divider = app.grid_row_split.is_on_divider(
+                                let on_row_divider = app.grid_split.is_on_divider(
                                     mouse.column,
                                     mouse.row,
                                     grid_area,
                                 );
 
-                                app.grid_right_split.is_hovering = on_right_divider;
-                                app.grid_left_split.is_hovering =
-                                    !on_right_divider && on_left_divider;
-                                app.grid_row_split.is_hovering =
-                                    !on_right_divider && !on_left_divider && on_row_divider;
+                                app.grid_split.hovered_split = if on_right_divider {
+                                    app.grid_split.find_divider_at(
+                                        mouse.column,
+                                        mouse.row,
+                                        right_area,
+                                    )
+                                } else {
+                                    None
+                                };
+                                app.grid_split.hovered_split = if !on_right_divider && on_left_divider {
+                                    app.grid_split.find_divider_at(
+                                        mouse.column,
+                                        mouse.row,
+                                        grid_area,
+                                    )
+                                } else {
+                                    None
+                                };
+                                app.grid_split.hovered_split = if !on_right_divider && !on_left_divider && on_row_divider {
+                                    app.grid_split.find_divider_at(
+                                        mouse.column,
+                                        mouse.row,
+                                        grid_area,
+                                    )
+                                } else {
+                                    None
+                                };
                             }
                             _ => {}
                         }

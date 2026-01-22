@@ -1,6 +1,6 @@
-//! SplitLayout widget with integrated hover and mouse handling.
+//! ResizableGrid widget with integrated hover and mouse handling.
 //!
-//! This widget wraps the SplitLayout primitive and provides:
+//! This widget wraps the ResizableGrid primitive and provides:
 //! - Mouse hover detection on dividers
 //! - Drag-to-resize functionality
 //! - Optional styling for dividers and panes
@@ -14,28 +14,27 @@
 //! ```rust
 //! use crossterm::event::MouseEvent;
 //! use ratatui::{Frame, layout::Rect};
-//! use ratatui_toolkit::primitives::split_layout::SplitLayout;
-//! use ratatui_toolkit::widgets::split_layout::{SplitLayoutWidget, SplitLayoutWidgetState};
+//! use ratatui_toolkit::primitives::resizable_grid::ResizableGrid;
+//! use ratatui_toolkit::primitives::resizable_grid::{ResizableGridWidget, ResizableGridWidgetState};
 //!
 //! struct App {
-//!     layout: SplitLayout,
-//!     split_state: SplitLayoutWidgetState,
+//!     layout: ResizableGrid,
+//!     split_state: ResizableGridWidgetState,
 //! }
 //!
 //! impl App {
 //!     fn new() -> Self {
-//!         let mut layout = SplitLayout::new(0);
+//!         let mut layout = ResizableGrid::new(0);
 //!         let right_pane = layout.split_pane_horizontally(0).unwrap();
-//!         let _ = layout.resize_divider(right_pane, 20);
 //!
 //!         Self {
 //!             layout,
-//!             split_state: SplitLayoutWidgetState::default(),
+//!             split_state: ResizableGridWidgetState::default(),
 //!         }
 //!     }
 //!
 //!     fn handle_mouse(&mut self, mouse: MouseEvent, render_area: Rect) {
-//!         let mut widget = SplitLayoutWidget::new(&mut self.layout)
+//!         let mut widget = ResizableGridWidget::new(&mut self.layout)
 //!             .with_state(self.split_state);
 //!
 //!         widget.handle_mouse(mouse, render_area);
@@ -43,7 +42,7 @@
 //!     }
 //!
 //!     fn render(&mut self, frame: &mut Frame, area: Rect) {
-//!         let mut widget = SplitLayoutWidget::new(&mut self.layout)
+//!         let mut widget = ResizableGridWidget::new(&mut self.layout)
 //!             .with_state(self.split_state);
 //!
 //!         self.split_state = widget.state();
@@ -57,14 +56,15 @@
 //! # Do / Don't
 //!
 //! Do:
-//! - Use `SplitLayoutWidget` for drag-resize interaction.
+//! - Use `ResizableGridWidget` for drag-resize interaction.
 //! - Call `handle_mouse(mouse, render_area)` with the same area you render into.
-//! - Persist `SplitLayoutWidgetState` across frames.
+//! - Persist `ResizableGridWidgetState` across frames.
 //!
 //! Don't:
-//! - Expect `SplitLayout` to handle mouse events by itself.
+//! - Expect `ResizableGrid` to handle mouse events by itself.
 
-use crate::primitives::split_layout::{PaneLayout, SplitAxis, SplitDividerLayout, SplitLayout};
+use crate::primitives::resizable_grid::layout::PaneLayout;
+use crate::primitives::resizable_grid::types::{ResizableGrid, SplitAxis, SplitDividerLayout};
 use crossterm::event::{MouseButton, MouseEvent, MouseEventKind};
 use ratatui::{
     layout::Rect,
@@ -73,19 +73,19 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Widget},
 };
 
-/// State for SplitLayoutWidget interactions.
+/// State for ResizableGridWidget interactions.
 ///
 /// This can be stored in app state to preserve hover and drag
 /// information across frames.
 #[derive(Debug, Clone, Copy, Default)]
-pub struct SplitLayoutWidgetState {
+pub struct ResizableGridWidgetState {
     /// Index of the divider currently being hovered
     pub hovered_divider: Option<usize>,
     /// Index of the divider currently being dragged
     pub dragging_divider: Option<usize>,
 }
 
-/// A widget that wraps SplitLayout with mouse interaction support.
+/// A widget that wraps ResizableGrid with mouse interaction support.
 ///
 /// This widget manages hover state, drag state, and handles mouse events
 /// to resize dividers. It also provides styling options for visual feedback
@@ -96,23 +96,22 @@ pub struct SplitLayoutWidgetState {
 /// # Example
 ///
 /// ```rust
-/// use ratatui_toolkit::widgets::split_layout::{SplitLayoutWidget, SplitLayoutWidgetState};
-/// use ratatui_toolkit::primitives::split_layout::SplitLayout;
+/// use ratatui_toolkit::primitives::resizable_grid::{ResizableGridWidget, ResizableGridWidgetState};
+/// use ratatui_toolkit::primitives::resizable_grid::ResizableGrid;
 ///
-/// let mut layout = SplitLayout::new(0);
-/// layout.split_pane_vertically(0);
-/// let mut state = SplitLayoutWidgetState::default();
+/// let mut layout = ResizableGrid::new(0);
+/// let mut state = ResizableGridWidgetState::default();
 ///
-/// let widget = SplitLayoutWidget::new(&mut layout)
+/// let widget = ResizableGridWidget::new(&mut layout)
 ///     .with_divider_width(1)
 ///     .with_hit_threshold(2);
 /// ```
 #[derive(Debug)]
-pub struct SplitLayoutWidget<'a> {
-    /// Reference to the underlying SplitLayout
-    layout: &'a mut SplitLayout,
+pub struct ResizableGridWidget<'a> {
+    /// Reference to the underlying ResizableGrid
+    layout: &'a mut ResizableGrid,
     /// State for hover and drag interactions
-    state: SplitLayoutWidgetState,
+    state: ResizableGridWidgetState,
     /// Width of divider lines in columns
     divider_width: u16,
     /// Hit detection threshold in columns/rows
@@ -129,12 +128,12 @@ pub struct SplitLayoutWidget<'a> {
     show_pane_borders: bool,
 }
 
-impl<'a> SplitLayoutWidget<'a> {
-    /// Create a new SplitLayoutWidget wrapping a SplitLayout.
-    pub fn new(layout: &'a mut SplitLayout) -> Self {
+impl<'a> ResizableGridWidget<'a> {
+    /// Create a new ResizableGridWidget wrapping a ResizableGrid.
+    pub fn new(layout: &'a mut ResizableGrid) -> Self {
         Self {
             layout,
-            state: SplitLayoutWidgetState::default(),
+            state: ResizableGridWidgetState::default(),
             divider_width: 1,
             hit_threshold: 2,
             hover_style: Style::default()
@@ -150,13 +149,13 @@ impl<'a> SplitLayoutWidget<'a> {
     }
 
     /// Set the widget state (for preserving hover/drag across frames).
-    pub fn with_state(mut self, state: SplitLayoutWidgetState) -> Self {
+    pub fn with_state(mut self, state: ResizableGridWidgetState) -> Self {
         self.state = state;
         self
     }
 
     /// Get the current widget state (for saving after frame).
-    pub fn state(&self) -> SplitLayoutWidgetState {
+    pub fn state(&self) -> ResizableGridWidgetState {
         self.state
     }
 
@@ -180,12 +179,12 @@ impl<'a> SplitLayoutWidget<'a> {
     }
 
     /// Get a reference to the underlying layout.
-    pub fn layout(&self) -> &SplitLayout {
+    pub fn layout(&self) -> &ResizableGrid {
         self.layout
     }
 
     /// Get a mutable reference to the underlying layout.
-    pub fn layout_mut(&mut self) -> &mut SplitLayout {
+    pub fn layout_mut(&mut self) -> &mut ResizableGrid {
         self.layout
     }
 
@@ -353,7 +352,7 @@ impl<'a> SplitLayoutWidget<'a> {
     /// Resize a divider based on mouse position.
     ///
     /// Calculates new split percentage based on mouse position and calls
-    /// resize_divider on the SplitLayout.
+    /// resize_divider on the ResizableGrid.
     fn resize_divider(&mut self, split_index: usize, column: u16, row: u16, area: Rect) {
         let layouts = self.layout.layout_dividers(area);
         let divider_layout = layouts
@@ -392,7 +391,7 @@ impl<'a> SplitLayoutWidget<'a> {
     }
 }
 
-impl<'a> Widget for SplitLayoutWidget<'a> {
+impl<'a> Widget for ResizableGridWidget<'a> {
     fn render(self, area: Rect, buf: &mut ratatui::buffer::Buffer) {
         let mut render_area = area;
 
@@ -441,7 +440,7 @@ impl<'a> Widget for SplitLayoutWidget<'a> {
     }
 }
 
-impl<'a> SplitLayoutWidget<'a> {
+impl<'a> ResizableGridWidget<'a> {
     /// Render a visual overlay on the divider to indicate it's active.
     fn render_divider_overlay(
         &self,
@@ -492,18 +491,18 @@ mod tests {
 
     #[test]
     fn test_widget_creation() {
-        let mut layout = SplitLayout::new(0);
-        let widget = SplitLayoutWidget::new(&mut layout);
+        let mut layout = ResizableGrid::new(0);
+        let widget = ResizableGridWidget::new(&mut layout);
         assert!(!widget.is_hovering());
         assert!(!widget.is_dragging());
     }
 
     #[test]
     fn test_hover_on_horizontal_divider() {
-        let mut layout = SplitLayout::new(0);
+        let mut layout = ResizableGrid::new(0);
         let _pane_2 = layout.split_pane_vertically(0).unwrap();
 
-        let mut widget = SplitLayoutWidget::new(&mut layout);
+        let mut widget = ResizableGridWidget::new(&mut layout);
 
         let area = Rect::new(0, 0, 80, 24);
 
@@ -524,22 +523,22 @@ mod tests {
 
     #[test]
     fn test_divider_hit_threshold() {
-        let mut layout = SplitLayout::new(0);
+        let mut layout = ResizableGrid::new(0);
         let _pane_2 = layout.split_pane_horizontally(0).unwrap();
 
-        let widget = SplitLayoutWidget::new(&mut layout).with_hit_threshold(5);
+        let widget = ResizableGridWidget::new(&mut layout).with_hit_threshold(5);
 
         assert_eq!(widget.hit_threshold, 5);
     }
 
     #[test]
     fn test_with_styling_methods() {
-        let mut layout = SplitLayout::new(0);
+        let mut layout = ResizableGrid::new(0);
         let hover_style = Style::default().fg(Color::Red);
         let drag_style = Style::default().fg(Color::Blue);
         let divider_style = Style::default().fg(Color::Green);
 
-        let widget = SplitLayoutWidget::new(&mut layout)
+        let widget = ResizableGridWidget::new(&mut layout)
             .with_hover_style(hover_style)
             .with_drag_style(drag_style)
             .with_divider_style(divider_style);
@@ -553,9 +552,9 @@ mod tests {
     #[test]
     fn test_no_drag_on_single_pane() {
         // Single pane has no dividers, so dragging should not work
-        let mut layout = SplitLayout::new(0);
+        let mut layout = ResizableGrid::new(0);
 
-        let mut widget = SplitLayoutWidget::new(&mut layout);
+        let mut widget = ResizableGridWidget::new(&mut layout);
 
         let area = Rect::new(0, 0, 80, 24);
 

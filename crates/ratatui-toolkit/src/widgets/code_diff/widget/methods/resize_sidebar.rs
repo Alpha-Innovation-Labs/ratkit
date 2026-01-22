@@ -24,10 +24,10 @@ impl CodeDiff {
     /// diff.resize_sidebar(-3); // Make 3% narrower
     /// ```
     pub fn resize_sidebar(&mut self, delta: i16) {
-        let current = self.sidebar_split.split_percent as i16;
+        let current = self.sidebar_split.split_percent() as i16;
         let new_width = (current + delta)
-            .max(self.sidebar_split.min_percent as i16)
-            .min(self.sidebar_split.max_percent as i16) as u16;
-        self.sidebar_split.split_percent = new_width;
+            .max(self.sidebar_split.min_percent() as i16)
+            .min(self.sidebar_split.max_percent() as i16) as u16;
+        self.sidebar_split.set_split_percent(new_width);
     }
 }

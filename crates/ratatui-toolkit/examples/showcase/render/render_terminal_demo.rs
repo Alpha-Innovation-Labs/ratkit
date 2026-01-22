@@ -25,7 +25,7 @@ pub fn render_terminal_demo(
     theme: &AppTheme,
 ) {
     app.terminal_split.update_divider_position(area);
-    let left_width = (area.width as u32 * app.terminal_split.split_percent as u32 / 100) as u16;
+    let left_width = (area.width as u32 * app.terminal_split.split_percent() as u32 / 100) as u16;
 
     let left = Rect {
         x: area.x,

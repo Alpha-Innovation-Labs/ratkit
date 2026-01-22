@@ -7,6 +7,6 @@ impl CodeDiff {
     ///
     /// This can be used to adjust polling rate for smooth dragging.
     pub fn is_sidebar_dragging(&self) -> bool {
-        self.sidebar_split.is_dragging
+        self.sidebar_split.is_dragging()
     }
 }

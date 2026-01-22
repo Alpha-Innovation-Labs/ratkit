@@ -37,9 +37,12 @@ impl Widget for &CodeDiff {
 
         // Check if we should show sidebar
         if self.show_sidebar && self.config.sidebar_enabled {
-            // Calculate split areas using ResizableSplit's percentage
-            let sidebar_width =
-                (area.width as u32 * self.sidebar_split.split_percent as u32 / 100) as u16;
+            let sidebar_split_index = 0;
+            let sidebar_ratio = self
+                .sidebar_split
+                .get_split_ratio(sidebar_split_index)
+                .unwrap_or(30);
+            let sidebar_width = (area.width as u32 * sidebar_ratio as u32 / 100) as u16;
             let sidebar_width = sidebar_width.max(1).min(area.width.saturating_sub(10));
 
             let sidebar_area = Rect {

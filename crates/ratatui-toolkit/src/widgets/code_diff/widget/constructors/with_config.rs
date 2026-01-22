@@ -1,4 +1,4 @@
-use crate::primitives::resizable_split::ResizableSplit;
+use crate::primitives::resizable_grid::ResizableGrid;
 use crate::widgets::code_diff::code_diff::CodeDiff;
 use crate::widgets::code_diff::diff_config::DiffConfig;
 
@@ -28,12 +28,11 @@ impl CodeDiff {
     /// let diff = CodeDiff::new().with_config(config);
     /// ```
     pub fn with_config(mut self, config: DiffConfig) -> Self {
-        // Update sidebar state from config
         self.show_sidebar = config.sidebar_enabled;
-        // Create new ResizableSplit with config values
-        let mut sidebar_split = ResizableSplit::new(config.sidebar_default_width);
-        sidebar_split.min_percent = config.sidebar_min_width;
-        sidebar_split.max_percent = config.sidebar_max_width;
+        let mut sidebar_split = ResizableGrid::new(0);
+        sidebar_split.split_pane_vertically(0);
+        let split_index = 0;
+        sidebar_split.resize_split(split_index, config.sidebar_default_width);
         self.sidebar_split = sidebar_split;
         self.config = config;
         self

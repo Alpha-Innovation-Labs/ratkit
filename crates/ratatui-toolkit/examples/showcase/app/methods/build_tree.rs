@@ -19,7 +19,7 @@ impl App {
             ),
             TreeNode::with_children(
                 " Layout".to_string(),
-                vec![TreeNode::new("󰯋 ResizableSplit".to_string())],
+                vec![TreeNode::new("󰯋 ResizableGrid".to_string())],
             ),
             TreeNode::with_children(
                 " Widgets".to_string(),
