@@ -11,4 +11,5 @@ pub enum DemoTab {
     Terminal,
     SplitLayoutGrid,
     AiChat,
+    Primitives,
 }

@@ -48,7 +48,8 @@ impl App {
             MenuItem::with_icon("Terminal", "", 3),
             MenuItem::with_icon("Split Grid", "", 4),
             MenuItem::with_icon("AI Chat", "", 5),
-            MenuItem::with_icon("Theme", "", 6),
+            MenuItem::with_icon("Primitives", "", 6),
+            MenuItem::with_icon("Theme", "", 7),
         ])
         .with_selected(0)
         .with_theme(&theme);

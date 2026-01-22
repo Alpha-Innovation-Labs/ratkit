@@ -72,7 +72,7 @@ pub mod widgets;
 pub mod services;
 
 // Re-export commonly used types - always available
-pub use primitives::button::render_title_with_buttons::render_title_with_buttons;
+pub use primitives::button::render::with_title::render_title_with_buttons;
 pub use primitives::button::Button;
 pub use primitives::pane::Pane;
 pub use widgets::ai_chat::{AIChat, AIChatEvent, InputState, Message, MessageRole, MessageStore};
@@ -143,7 +143,7 @@ pub use services::file_watcher::{FileWatcher, WatchConfig, WatchMode};
 /// ```
 pub mod prelude {
     // Core components
-    pub use crate::primitives::button::render_title_with_buttons::render_title_with_buttons;
+    pub use crate::primitives::button::render::with_title::render_title_with_buttons;
     pub use crate::primitives::button::Button;
     pub use crate::primitives::pane::Pane;
     pub use crate::widgets::ai_chat::{

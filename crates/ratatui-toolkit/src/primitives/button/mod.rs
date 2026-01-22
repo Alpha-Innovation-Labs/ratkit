@@ -1,14 +1,10 @@
-//! Button component
+//! Button component for terminal UI applications.
 //!
-//! Provides clickable button widgets for UI interactions.
+//! # Module Structure
 //!
-//! # Structure
-//!
-//! - [`Button`] - The button widget struct
-//! - [`constructors`] - Constructor functions (`new`, builder methods)
-//! - [`methods`] - Instance methods (`render`, `is_clicked`, etc.)
-//! - [`traits`] - Trait implementations (`Default`)
-//! - [`render_title_with_buttons`] - Standalone function for rendering title with buttons
+//! - [`core`] - Button struct, constructors, and accessor methods
+//! - [`render`] - Rendering utilities and composition
+//! - [`interact`] - Interaction handling (click detection, hover state)
 //!
 //! # Example
 //!
@@ -20,25 +16,10 @@
 //!     .normal_style(Style::default().fg(Color::White))
 //!     .hover_style(Style::default().fg(Color::Yellow));
 //! ```
-//!
-//! # Click Detection
-//!
-//! Buttons track their own area for click detection. Use [`Button::is_clicked`] to
-//! check if a click occurred within the button's bounds after rendering.
 
-pub mod constructors;
-pub mod methods;
-pub mod render_title_with_buttons;
-pub mod traits;
+pub mod core;
+pub mod interact;
+pub mod render;
 
-use ratatui::style::Style;
-
-/// A clickable button widget for the UI
-#[derive(Debug, Clone)]
-pub struct Button {
-    text: String,
-    area: Option<ratatui::layout::Rect>,
-    hovered: bool,
-    normal_style: Style,
-    hover_style: Style,
-}
+pub use core::Button;
+pub use render::with_title::render_title_with_buttons;

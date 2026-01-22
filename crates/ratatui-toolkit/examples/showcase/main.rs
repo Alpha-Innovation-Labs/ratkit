@@ -26,8 +26,8 @@ use ratatui::{
 use ratatui_toolkit::services::theme::loader::load_builtin_theme;
 use ratatui_toolkit::services::theme::persistence::save_theme;
 use ratatui_toolkit::{
-    render_toasts, Dialog, DialogType, DialogWidget, HotkeyFooter, HotkeyItem, MarkdownEvent,
-    MarkdownWidget, Message, ThemeVariant, Toast, ToastLevel,
+    render_toasts, Button, Dialog, DialogType, DialogWidget, HotkeyFooter, HotkeyItem,
+    MarkdownEvent, MarkdownWidget, Message, ThemeVariant, Toast, ToastLevel,
 };
 use std::io;
 
@@ -84,12 +84,13 @@ fn main() -> io::Result<()> {
                     render_split_layout_grid_demo(frame, content_area, &mut app, &theme)
                 }
                 DemoTab::AiChat => render_ai_chat_demo(frame, content_area, &mut app, &theme),
+                DemoTab::Primitives => render_primitives_demo(frame, content_area, &mut app, &theme),
             }
 
             // Hotkey footer with theme
             let footer_items = vec![
                 HotkeyItem::new("Tab", "switch"),
-                HotkeyItem::new("1-6", "tabs"),
+                HotkeyItem::new("1-7", "tabs"),
                 HotkeyItem::new("T", "theme"),
                 HotkeyItem::new("t", "toast"),
                 HotkeyItem::new("q", "quit"),
@@ -337,6 +338,7 @@ fn main() -> io::Result<()> {
                         KeyCode::Char('4') => app.select_tab(DemoTab::Terminal),
                         KeyCode::Char('5') => app.select_tab(DemoTab::SplitLayoutGrid),
                         KeyCode::Char('6') => app.select_tab(DemoTab::AiChat),
+                        KeyCode::Char('7') => app.select_tab(DemoTab::Primitives),
                         KeyCode::Char('t') => {
                             let messages = [
                                 ("Info toast", ToastLevel::Info),
@@ -490,6 +492,7 @@ fn main() -> io::Result<()> {
                                     app.ai_chat_input.handle_key(key);
                                 }
                             }
+                            DemoTab::Primitives => {}
                         },
                     }
                 }
@@ -503,6 +506,9 @@ fn main() -> io::Result<()> {
                                 // AI Chat button clicked
                                 app.select_tab(DemoTab::AiChat);
                             } else if idx == 7 {
+                                // Primitives button clicked
+                                app.select_tab(DemoTab::Primitives);
+                            } else if idx == 8 {
                                 // Theme button clicked - open theme picker
                                 app.original_theme = Some(app.current_theme.clone());
                                 app.show_theme_picker = true;
@@ -866,6 +872,83 @@ fn main() -> io::Result<()> {
     terminal.show_cursor()?;
 
     Ok(())
+}
+
+/// Render the primitives demo tab showing button components.
+fn render_primitives_demo(
+    frame: &mut ratatui::Frame,
+    area: Rect,
+    app: &mut App,
+    theme: &ratatui_toolkit::AppTheme,
+) {
+    use ratatui::layout::Alignment;
+    use ratatui::style::{Color, Modifier, Style};
+    use ratatui::widgets::Paragraph;
+
+    let button_area = Rect {
+        x: area.x + area.width / 2 - 20,
+        y: area.y + area.height / 2 - 3,
+        width: 40,
+        height: 6,
+    };
+
+    let title_block = Block::default()
+        .title("Button Component Demo")
+        .title_alignment(Alignment::Center)
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .border_style(Style::default().fg(theme.border))
+        .style(Style::default().fg(theme.text));
+
+    frame.render_widget(&title_block, button_area);
+
+    let inner_area = Rect {
+        x: button_area.x + 1,
+        y: button_area.y + 1,
+        width: button_area.width - 2,
+        height: button_area.height - 2,
+    };
+
+    let button1 = Button::new("Click Me!");
+    let button2 = Button::new("Disabled")
+        .normal_style(Style::default().fg(Color::DarkGray));
+
+    let button1_text = format!("[ {} ]", button1.text());
+    let button2_text = format!("[ {} ]", button2.text());
+
+    let help_text = Paragraph::new("Buttons are clickable UI components.\nThe first button is interactive, the second is disabled.")
+        .alignment(Alignment::Center)
+        .style(Style::default().fg(theme.text_muted));
+
+    frame.render_widget(&help_text, inner_area);
+
+    let button1_widget = Paragraph::new(button1_text)
+        .alignment(Alignment::Center)
+        .style(Style::default().fg(theme.primary).add_modifier(Modifier::BOLD));
+
+    frame.render_widget(
+        button1_widget,
+        Rect {
+            x: inner_area.x + 2,
+            y: inner_area.y + 2,
+            width: inner_area.width - 4,
+            height: 1,
+        },
+    );
+
+    let button2_widget = Paragraph::new(button2_text)
+        .alignment(Alignment::Center)
+        .style(Style::default().fg(Color::DarkGray));
+
+    frame.render_widget(
+        button2_widget,
+        Rect {
+            x: inner_area.x + 2,
+            y: inner_area.y + 3,
+            width: inner_area.width - 4,
+            height: 1,
+        },
+    );
 }
 
 /// Apply the theme at the given index to the application.

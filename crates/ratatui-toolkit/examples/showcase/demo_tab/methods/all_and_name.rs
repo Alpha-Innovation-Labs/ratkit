@@ -12,6 +12,7 @@ impl DemoTab {
             Self::Terminal,
             Self::SplitLayoutGrid,
             Self::AiChat,
+            Self::Primitives,
         ]
     }
 
@@ -24,6 +25,7 @@ impl DemoTab {
             Self::Terminal => "Terminal",
             Self::SplitLayoutGrid => "Split Grid",
             Self::AiChat => "AI Chat",
+            Self::Primitives => "Primitives",
         }
     }
 }
