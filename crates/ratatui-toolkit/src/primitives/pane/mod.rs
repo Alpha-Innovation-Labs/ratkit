@@ -4,7 +4,7 @@
 
 pub mod constructors;
 pub mod methods;
-pub mod traits;
+pub mod rendering;
 
 use ratatui::style::Style;
 use ratatui::text::Line;
@@ -33,4 +33,10 @@ pub struct Pane<'a> {
     pub border_type: BorderType,
     pub title_style: Style,
     pub footer_style: Style,
+}
+
+impl<'a> Default for Pane<'a> {
+    fn default() -> Self {
+        Self::new("Pane")
+    }
 }

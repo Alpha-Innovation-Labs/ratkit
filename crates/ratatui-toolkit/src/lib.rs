@@ -87,7 +87,7 @@ pub use primitives::dialog::widget::DialogWidget;
 pub use primitives::dialog::{Dialog, DialogType};
 
 #[cfg(feature = "toast")]
-pub use primitives::toast::methods::render_toasts::render_toasts;
+pub use primitives::toast::render::render_toasts;
 #[cfg(feature = "toast")]
 pub use primitives::toast::{Toast, ToastLevel, ToastManager};
 
@@ -160,7 +160,7 @@ pub mod prelude {
     pub use crate::primitives::dialog::{Dialog, DialogType};
 
     #[cfg(feature = "toast")]
-    pub use crate::primitives::toast::methods::render_toasts::render_toasts;
+    pub use crate::primitives::toast::render::render_toasts;
     #[cfg(feature = "toast")]
     pub use crate::primitives::toast::{Toast, ToastLevel, ToastManager};
 

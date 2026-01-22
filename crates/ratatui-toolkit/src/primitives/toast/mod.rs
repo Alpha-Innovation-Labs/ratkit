@@ -4,8 +4,9 @@
 
 use std::time::{Duration, Instant};
 
-pub mod constructors;
-pub mod methods;
+pub mod level;
+pub mod manager;
+pub mod render;
 
 /// Default toast display duration (3 seconds).
 pub const DEFAULT_TOAST_DURATION: Duration = Duration::from_secs(3);
