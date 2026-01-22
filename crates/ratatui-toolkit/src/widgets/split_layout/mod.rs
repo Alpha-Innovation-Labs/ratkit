@@ -5,6 +5,64 @@
 //! - Drag-to-resize functionality
 //! - Optional styling for dividers and panes
 //! - Rendering support for pane borders and overlays
+//!
+//! # Minimal resizable split
+//!
+//! Create the widget each frame with the current state, call `handle_mouse` with
+//! the same render area you draw into, and persist `widget.state()` across frames.
+//!
+//! ```rust
+//! use crossterm::event::MouseEvent;
+//! use ratatui::{Frame, layout::Rect};
+//! use ratatui_toolkit::primitives::split_layout::SplitLayout;
+//! use ratatui_toolkit::widgets::split_layout::{SplitLayoutWidget, SplitLayoutWidgetState};
+//!
+//! struct App {
+//!     layout: SplitLayout,
+//!     split_state: SplitLayoutWidgetState,
+//! }
+//!
+//! impl App {
+//!     fn new() -> Self {
+//!         let mut layout = SplitLayout::new(0);
+//!         let right_pane = layout.split_pane_horizontally(0).unwrap();
+//!         let _ = layout.resize_divider(right_pane, 20);
+//!
+//!         Self {
+//!             layout,
+//!             split_state: SplitLayoutWidgetState::default(),
+//!         }
+//!     }
+//!
+//!     fn handle_mouse(&mut self, mouse: MouseEvent, render_area: Rect) {
+//!         let mut widget = SplitLayoutWidget::new(&mut self.layout)
+//!             .with_state(self.split_state);
+//!
+//!         widget.handle_mouse(mouse, render_area);
+//!         self.split_state = widget.state();
+//!     }
+//!
+//!     fn render(&mut self, frame: &mut Frame, area: Rect) {
+//!         let mut widget = SplitLayoutWidget::new(&mut self.layout)
+//!             .with_state(self.split_state);
+//!
+//!         self.split_state = widget.state();
+//!         frame.render_widget(widget, area);
+//!     }
+//! }
+//! ```
+//!
+//! For a full example with multiple panes and styling, see `examples/split_demo.rs`.
+//!
+//! # Do / Don't
+//!
+//! Do:
+//! - Use `SplitLayoutWidget` for drag-resize interaction.
+//! - Call `handle_mouse(mouse, render_area)` with the same area you render into.
+//! - Persist `SplitLayoutWidgetState` across frames.
+//!
+//! Don't:
+//! - Expect `SplitLayout` to handle mouse events by itself.
 
 use crate::primitives::split_layout::{PaneLayout, SplitAxis, SplitDividerLayout, SplitLayout};
 use crossterm::event::{MouseButton, MouseEvent, MouseEventKind};
@@ -32,6 +90,8 @@ pub struct SplitLayoutWidgetState {
 /// This widget manages hover state, drag state, and handles mouse events
 /// to resize dividers. It also provides styling options for visual feedback
 /// during interactions.
+///
+/// See the module-level docs for a minimal resizable split example.
 ///
 /// # Example
 ///

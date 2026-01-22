@@ -10,6 +10,10 @@ impl SplitLayout {
     /// - `pane_id`: The pane whose split divider should be resized.
     /// - `percent`: The percentage to allocate to the pane within its split.
     ///
+    /// Use this when you only have a pane id and want to set that pane's
+    /// percentage of its containing split. If you already know the split
+    /// node index, use `resize_split` instead.
+    ///
     /// # Returns
     /// `true` when the pane is part of a split and the divider was updated.
     ///

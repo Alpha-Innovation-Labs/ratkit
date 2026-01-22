@@ -82,6 +82,7 @@ Run examples with:
 
 ```bash
 cargo run --example resizable_split_demo
+cargo run --example split_demo --features full
 cargo run --example tree_view_demo --features tree
 cargo run --example toast_manager_demo --features toast
 cargo run --example markdown_demo --features markdown
@@ -108,6 +109,8 @@ let [left, right] = split.split(area);
 frame.render_widget(left_content, left);
 frame.render_widget(right_content, right);
 ```
+
+For a multi-pane layout with drag-resize, see `examples/split_demo.rs`.
 
 ### Tree View
 

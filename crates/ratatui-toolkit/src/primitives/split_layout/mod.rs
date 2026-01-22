@@ -1,6 +1,21 @@
 //! Multi-split layout primitive.
 //!
 //! Provides a tree of resizable splits that yields pane rectangles for rendering.
+//! This type only calculates layout geometry. For interactive resizing with mouse drag,
+//! use [`SplitLayoutWidget`](crate::widgets::split_layout::SplitLayoutWidget).
+//!
+//! # Setting initial split sizes
+//!
+//! Use `resize_divider` when you have a pane id and want to set that pane's
+//! percentage of its split. Use `resize_split` when you already know the split node index.
+//!
+//! ```rust
+//! use ratatui_toolkit::primitives::split_layout::SplitLayout;
+//!
+//! let mut layout = SplitLayout::new(0);
+//! let right_pane = layout.split_pane_horizontally(0).unwrap();
+//! let _ = layout.resize_divider(right_pane, 20);
+//! ```
 //!
 //! # Example
 //! ```rust
@@ -31,6 +46,10 @@ use crate::primitives::split_layout::enums::layout_node::LayoutNode;
 /// Split layouts start with a single pane and can be subdivided into
 /// horizontal or vertical splits. Each split stores a percentage for the
 /// first pane, enabling resizing of the divider.
+///
+/// This type is non-interactive by itself. Use
+/// [`SplitLayoutWidget`](crate::widgets::split_layout::SplitLayoutWidget) for
+/// mouse-driven resizing.
 ///
 /// # Example
 /// ```rust
