@@ -1,3 +1,6 @@
+# Enable sccache for all cargo builds
+export CARGO_BUILD_RUSTC_WRAPPER := "sccache"
+
 # Default: Show help menu
 default:
     @just help
