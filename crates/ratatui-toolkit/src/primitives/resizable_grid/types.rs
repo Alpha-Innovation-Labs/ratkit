@@ -122,3 +122,39 @@ pub struct ResizableGrid {
     pub dragging_split: Option<usize>,
     pub hit_threshold: u16,
 }
+
+/// Panel areas returned from split calculation.
+///
+/// Provides a simple way to access left and right pane rectangles
+/// for basic two-pane layouts.
+///
+/// # Example
+/// ```rust
+/// use ratatui::layout::Rect;
+/// use ratatui_toolkit::primitives::resizable_grid::ResizableGrid;
+///
+/// let grid = ResizableGrid::new(0);
+/// let area = Rect::new(0, 0, 100, 50);
+/// let split_areas = grid.calculate_split_area(area, 40);
+/// let left_pane = split_areas.left;
+/// let right_pane = split_areas.right;
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SplitAreas {
+    /// The left or top pane area.
+    pub left: Rect,
+    /// The right or bottom pane area.
+    pub right: Rect,
+}
+
+/// Information about a pane for external access.
+///
+/// Provides pane identification and area information that can be
+/// used by widgets and rendering code.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PaneInfo {
+    /// The unique identifier for this pane.
+    pub id: PaneId,
+    /// The rectangle allocated to this pane.
+    pub area: Rect,
+}

@@ -19,6 +19,7 @@ use crate::app::App;
 /// * `frame` - The frame to render into.
 /// * `area` - The area to render in.
 /// * `app` - The application state.
-pub fn render_code_diff_demo(frame: &mut ratatui::Frame, area: Rect, app: &App) {
+pub fn render_code_diff_demo(frame: &mut ratatui::Frame, area: Rect, app: &mut App) {
+    app.code_diff.set_area(area);
     (&app.code_diff).render(area, frame.buffer_mut());
 }

@@ -3,7 +3,7 @@
 //! Provides methods for calculating pane and divider layouts from a resizable grid.
 
 use crate::primitives::resizable_grid::types::{
-    LayoutNode, PaneId, ResizableGrid, SplitAxis, SplitDividerLayout,
+    LayoutNode, PaneId, PaneInfo, ResizableGrid, SplitAreas, SplitAxis, SplitDividerLayout,
 };
 use ratatui::layout::Rect;
 
@@ -312,5 +312,81 @@ impl ResizableGrid {
         }
 
         dividers
+    }
+
+    /// Calculates simple two-pane split areas for basic layouts.
+    ///
+    /// This is a convenience method for common two-pane layouts that
+    /// calculates left and right (or top and bottom) pane rectangles
+    /// based on a split percentage.
+    ///
+    /// # Arguments
+    /// - `area`: The total area to split.
+    /// - `split_percent`: The percentage for the left/top pane (0-100).
+    ///
+    /// # Returns
+    /// A `SplitAreas` struct containing the left/top and right/bottom
+    /// pane rectangles.
+    ///
+    /// # Example
+    /// ```rust
+    /// use ratatui::layout::Rect;
+    /// use ratatui_toolkit::primitives::resizable_grid::ResizableGrid;
+    ///
+    /// let grid = ResizableGrid::new(0);
+    /// let area = Rect::new(0, 0, 100, 50);
+    /// let split_areas = grid.calculate_split_area(area, 40);
+    /// ```
+    pub fn calculate_split_area(&self, area: Rect, split_percent: u16) -> SplitAreas {
+        let left_width = (area.width as u32 * split_percent as u32 / 100) as u16;
+
+        let left = Rect {
+            x: area.x,
+            y: area.y,
+            width: left_width,
+            height: area.height,
+        };
+
+        let right = Rect {
+            x: area.x + left_width,
+            y: area.y,
+            width: area.width.saturating_sub(left_width),
+            height: area.height,
+        };
+
+        SplitAreas { left, right }
+    }
+
+    /// Returns pane information for all leaf panes in the grid.
+    ///
+    /// This is a convenience method that extracts pane information
+    /// suitable for use by widgets and rendering code.
+    ///
+    /// # Arguments
+    /// - `area`: The available rectangle to divide among panes.
+    ///
+    /// # Returns
+    /// A vector of `PaneInfo` for each pane in the layout.
+    ///
+    /// # Example
+    /// ```rust
+    /// use ratatui::layout::Rect;
+    /// use ratatui_toolkit::primitives::resizable_grid::ResizableGrid;
+    ///
+    /// let grid = ResizableGrid::new(0);
+    /// let area = Rect::new(0, 0, 100, 50);
+    /// let panes = grid.get_panes(area);
+    /// for pane in panes {
+    ///     println!("Pane {}: {:?}", pane.id, pane.area);
+    /// }
+    /// ```
+    pub fn get_panes(&self, area: Rect) -> Vec<PaneInfo> {
+        self.layout_panes(area)
+            .into_iter()
+            .map(|layout| PaneInfo {
+                id: layout.pane_id(),
+                area: layout.area(),
+            })
+            .collect()
     }
 }

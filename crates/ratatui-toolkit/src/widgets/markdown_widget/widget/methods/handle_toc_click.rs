@@ -54,8 +54,8 @@ impl<'a> MarkdownWidget<'a> {
         }
 
         // Create state from content with entries
-        let auto_state = TocState::from_content(self.content);
-        let toc_state = if let Some(provided) = self.toc_state {
+        let auto_state = TocState::from_content(&self.content);
+        let toc_state = if let Some(provided) = &self.toc_state {
             if provided.entries.is_empty() {
                 &auto_state
             } else {
@@ -123,8 +123,8 @@ impl<'a> MarkdownWidget<'a> {
         }
 
         // Create state from content with entries
-        let auto_state = TocState::from_content(self.content);
-        let toc_state = if let Some(provided) = self.toc_state {
+        let auto_state = TocState::from_content(&self.content);
+        let toc_state = if let Some(provided) = &self.toc_state {
             if provided.entries.is_empty() {
                 &auto_state
             } else {

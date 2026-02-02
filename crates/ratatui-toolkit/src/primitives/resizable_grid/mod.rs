@@ -18,6 +18,6 @@ pub mod types;
 pub mod widget;
 
 pub use layout::PaneLayout;
-pub use types::{PaneId, ResizableGrid, SplitAxis, SplitDividerLayout};
+pub use types::{PaneId, PaneInfo, ResizableGrid, SplitAreas, SplitAxis, SplitDividerLayout};
 
 pub use widget::{ResizableGridWidget, ResizableGridWidgetState};

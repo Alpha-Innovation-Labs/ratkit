@@ -1,5 +1,7 @@
 //! Sync widget state back to MarkdownState.
 
+use ratatui::layout::Rect;
+
 use crate::widgets::markdown_widget::state::MarkdownState;
 use crate::widgets::markdown_widget::widget::MarkdownWidget;
 
@@ -9,6 +11,8 @@ use crate::widgets::markdown_widget::widget::MarkdownWidget;
 /// that need to persist back to the application state.
 #[derive(Debug, Clone)]
 pub struct WidgetStateSync {
+    /// The inner area calculated during rendering (inside borders).
+    pub inner_area: Rect,
     /// Whether the TOC is currently hovered.
     pub toc_hovered: bool,
     /// Index of the hovered TOC entry.
@@ -26,12 +30,27 @@ pub struct WidgetStateSync {
 }
 
 impl WidgetStateSync {
+    /// Create a new sync state with the given inner area.
+    pub fn new(inner_area: Rect) -> Self {
+        Self {
+            inner_area,
+            toc_hovered: false,
+            toc_hovered_entry: None,
+            toc_scroll_offset: 0,
+            selection_active: false,
+            last_double_click: None,
+            filter: None,
+            filter_mode: false,
+        }
+    }
+
     /// Apply this sync state to a MarkdownState.
     ///
     /// # Arguments
     ///
     /// * `state` - The MarkdownState to sync state to
     pub fn apply_to(&self, state: &mut MarkdownState) {
+        state.set_inner_area(self.inner_area);
         state.toc_hovered = self.toc_hovered;
         state.toc_hovered_entry = self.toc_hovered_entry;
         state.toc_scroll_offset = self.toc_scroll_offset;
@@ -70,6 +89,7 @@ impl<'a> MarkdownWidget<'a> {
     /// ```
     pub fn get_state_sync(&mut self) -> WidgetStateSync {
         WidgetStateSync {
+            inner_area: self.inner_area.unwrap_or_default(),
             toc_hovered: self.toc_hovered,
             toc_hovered_entry: self.toc_hovered_entry,
             toc_scroll_offset: self.toc_scroll_offset,
@@ -101,6 +121,7 @@ impl<'a> MarkdownWidget<'a> {
     /// widget.sync_state_back(&mut state);
     /// ```
     pub fn sync_state_back(self, state: &mut MarkdownState) {
+        state.set_inner_area(self.inner_area.unwrap_or_default());
         state.toc_hovered = self.toc_hovered;
         state.toc_hovered_entry = self.toc_hovered_entry;
         state.toc_scroll_offset = self.toc_scroll_offset;

@@ -1,9 +1,16 @@
 //! Get border style based on widget state.
+//!
+//! This module has been migrated to use the library utility.
+//! The original implementation has been extracted to:
+//! `ratatui_toolkit::primitives::border_style_helper::get_border_style()`
 
 use ratatui::style::Style;
+use ratatui_toolkit::primitives::border_style_helper;
 use ratatui_toolkit::AppTheme;
 
 /// Get the border style based on selection, hover, and drag states.
+///
+/// This is a wrapper that delegates to the library utility.
 ///
 /// # Arguments
 ///
@@ -21,11 +28,5 @@ pub fn get_border_style(
     is_hovering: bool,
     is_dragging: bool,
 ) -> Style {
-    if selection_active {
-        Style::default().fg(theme.border_active)
-    } else if is_hovering || is_dragging {
-        Style::default().fg(theme.border_active)
-    } else {
-        Style::default()
-    }
+    border_style_helper::get_border_style(theme, selection_active, is_hovering, is_dragging)
 }

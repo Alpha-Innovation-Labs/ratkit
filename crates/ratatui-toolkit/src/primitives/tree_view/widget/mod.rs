@@ -44,4 +44,6 @@ pub struct TreeView<'a, T> {
     pub(crate) collapse_icon: &'a str,
     /// Style for selected row background (full-width highlight)
     pub(crate) highlight_style: Option<Style>,
+    /// Whether to show built-in filter UI
+    pub(crate) show_filter_ui: bool,
 }

@@ -40,7 +40,7 @@ impl<'a> MarkdownWidget<'a> {
         // Use dynamic dimensions matching the rendering code
         let toc_width = if self.toc_hovered {
             // Dynamic width based on content for expanded mode
-            Toc::required_expanded_width(self.content, self.toc_config.show_border)
+            Toc::required_expanded_width(&self.content, self.toc_config.show_border)
                 .min(main_area.width.saturating_sub(padding_right + 4))
         } else {
             self.toc_config.compact_width
@@ -48,12 +48,12 @@ impl<'a> MarkdownWidget<'a> {
 
         let toc_height = if self.toc_hovered {
             // Expanded: one row per entry
-            Toc::required_height(self.content, self.toc_config.show_border)
+            Toc::required_height(&self.content, self.toc_config.show_border)
                 .min(main_area.height.saturating_sub(1))
         } else {
             // Compact: based on entries and line_spacing
             Toc::required_compact_height(
-                self.content,
+                &self.content,
                 self.toc_config.line_spacing,
                 self.toc_config.show_border,
             )

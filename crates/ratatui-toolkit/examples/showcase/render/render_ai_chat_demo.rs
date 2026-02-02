@@ -19,8 +19,5 @@ pub fn render_ai_chat_demo(
     app: &mut App,
     theme: &AppTheme,
 ) {
-    let widget =
-        ratatui_toolkit::AIChat::new_ai_chat(&mut app.ai_chat_messages, &mut app.ai_chat_input);
-
-    widget.render(frame, area);
+    app.ai_chat.render(frame, area);
 }

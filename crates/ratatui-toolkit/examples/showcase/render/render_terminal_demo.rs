@@ -24,24 +24,28 @@ pub fn render_terminal_demo(
     app: &mut App,
     theme: &AppTheme,
 ) {
-    app.terminal_split.update_divider_position(area);
-    let left_width = (area.width as u32 * app.terminal_split.split_percent() as u32 / 100) as u16;
+    app.terminal_content_area = Some(area);
 
-    let left = Rect {
-        x: area.x,
-        y: area.y,
-        width: left_width,
-        height: area.height,
-    };
+    let widget = ratatui_toolkit::primitives::resizable_grid::ResizableGridWidget::new(
+        &mut app.terminal_split,
+    )
+    .with_divider_style(Style::default().fg(theme.secondary))
+    .with_hover_style(
+        Style::default()
+            .fg(theme.secondary)
+            .add_modifier(Modifier::BOLD),
+    )
+    .with_drag_style(
+        Style::default()
+            .fg(theme.warning)
+            .add_modifier(Modifier::BOLD),
+    );
 
-    let right = Rect {
-        x: area.x + left_width,
-        y: area.y,
-        width: area.width.saturating_sub(left_width),
-        height: area.height,
-    };
+    let pane_layouts = widget.pane_layouts(area);
 
-    // Resize terminals to match their pane sizes
+    let left = pane_layouts.get(0).map(|l| l.area()).unwrap_or(area);
+    let right = pane_layouts.get(1).map(|l| l.area()).unwrap_or(area);
+
     if let Some(ref mut term) = app.terminal {
         let inner = Rect {
             x: left.x + 1,
@@ -62,7 +66,6 @@ pub fn render_terminal_demo(
         term.resize(inner.height, inner.width);
     }
 
-    // Terminal 1 - left pane
     if let Some(ref mut term) = app.terminal {
         term.render(frame, left);
     } else {
@@ -75,7 +78,6 @@ pub fn render_terminal_demo(
         frame.render_widget(fallback, left);
     }
 
-    // Terminal 2 - right pane
     if let Some(ref mut term) = app.terminal2 {
         term.render(frame, right);
     } else {
@@ -88,7 +90,6 @@ pub fn render_terminal_demo(
         frame.render_widget(fallback, right);
     }
 
-    // Copy mode indicator
     let copy_mode_info = if let Some(ref term) = app.terminal {
         if term.copy_mode.is_active() {
             "COPY MODE (hjkl/arrows to move, v to select, y to copy, Esc to exit)"
@@ -99,7 +100,6 @@ pub fn render_terminal_demo(
         ""
     };
 
-    // Info panel
     let info = Paragraph::new(vec![
         Line::from(""),
         Line::from(Span::styled(
@@ -130,4 +130,6 @@ pub fn render_terminal_demo(
             .title(" Info "),
     );
     frame.render_widget(info, right);
+
+    frame.render_widget(widget, area);
 }

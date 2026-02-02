@@ -9,7 +9,7 @@ use ratatui::{
 use crate::widgets::ai_chat::state::MessageRole;
 use crate::widgets::ai_chat::AIChat;
 
-impl<'a> AIChat<'a> {
+impl AIChat {
     pub fn render(&self, frame: &mut Frame, area: Rect) {
         let chunks = Layout::default()
             .direction(Direction::Vertical)

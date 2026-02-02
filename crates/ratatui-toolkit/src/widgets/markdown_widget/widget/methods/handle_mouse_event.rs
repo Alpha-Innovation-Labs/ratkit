@@ -7,37 +7,24 @@ use crate::widgets::markdown_widget::extensions::scrollbar::{
     click_to_offset, is_in_scrollbar_area,
 };
 use crate::widgets::markdown_widget::extensions::selection::should_render_line;
+use crate::widgets::markdown_widget::extensions::toc::Toc;
 use crate::widgets::markdown_widget::foundation::elements::render;
 use crate::widgets::markdown_widget::foundation::elements::ElementKind;
 use crate::widgets::markdown_widget::foundation::events::MarkdownEvent;
 use crate::widgets::markdown_widget::foundation::helpers::is_in_area;
 use crate::widgets::markdown_widget::foundation::parser::render_markdown_to_elements;
 use crate::widgets::markdown_widget::foundation::types::SelectionPos;
+use crate::widgets::markdown_widget::state::toc_state::TocState;
 use crate::widgets::markdown_widget::widget::enums::MarkdownWidgetMode;
 use crate::widgets::markdown_widget::widget::MarkdownWidget;
 
 impl<'a> MarkdownWidget<'a> {
-    /// Handle a mouse event for all interactions.
-    ///
-    /// This method handles:
-    /// - Click-to-focus: Sets the current line on click (highlights it)
-    /// - Double-click: Returns event with line info
-    /// - Text selection: Drag to select, auto-copy on release
-    /// - Heading collapse: Click on heading to toggle
-    /// - Scrolling: Mouse wheel to scroll
-    ///
-    /// Returns a `MarkdownEvent` indicating what action was taken.
-    ///
-    /// # Mouse Capture Requirement
-    ///
-    /// This method requires `EnableMouseCapture` to be enabled for click events.
-    /// Scroll events may work without it (terminal-dependent).
-    ///
-    /// # Arguments
-    ///
-    /// * `event` - The mouse event
-    /// * `area` - The area the widget occupies (for bounds checking)
-    pub fn handle_mouse_event(&mut self, event: &MouseEvent, area: Rect) -> MarkdownEvent {
+    /// Internal mouse event handler with all logic.
+    pub(crate) fn handle_mouse_internal(
+        &mut self,
+        event: &MouseEvent,
+        area: Rect,
+    ) -> MarkdownEvent {
         if !is_in_area(event.column, event.row, area) {
             // Click outside area exits selection mode
             if self.selection.is_active() {
@@ -65,33 +52,41 @@ impl<'a> MarkdownWidget<'a> {
                     && event.row < toc_area.y + toc_area.height;
 
                 if is_over_toc {
-                    // Handle scroll events for TOC scrolling
                     match event.kind {
+                        MouseEventKind::Moved => {
+                            self.handle_toc_hover_internal(event, toc_area);
+                            return MarkdownEvent::None;
+                        }
+                        MouseEventKind::Down(MouseButton::Left) => {
+                            if self.handle_toc_click_internal(event, toc_area) {
+                                return MarkdownEvent::None;
+                            }
+                            return MarkdownEvent::None;
+                        }
                         MouseEventKind::ScrollUp => {
                             self.toc_scroll_offset = self.toc_scroll_offset.saturating_sub(1);
-                            // Recalculate hovered entry after scroll
                             self.update_toc_hovered_entry(event.column, event.row, toc_area);
                             return MarkdownEvent::None;
                         }
                         MouseEventKind::ScrollDown => {
-                            // Get entry count to limit scrolling
-                            let entry_count = self.toc_state.map(|s| s.entry_count()).unwrap_or(0);
+                            let entry_count = self
+                                .toc_state
+                                .as_ref()
+                                .map(|s| s.entry_count())
+                                .unwrap_or(0);
                             let visible_height = toc_area.height as usize;
                             let max_offset = entry_count.saturating_sub(visible_height);
                             if self.toc_scroll_offset < max_offset {
                                 self.toc_scroll_offset += 1;
                             }
-                            // Recalculate hovered entry after scroll
                             self.update_toc_hovered_entry(event.column, event.row, toc_area);
-                            return MarkdownEvent::None;
-                        }
-                        MouseEventKind::Down(MouseButton::Left) => {
-                            // TOC click - navigation is handled by handle_toc_click
-                            // Don't change the highlighted line for TOC clicks
                             return MarkdownEvent::None;
                         }
                         _ => {}
                     }
+                } else if matches!(event.kind, MouseEventKind::Moved) {
+                    self.toc_hovered = false;
+                    self.toc_hovered_entry = None;
                 }
             }
         }
@@ -103,7 +98,7 @@ impl<'a> MarkdownWidget<'a> {
                     MouseEventKind::Down(MouseButton::Left)
                     | MouseEventKind::Drag(MouseButton::Left) => {
                         // Click or drag on scrollbar - jump to position
-                        let new_offset = click_to_offset(event.row, scrollbar_area, self.scroll);
+                        let new_offset = click_to_offset(event.row, scrollbar_area, &self.scroll);
                         self.scroll.scroll_offset = new_offset;
                         return MarkdownEvent::Scrolled {
                             offset: new_offset,
@@ -224,44 +219,93 @@ impl<'a> MarkdownWidget<'a> {
                 }
             }
             _ => MarkdownEvent::None,
+        };
+
+        self.check_pending_click_internal(area)
+    }
+
+    fn handle_toc_hover_internal(&mut self, event: &MouseEvent, toc_area: Rect) {
+        let _prev_hovered = self.toc_hovered;
+        let _prev_entry = self.toc_hovered_entry;
+
+        let auto_state = TocState::from_content(&self.content);
+        let toc_state = if let Some(provided) = &self.toc_state {
+            if provided.entries.is_empty() {
+                &auto_state
+            } else {
+                provided
+            }
+        } else {
+            &auto_state
+        };
+
+        let toc = Toc::new(toc_state)
+            .expanded(self.toc_hovered)
+            .config(self.toc_config.clone());
+
+        let entry = toc.entry_at_position(event.column, event.row, toc_area);
+
+        if entry.is_some() {
+            self.toc_hovered = true;
+            self.toc_hovered_entry = entry;
+        } else {
+            self.toc_hovered = false;
+            self.toc_hovered_entry = None;
         }
     }
 
-    /// Check for pending single-click timeout and process if needed.
-    ///
-    /// Call this method periodically (e.g., each frame) to handle deferred
-    /// single-click actions like heading collapse and focus line changes.
-    ///
-    /// Returns a `MarkdownEvent` if a pending click was processed.
-    ///
-    /// # Arguments
-    ///
-    /// * `area` - The area the widget occupies (for position calculations)
-    pub fn check_pending_click(&mut self, area: Rect) -> MarkdownEvent {
+    fn handle_toc_click_internal(&mut self, event: &MouseEvent, toc_area: Rect) -> bool {
+        let auto_state = TocState::from_content(&self.content);
+        let toc_state = if let Some(provided) = &self.toc_state {
+            if provided.entries.is_empty() {
+                &auto_state
+            } else {
+                provided
+            }
+        } else {
+            &auto_state
+        };
+
+        let toc = Toc::new(toc_state)
+            .expanded(self.toc_hovered)
+            .config(self.toc_config.clone());
+
+        if let Some(entry_idx) = toc.entry_at_position(event.column, event.row, toc_area) {
+            if let Some(target_line) = toc.click_to_line(entry_idx) {
+                let new_offset = target_line.saturating_sub(2);
+                let max_offset = self
+                    .scroll
+                    .total_lines
+                    .saturating_sub(self.scroll.viewport_height);
+                self.scroll.scroll_offset = new_offset.min(max_offset);
+                self.scroll.current_line = target_line.saturating_add(1);
+                self.toc_hovered_entry = Some(entry_idx);
+                return true;
+            }
+        }
+        false
+    }
+
+    fn check_pending_click_internal(&mut self, area: Rect) -> MarkdownEvent {
         if let Some((x, y, click_scroll_offset)) = self.double_click.check_pending_timeout() {
-            // Calculate relative position
             let relative_y = y.saturating_sub(area.y) as usize;
             let relative_x = x.saturating_sub(area.x) as usize;
             let width = area.width as usize;
 
-            // Set focused line based on click position (1-indexed)
-            // Use the scroll_offset from when the click happened, not the current scroll_offset
             let clicked_line = click_scroll_offset + relative_y + 1;
             if clicked_line <= self.scroll.total_lines {
                 self.scroll.set_current_line(clicked_line);
             }
 
-            // Try to handle heading collapse (uses current scroll offset for content lookup)
             if self.handle_click_collapse(relative_x, relative_y, width) {
-                // Heading was toggled - get info for the event
                 if let Some((_, line_kind, text)) =
                     self.get_line_info_at_position(relative_y, width)
                 {
                     if line_kind == "Heading" {
                         return MarkdownEvent::HeadingToggled {
-                            level: 1, // We don't have easy access to level here
+                            level: 1,
                             text,
-                            collapsed: true, // We toggled, but don't know new state
+                            collapsed: true,
                         };
                     }
                 }
@@ -279,7 +323,7 @@ impl<'a> MarkdownWidget<'a> {
     fn handle_click_collapse(&mut self, _x: usize, y: usize, width: usize) -> bool {
         use crate::widgets::markdown_widget::foundation::elements::ElementKind;
 
-        let elements = render_markdown_to_elements(self.content, true);
+        let elements = render_markdown_to_elements(&self.content, true);
 
         // Account for scroll offset - y is relative to visible area
         let document_y = y + self.scroll.scroll_offset;
@@ -287,7 +331,7 @@ impl<'a> MarkdownWidget<'a> {
 
         for (idx, element) in elements.iter().enumerate() {
             // Skip elements that shouldn't be rendered (collapsed sections)
-            if !should_render_line(element, idx, self.collapse) {
+            if !should_render_line(element, idx, &self.collapse) {
                 continue;
             }
 
@@ -339,13 +383,13 @@ impl<'a> MarkdownWidget<'a> {
     ) -> Option<(usize, String, String)> {
         use crate::widgets::markdown_widget::foundation::elements::ElementKind;
 
-        let elements = render_markdown_to_elements(self.content, true);
+        let elements = render_markdown_to_elements(&self.content, true);
         let document_y = y + self.scroll.scroll_offset;
         let mut visual_line_idx = 0;
         let mut logical_line_num = 0;
 
         for (idx, element) in elements.iter().enumerate() {
-            if !should_render_line(element, idx, self.collapse) {
+            if !should_render_line(element, idx, &self.collapse) {
                 continue;
             }
 
@@ -444,7 +488,7 @@ impl<'a> MarkdownWidget<'a> {
     pub fn selection(
         &self,
     ) -> &crate::widgets::markdown_widget::state::selection_state::SelectionState {
-        self.selection
+        &self.selection
     }
 
     /// Get line information at the current highlighted line.
@@ -456,12 +500,12 @@ impl<'a> MarkdownWidget<'a> {
         // The document position of current_line is current_line - 1 (0-indexed).
         // Since get_line_info_at_position adds scroll_offset, we pass (current_line - 1).
         let document_y = self.scroll.current_line.saturating_sub(1);
-        let elements = render_markdown_to_elements(self.content, true);
+        let elements = render_markdown_to_elements(&self.content, true);
         let mut visual_line_idx = 0;
         let mut logical_line_num = 0;
 
         for (idx, element) in elements.iter().enumerate() {
-            if !should_render_line(element, idx, self.collapse) {
+            if !should_render_line(element, idx, &self.collapse) {
                 continue;
             }
 

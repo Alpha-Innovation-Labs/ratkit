@@ -31,6 +31,7 @@ impl<'a> MarkdownWidget<'a> {
             MarkdownWidgetMode::Normal => {
                 let color = self
                     .app_theme
+                    .as_ref()
                     .map(|t| t.info)
                     .unwrap_or(Color::Rgb(97, 175, 239)); // blue
                 (" NORMAL ".to_string(), color)
@@ -38,6 +39,7 @@ impl<'a> MarkdownWidget<'a> {
             MarkdownWidgetMode::Drag => {
                 let color = self
                     .app_theme
+                    .as_ref()
                     .map(|t| t.warning)
                     .unwrap_or(Color::Rgb(229, 192, 123)); // yellow/orange
                 (" DRAG ".to_string(), color)
@@ -45,6 +47,7 @@ impl<'a> MarkdownWidget<'a> {
             MarkdownWidgetMode::Filter => {
                 let color = self
                     .app_theme
+                    .as_ref()
                     .map(|t| t.success)
                     .unwrap_or(Color::Rgb(152, 195, 121)); // green
                 let filter_text = self.filter.as_deref().unwrap_or("");
@@ -56,14 +59,23 @@ impl<'a> MarkdownWidget<'a> {
         // File segment background - use theme background_panel or default
         let file_bg = self
             .app_theme
+            .as_ref()
             .map(|t| t.background_panel)
             .unwrap_or(Color::Rgb(58, 58, 58));
 
         // Mode text foreground - use theme background or default black
-        let mode_fg = self.app_theme.map(|t| t.background).unwrap_or(Color::Black);
+        let mode_fg = self
+            .app_theme
+            .as_ref()
+            .map(|t| t.background)
+            .unwrap_or(Color::Black);
 
         // File text color - use theme text or default white
-        let file_fg = self.app_theme.map(|t| t.text).unwrap_or(Color::White);
+        let file_fg = self
+            .app_theme
+            .as_ref()
+            .map(|t| t.text)
+            .unwrap_or(Color::White);
 
         // Get filename from source path
         let filename = self
@@ -90,11 +102,16 @@ impl<'a> MarkdownWidget<'a> {
         // Position segment background - use theme text_muted or default
         let position_bg = self
             .app_theme
+            .as_ref()
             .map(|t| t.text_muted)
             .unwrap_or(Color::Rgb(171, 178, 191));
 
         // Position text foreground - use theme background or default black
-        let position_fg = self.app_theme.map(|t| t.background).unwrap_or(Color::Black);
+        let position_fg = self
+            .app_theme
+            .as_ref()
+            .map(|t| t.background)
+            .unwrap_or(Color::Black);
 
         // Calculate git stats start position
         let git_stats_start_x = {
@@ -143,18 +160,22 @@ impl<'a> MarkdownWidget<'a> {
             // Use theme colors for git stats or fall back to defaults
             let green = Style::new().fg(self
                 .app_theme
+                .as_ref()
                 .map(|t| t.success)
                 .unwrap_or(Color::Rgb(152, 195, 121)));
             let yellow = Style::new().fg(self
                 .app_theme
+                .as_ref()
                 .map(|t| t.warning)
                 .unwrap_or(Color::Rgb(229, 192, 123)));
             let red = Style::new().fg(self
                 .app_theme
+                .as_ref()
                 .map(|t| t.error)
                 .unwrap_or(Color::Rgb(224, 108, 117)));
             let dim = Style::new().fg(self
                 .app_theme
+                .as_ref()
                 .map(|t| t.text_muted)
                 .unwrap_or(Color::Rgb(92, 99, 112)));
 

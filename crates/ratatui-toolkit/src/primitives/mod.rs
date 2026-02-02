@@ -1,9 +1,12 @@
+pub mod border_style_helper;
 pub mod button;
 pub mod dialog;
 pub mod menu_bar;
 pub mod pane;
 pub mod resizable_grid;
+pub mod scroll;
 pub mod statusline;
 pub mod termtui;
 pub mod toast;
 pub mod tree_view;
+pub mod widget_event;

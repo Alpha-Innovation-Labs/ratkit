@@ -254,7 +254,7 @@ impl<'a> MarkdownWidget<'a> {
         let filter_lower = filter.to_lowercase();
         let elements =
             crate::widgets::markdown_widget::foundation::parser::render_markdown_to_elements(
-                self.content,
+                &self.content,
                 true,
             );
         let current = self.scroll.current_line;
@@ -267,7 +267,7 @@ impl<'a> MarkdownWidget<'a> {
             if !crate::widgets::markdown_widget::extensions::selection::should_render_line(
                 element,
                 idx,
-                self.collapse,
+                &self.collapse,
             ) {
                 continue;
             }
@@ -288,7 +288,7 @@ impl<'a> MarkdownWidget<'a> {
         let filter_lower = filter.to_lowercase();
         let elements =
             crate::widgets::markdown_widget::foundation::parser::render_markdown_to_elements(
-                self.content,
+                &self.content,
                 true,
             );
         let current = self.scroll.current_line;
@@ -301,7 +301,7 @@ impl<'a> MarkdownWidget<'a> {
             if !crate::widgets::markdown_widget::extensions::selection::should_render_line(
                 element,
                 idx,
-                self.collapse,
+                &self.collapse,
             ) {
                 continue;
             }

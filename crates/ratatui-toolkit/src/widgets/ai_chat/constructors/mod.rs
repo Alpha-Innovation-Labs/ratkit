@@ -3,12 +3,12 @@ use ratatui::style::{Color, Modifier, Style};
 
 use crate::widgets::ai_chat::AIChat;
 
-impl<'a> AIChat<'a> {
+impl AIChat {
     /// Create a new AI chat widget.
-    pub fn new_ai_chat(messages: &'a mut MessageStore, input: &'a mut InputState) -> Self {
+    pub fn new_ai_chat() -> Self {
         Self {
-            messages,
-            input,
+            messages: MessageStore::new(),
+            input: InputState::new(),
             is_loading: false,
             user_message_style: Style::default()
                 .fg(Color::LightCyan)

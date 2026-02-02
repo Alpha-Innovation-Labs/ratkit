@@ -68,6 +68,9 @@ pub mod primitives;
 
 pub mod widgets;
 
+// Re-export scroll utilities
+pub use primitives::scroll::calculate_scroll_offset;
+
 // Services module - shared infrastructure
 pub mod services;
 
@@ -75,6 +78,7 @@ pub mod services;
 pub use primitives::button::render::with_title::render_title_with_buttons;
 pub use primitives::button::Button;
 pub use primitives::pane::Pane;
+pub use primitives::widget_event::WidgetEvent;
 pub use widgets::ai_chat::{AIChat, AIChatEvent, InputState, Message, MessageRole, MessageStore};
 pub use widgets::code_diff::{CodeDiff, DiffConfig, DiffHunk, DiffLine, DiffLineKind, DiffStyle};
 
@@ -92,7 +96,7 @@ pub use primitives::toast::{Toast, ToastLevel, ToastManager};
 // New unified resizable_grid module
 #[cfg(feature = "split")]
 pub use primitives::resizable_grid::{
-    ResizableGrid, ResizableGridWidget, ResizableGridWidgetState,
+    PaneInfo, ResizableGrid, ResizableGridWidget, ResizableGridWidgetState, SplitAreas,
 };
 
 #[cfg(feature = "tree")]
@@ -128,6 +132,11 @@ pub use primitives::termtui::{TermTui, TermTuiKeyBindings};
 pub use widgets::file_system_tree::{FileSystemEntry, FileSystemTree, FileSystemTreeConfig};
 
 #[cfg(feature = "theme")]
+pub use widgets::theme_picker::{
+    ThemePicker, ThemePickerEvent, ThemePickerState, ThemePickerStateSnapshot,
+};
+
+#[cfg(feature = "theme")]
 pub use services::theme::{AppTheme, DiffColors, MarkdownColors, SyntaxColors, ThemeVariant};
 
 // File watcher service - always available
@@ -145,6 +154,8 @@ pub mod prelude {
     pub use crate::primitives::button::render::with_title::render_title_with_buttons;
     pub use crate::primitives::button::Button;
     pub use crate::primitives::pane::Pane;
+    pub use crate::primitives::scroll::calculate_scroll_offset;
+    pub use crate::primitives::widget_event::WidgetEvent;
     pub use crate::widgets::ai_chat::{
         AIChat, AIChatEvent, InputState, Message, MessageRole, MessageStore,
     };
@@ -166,7 +177,7 @@ pub mod prelude {
     // New unified resizable_grid module
     #[cfg(feature = "split")]
     pub use crate::primitives::resizable_grid::{
-        ResizableGrid, ResizableGridWidget, ResizableGridWidgetState,
+        PaneInfo, ResizableGrid, ResizableGridWidget, ResizableGridWidgetState, SplitAreas,
     };
 
     #[cfg(feature = "tree")]
@@ -199,6 +210,11 @@ pub mod prelude {
     #[cfg(feature = "file-tree")]
     pub use crate::widgets::file_system_tree::{
         FileSystemEntry, FileSystemTree, FileSystemTreeConfig,
+    };
+
+    #[cfg(feature = "theme")]
+    pub use crate::widgets::theme_picker::{
+        ThemePicker, ThemePickerEvent, ThemePickerState, ThemePickerStateSnapshot,
     };
 
     #[cfg(feature = "theme")]

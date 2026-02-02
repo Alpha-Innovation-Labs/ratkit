@@ -9,17 +9,17 @@ use crate::widgets::markdown_widget::widget::MarkdownWidget;
 impl<'a> MarkdownWidget<'a> {
     /// Create a new MarkdownWidget from a unified MarkdownState.
     ///
-    /// This is the preferred constructor as it simplifies state management
-    /// by bundling all component states into a single struct.
+    /// This constructor clones the state into the widget, allowing the widget
+    /// to own its state internally without holding references to the original state.
     ///
     /// # Arguments
     ///
-    /// * `content` - The markdown content to render (pass `state.content()`)
+    /// * `content` - The markdown content to render
     /// * `state` - The unified markdown state containing all component states
     ///
     /// # Returns
     ///
-    /// A new `MarkdownWidget` instance.
+    /// A new `MarkdownWidget` instance that owns its state.
     ///
     /// # Example
     ///
@@ -30,13 +30,10 @@ impl<'a> MarkdownWidget<'a> {
     /// let mut state = MarkdownState::default();
     /// state.source.set_content("# Hello World");
     ///
-    /// let content = state.content().to_string();
-    /// let widget = MarkdownWidget::from_state(&content, &mut state)
-    ///     .show_toc(true)
-    ///     .show_statusline(true);
+    /// let widget = MarkdownWidget::from_state(&state);
     /// ```
-    pub fn from_state(content: &'a str, state: &'a mut MarkdownState) -> Self {
-        // Use cached rendered lines if available, otherwise use state's rendered_lines
+    pub fn from_state(state: &'a MarkdownState) -> Self {
+        let content = state.content().to_string();
         let rendered_lines = state
             .cache
             .render
@@ -44,7 +41,6 @@ impl<'a> MarkdownWidget<'a> {
             .map(|c| c.lines.clone())
             .unwrap_or_else(|| state.rendered_lines.clone());
 
-        // Determine mode based on filter_mode state
         let mode = if state.filter_mode {
             MarkdownWidgetMode::Filter
         } else {
@@ -53,16 +49,16 @@ impl<'a> MarkdownWidget<'a> {
 
         Self {
             content,
-            scroll: &mut state.scroll,
-            source: &mut state.source,
-            cache: &mut state.cache,
-            display: &state.display,
-            collapse: &mut state.collapse,
-            expandable: &mut state.expandable,
-            git_stats_state: &mut state.git_stats,
-            vim: &mut state.vim,
-            selection: &mut state.selection,
-            double_click: &mut state.double_click,
+            scroll: state.scroll.clone(),
+            source: state.source.clone(),
+            cache: state.cache.clone(),
+            display: state.display.clone(),
+            collapse: state.collapse.clone(),
+            expandable: state.expandable.clone(),
+            git_stats_state: state.git_stats.clone(),
+            vim: state.vim.clone(),
+            selection: state.selection.clone(),
+            double_click: state.double_click.clone(),
             toc_state: None,
             is_resizing: false,
             mode,
@@ -86,6 +82,7 @@ impl<'a> MarkdownWidget<'a> {
             pane: None,
             pane_title: None,
             pane_color: None,
+            inner_area: None,
         }
     }
 }

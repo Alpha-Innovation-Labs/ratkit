@@ -40,9 +40,9 @@ pub type NodeFilterFn<T> = Box<dyn Fn(&T, &Option<String>) -> bool>;
 /// ```
 pub struct TreeViewRef<'a, 'b, T> {
     /// Reference to root nodes of the tree
-    pub(crate) nodes: &'b [TreeNode<T>],
+    pub nodes: &'b [TreeNode<T>],
     /// Block to wrap the tree
-    pub(crate) block: Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// Render callback for custom node display
     pub(crate) render_fn: NodeRenderRefFn<'a, T>,
     /// Default expand icon
@@ -53,4 +53,6 @@ pub struct TreeViewRef<'a, 'b, T> {
     pub(crate) highlight_style: Option<Style>,
     /// Style for expand/collapse icons
     pub(crate) icon_style: Style,
+    /// Whether to show built-in filter UI
+    pub(crate) show_filter_ui: bool,
 }

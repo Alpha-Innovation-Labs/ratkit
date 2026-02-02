@@ -16,7 +16,7 @@ impl<'a> MarkdownWidget<'a> {
     /// # Returns
     ///
     /// Self for method chaining.
-    pub fn with_toc_state(mut self, toc_state: &'a TocState) -> Self {
+    pub fn with_toc_state(mut self, toc_state: TocState) -> Self {
         self.toc_state = Some(toc_state);
         self
     }

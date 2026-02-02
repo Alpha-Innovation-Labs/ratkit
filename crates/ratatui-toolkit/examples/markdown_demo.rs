@@ -23,6 +23,8 @@ use ratatui_toolkit::{
 struct AppState {
     /// Unified markdown widget state
     markdown: MarkdownState,
+    /// Widget that owns its state internally
+    markdown_widget: MarkdownWidget<'static>,
     /// Theme for the widget
     theme: AppTheme,
     /// Toast notifications
@@ -62,8 +64,12 @@ fn main() -> io::Result<()> {
         .source
         .set_source_file("crates/ratatui-toolkit/examples/markdown_demo_full.md")?;
 
+    // Create MarkdownWidget from state (widget now owns its state)
+    let markdown_widget = MarkdownWidget::from_state(&markdown);
+
     let mut app = AppState {
         markdown,
+        markdown_widget,
         theme: load_builtin_theme("ayu", ThemeVariant::Light).unwrap_or_default(),
         toast_manager: ToastManager::new(),
     };
@@ -89,7 +95,7 @@ fn run_demo(
 
     loop {
         // Update git stats periodically
-        app.markdown.update_git_stats();
+        app.markdown_widget.update_git_stats();
 
         // Remove expired toasts
         app.toast_manager.remove_expired();
@@ -97,9 +103,9 @@ fn run_demo(
         // Render
         terminal.draw(|frame| {
             render_area = frame.area();
-            let content = app.markdown.content().to_string();
 
-            let widget = MarkdownWidget::from_state(&content, &mut app.markdown)
+            let widget = app
+                .markdown_widget
                 .show_toc(true)
                 .show_statusline(true)
                 .show_scrollbar(true)

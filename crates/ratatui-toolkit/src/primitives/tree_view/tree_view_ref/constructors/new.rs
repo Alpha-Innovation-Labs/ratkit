@@ -36,6 +36,7 @@ impl<'a, 'b, T> TreeViewRef<'a, 'b, T> {
             collapse_icon: "\u{25bc}",
             highlight_style: None,
             icon_style: Style::default().fg(Color::DarkGray),
+            show_filter_ui: false,
         }
     }
 }

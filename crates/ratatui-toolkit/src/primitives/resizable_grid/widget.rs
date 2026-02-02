@@ -96,20 +96,19 @@ pub struct ResizableGridWidgetState {
 /// # Example
 ///
 /// ```rust
-/// use ratatui_toolkit::primitives::resizable_grid::{ResizableGridWidget, ResizableGridWidgetState};
-/// use ratatui_toolkit::primitives::resizable_grid::ResizableGrid;
+/// use ratatui_toolkit::primitives::resizable_grid::{ResizableGridWidget, ResizableGrid};
 ///
-/// let mut layout = ResizableGrid::new(0);
-/// let mut state = ResizableGridWidgetState::default();
+/// let layout = ResizableGrid::new(0);
+/// let state = ResizableGridWidgetState::default();
 ///
-/// let widget = ResizableGridWidget::new(&mut layout)
+/// let widget = ResizableGridWidget::new(layout)
 ///     .with_divider_width(1)
 ///     .with_hit_threshold(2);
 /// ```
-#[derive(Debug)]
-pub struct ResizableGridWidget<'a> {
-    /// Reference to the underlying ResizableGrid
-    layout: &'a mut ResizableGrid,
+#[derive(Debug, Clone)]
+pub struct ResizableGridWidget {
+    /// The underlying ResizableGrid (owned)
+    layout: ResizableGrid,
     /// State for hover and drag interactions
     state: ResizableGridWidgetState,
     /// Width of divider lines in columns
@@ -123,14 +122,14 @@ pub struct ResizableGridWidget<'a> {
     /// Style for normal dividers
     divider_style: Style,
     /// Optional block to render around the entire widget
-    block: Option<Block<'a>>,
+    block: Option<Block<'static>>,
     /// Whether to show pane borders
     show_pane_borders: bool,
 }
 
-impl<'a> ResizableGridWidget<'a> {
-    /// Create a new ResizableGridWidget wrapping a ResizableGrid.
-    pub fn new(layout: &'a mut ResizableGrid) -> Self {
+impl ResizableGridWidget {
+    /// Create a new ResizableGridWidget owning the given ResizableGrid.
+    pub fn new(layout: ResizableGrid) -> Self {
         Self {
             layout,
             state: ResizableGridWidgetState::default(),
@@ -180,12 +179,12 @@ impl<'a> ResizableGridWidget<'a> {
 
     /// Get a reference to the underlying layout.
     pub fn layout(&self) -> &ResizableGrid {
-        self.layout
+        &self.layout
     }
 
     /// Get a mutable reference to the underlying layout.
     pub fn layout_mut(&mut self) -> &mut ResizableGrid {
-        self.layout
+        &mut self.layout
     }
 
     /// Set the width of divider lines.
@@ -219,7 +218,7 @@ impl<'a> ResizableGridWidget<'a> {
     }
 
     /// Set the block to render around the widget.
-    pub fn with_block(mut self, block: Block<'a>) -> Self {
+    pub fn with_block(mut self, block: Block<'static>) -> Self {
         self.block = Some(block);
         self
     }
@@ -238,6 +237,11 @@ impl<'a> ResizableGridWidget<'a> {
     /// Check if currently dragging any divider.
     pub fn is_dragging(&self) -> bool {
         self.state.dragging_divider.is_some()
+    }
+
+    /// Check if the widget needs fast refresh (during drag operations).
+    pub fn needs_fast_refresh(&self) -> bool {
+        self.is_dragging() || self.is_hovering()
     }
 
     /// Get the currently hovered divider index, if any.
@@ -391,7 +395,7 @@ impl<'a> ResizableGridWidget<'a> {
     }
 }
 
-impl<'a> Widget for ResizableGridWidget<'a> {
+impl Widget for ResizableGridWidget {
     fn render(self, area: Rect, buf: &mut ratatui::buffer::Buffer) {
         let mut render_area = area;
 
@@ -440,7 +444,7 @@ impl<'a> Widget for ResizableGridWidget<'a> {
     }
 }
 
-impl<'a> ResizableGridWidget<'a> {
+impl ResizableGridWidget {
     /// Render a visual overlay on the divider to indicate it's active.
     fn render_divider_overlay(
         &self,
@@ -491,8 +495,8 @@ mod tests {
 
     #[test]
     fn test_widget_creation() {
-        let mut layout = ResizableGrid::new(0);
-        let widget = ResizableGridWidget::new(&mut layout);
+        let layout = ResizableGrid::new(0);
+        let widget = ResizableGridWidget::new(layout);
         assert!(!widget.is_hovering());
         assert!(!widget.is_dragging());
     }
@@ -502,7 +506,7 @@ mod tests {
         let mut layout = ResizableGrid::new(0);
         let _pane_2 = layout.split_pane_vertically(0).unwrap();
 
-        let mut widget = ResizableGridWidget::new(&mut layout);
+        let mut widget = ResizableGridWidget::new(layout);
 
         let area = Rect::new(0, 0, 80, 24);
 
@@ -526,7 +530,7 @@ mod tests {
         let mut layout = ResizableGrid::new(0);
         let _pane_2 = layout.split_pane_horizontally(0).unwrap();
 
-        let widget = ResizableGridWidget::new(&mut layout).with_hit_threshold(5);
+        let widget = ResizableGridWidget::new(layout).with_hit_threshold(5);
 
         assert_eq!(widget.hit_threshold, 5);
     }
@@ -538,7 +542,7 @@ mod tests {
         let drag_style = Style::default().fg(Color::Blue);
         let divider_style = Style::default().fg(Color::Green);
 
-        let widget = ResizableGridWidget::new(&mut layout)
+        let widget = ResizableGridWidget::new(layout)
             .with_hover_style(hover_style)
             .with_drag_style(drag_style)
             .with_divider_style(divider_style);
@@ -554,7 +558,7 @@ mod tests {
         // Single pane has no dividers, so dragging should not work
         let mut layout = ResizableGrid::new(0);
 
-        let mut widget = ResizableGridWidget::new(&mut layout);
+        let mut widget = ResizableGridWidget::new(layout);
 
         let area = Rect::new(0, 0, 80, 24);
 

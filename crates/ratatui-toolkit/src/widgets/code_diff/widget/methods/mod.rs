@@ -14,6 +14,7 @@ mod scroll_down;
 mod scroll_up;
 mod select_next_file;
 mod select_prev_file;
+mod set_area;
 mod set_scroll;
 mod stats_text;
 mod sync_diff_from_selection;

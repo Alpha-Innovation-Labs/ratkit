@@ -32,6 +32,7 @@ impl<'a, T> TreeView<'a, T> {
             expand_icon: "\u{25b6}",
             collapse_icon: "\u{25bc}",
             highlight_style: None,
+            show_filter_ui: false,
         }
     }
 }

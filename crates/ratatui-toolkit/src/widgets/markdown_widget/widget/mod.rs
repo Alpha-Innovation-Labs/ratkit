@@ -10,6 +10,7 @@ pub use enums::MarkdownWidgetMode;
 pub use methods::WidgetStateSync;
 
 use crate::primitives::pane::Pane;
+use crate::services::theme::AppTheme;
 use crate::widgets::markdown_widget::extensions::scrollbar::ScrollbarConfig;
 use crate::widgets::markdown_widget::extensions::toc::TocConfig;
 use crate::widgets::markdown_widget::foundation::types::GitStats;
@@ -56,29 +57,29 @@ use crate::widgets::markdown_widget::state::{
 /// but click events will not be received by the application.
 pub struct MarkdownWidget<'a> {
     /// The markdown content to render.
-    pub(crate) content: &'a str,
+    pub(crate) content: String,
     /// Scroll state (position, viewport, current line).
-    pub(crate) scroll: &'a mut ScrollState,
+    pub(crate) scroll: ScrollState,
     /// Content source state.
-    pub(crate) source: &'a mut SourceState,
+    pub(crate) source: SourceState,
     /// Render cache state.
-    pub(crate) cache: &'a mut CacheState,
+    pub(crate) cache: CacheState,
     /// Display settings (line numbers, themes).
-    pub(crate) display: &'a DisplaySettings,
+    pub(crate) display: DisplaySettings,
     /// Section collapse state.
-    pub(crate) collapse: &'a mut CollapseState,
+    pub(crate) collapse: CollapseState,
     /// Expandable content state.
-    pub(crate) expandable: &'a mut ExpandableState,
+    pub(crate) expandable: ExpandableState,
     /// Git stats state.
-    pub(crate) git_stats_state: &'a mut GitStatsState,
+    pub(crate) git_stats_state: GitStatsState,
     /// Vim keybinding state.
-    pub(crate) vim: &'a mut VimState,
+    pub(crate) vim: VimState,
     /// Selection state for text selection/copy.
-    pub(crate) selection: &'a mut SelectionState,
+    pub(crate) selection: SelectionState,
     /// Double-click state for double-click detection.
-    pub(crate) double_click: &'a mut DoubleClickState,
+    pub(crate) double_click: DoubleClickState,
     /// Optional TOC state for table of contents.
-    pub(crate) toc_state: Option<&'a TocState>,
+    pub(crate) toc_state: Option<TocState>,
     /// When true, use stale cache for smoother resize during drag operations.
     pub(crate) is_resizing: bool,
     /// Current mode for the statusline.
@@ -106,7 +107,7 @@ pub struct MarkdownWidget<'a> {
     /// Cached rendered lines for selection text extraction.
     pub(crate) rendered_lines: Vec<ratatui::text::Line<'static>>,
     /// Optional application theme for styling.
-    pub(crate) app_theme: Option<&'a crate::services::theme::AppTheme>,
+    pub(crate) app_theme: Option<AppTheme>,
     /// Last double-click info (line number, kind, content) for app to retrieve.
     pub(crate) last_double_click: Option<(usize, String, String)>,
     /// Current filter text (when in filter mode).
@@ -123,4 +124,6 @@ pub struct MarkdownWidget<'a> {
     pub(crate) pane_title: Option<String>,
     /// Color for the Pane border.
     pub(crate) pane_color: Option<ratatui::style::Color>,
+    /// Inner area calculated during render (for mouse event handling).
+    pub inner_area: Option<ratatui::layout::Rect>,
 }

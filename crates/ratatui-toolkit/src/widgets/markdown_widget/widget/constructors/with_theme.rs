@@ -1,5 +1,6 @@
 //! Theme application constructor for MarkdownWidget.
 
+use crate::services::theme::AppTheme;
 use crate::widgets::markdown_widget::widget::MarkdownWidget;
 
 impl<'a> MarkdownWidget<'a> {
@@ -29,8 +30,8 @@ impl<'a> MarkdownWidget<'a> {
     /// // let widget = MarkdownWidget::new(content, scroll, selection, double_click)
     /// //     .with_theme(&theme);
     /// ```
-    pub fn with_theme(mut self, theme: &'a crate::services::theme::AppTheme) -> Self {
-        self.app_theme = Some(theme);
+    pub fn with_theme(mut self, theme: &AppTheme) -> Self {
+        self.app_theme = Some(theme.clone());
         // Apply theme colors to TOC config
         self.toc_config = self.toc_config.with_theme(theme);
         self

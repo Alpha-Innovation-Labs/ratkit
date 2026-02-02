@@ -68,8 +68,8 @@ impl<'a> MarkdownWidget<'a> {
 
         if is_potentially_over_toc {
             // Create state from content with entries
-            let auto_state = TocState::from_content(self.content);
-            let toc_state = if let Some(provided) = self.toc_state {
+            let auto_state = TocState::from_content(&self.content);
+            let toc_state = if let Some(provided) = &self.toc_state {
                 if provided.entries.is_empty() {
                     &auto_state
                 } else {
@@ -165,8 +165,8 @@ impl<'a> MarkdownWidget<'a> {
     /// * `toc_area` - The TOC area rect
     pub fn update_toc_hovered_entry(&mut self, x: u16, y: u16, toc_area: Rect) {
         // Create state from content with entries
-        let auto_state = TocState::from_content(self.content);
-        let toc_state = if let Some(provided) = self.toc_state {
+        let auto_state = TocState::from_content(&self.content);
+        let toc_state = if let Some(provided) = &self.toc_state {
             if provided.entries.is_empty() {
                 &auto_state
             } else {

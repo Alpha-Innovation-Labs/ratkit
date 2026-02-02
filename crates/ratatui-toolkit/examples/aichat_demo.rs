@@ -16,12 +16,12 @@ use ratatui::{
     style::{Color, Modifier, Style},
     Terminal,
 };
-use ratatui_toolkit::{AIChat, InputState, Message, MessageStore};
+use ratatui_toolkit::{AIChat, Message};
 
 struct AppState {
-    messages: MessageStore,
-    input: InputState,
+    chat: AIChat,
     selected_command_index: usize,
+    is_loading: bool,
 }
 
 fn main() -> io::Result<()> {
@@ -45,18 +45,16 @@ fn main() -> io::Result<()> {
     let mut terminal = Terminal::new(backend)?;
     terminal.show_cursor()?;
 
-    let mut messages = MessageStore::new();
-    messages.add(Message::assistant(
+    let mut chat = AIChat::new_ai_chat();
+    chat.messages().add(Message::assistant(
         "Hello! I'm your AI assistant. Type a message and press Enter to send.\n\nCommands:\n  /clear - Clear all messages\n\nFile Attachments:\n  Type @ to attach files from the current directory\n  Use ↑/↓ to navigate the file list\n  Press Enter or Esc to close popup\n\nCommand Mode:\n  Type / to enter command mode\n  Use ↑/↓ to navigate commands\n  Press Enter to execute or Esc to cancel".to_string(),
     ));
-
-    let mut input = InputState::new();
-    input.load_files_from_cwd();
+    chat.input().load_files_from_cwd();
 
     let app = AppState {
-        messages,
-        input,
+        chat,
         selected_command_index: 0,
+        is_loading: false,
     };
 
     let result = run_demo(&mut terminal, app);
@@ -67,7 +65,6 @@ fn main() -> io::Result<()> {
         LeaveAlternateScreen,
         DisableMouseCapture
     )?;
-    terminal.show_cursor()?;
 
     result
 }
@@ -77,12 +74,13 @@ fn run_demo(
     mut app: AppState,
 ) -> io::Result<()> {
     let mut render_area = Rect::default();
-    let mut is_loading = false;
 
     loop {
         terminal.draw(|frame| {
             render_area = frame.area();
-            let mut widget = AIChat::new_ai_chat(&mut app.messages, &mut app.input)
+            let widget = app
+                .chat
+                .with_selected_command_index(app.selected_command_index)
                 .with_user_message_style(
                     Style::default()
                         .fg(Color::LightCyan)
@@ -91,19 +89,18 @@ fn run_demo(
                 .with_ai_message_style(Style::default().fg(Color::White))
                 .with_input_style(Style::default().fg(Color::White))
                 .with_prompt("You: ".to_string());
-            widget.set_selected_command_index(app.selected_command_index);
-            if is_loading {
+            if app.is_loading {
                 widget.set_loading(true);
             }
             widget.render(frame, render_area);
         })?;
 
-        if is_loading {
+        if app.is_loading {
             std::thread::sleep(std::time::Duration::from_millis(500));
-            app.messages.add(Message::assistant(
+            app.chat.messages().add(Message::assistant(
                 "This is a simulated AI response. In a real implementation, this would connect to an LLM API.".to_string(),
             ));
-            is_loading = false;
+            app.is_loading = false;
         }
 
         if event::poll(std::time::Duration::from_millis(50))? {
@@ -113,23 +110,21 @@ fn run_demo(
                         return Ok(());
                     }
                     if key.code == KeyCode::Enter {
-                        if app.input.is_command_mode() {
-                            let widget = AIChat::new_ai_chat(&mut app.messages, &mut app.input);
-                            let filtered = widget.filtered_commands();
+                        if app.chat.input().is_command_mode() {
+                            let filtered = app.chat.filtered_commands();
                             if let Some(cmd) = filtered.get(app.selected_command_index) {
                                 if cmd == "/clear" {
-                                    app.messages.clear();
+                                    app.chat.messages().clear();
                                 }
-                                app.input.handle_key(key);
+                                app.chat.input().handle_key(key);
                             }
-                        } else if let Some(result) = app.input.handle_key(key) {
-                            app.messages.add(Message::user(result.clone()));
-                            is_loading = true;
+                        } else if let Some(result) = app.chat.input().handle_key(key) {
+                            app.chat.messages().add(Message::user(result.clone()));
+                            app.is_loading = true;
                         }
-                    } else if app.input.is_command_mode() {
+                    } else if app.chat.input().is_command_mode() {
                         if key.code == KeyCode::Up || key.code == KeyCode::Char('k') {
-                            let widget = AIChat::new_ai_chat(&mut app.messages, &mut app.input);
-                            let filtered = widget.filtered_commands();
+                            let filtered = app.chat.filtered_commands();
                             if !filtered.is_empty() {
                                 app.selected_command_index = if app.selected_command_index == 0 {
                                     filtered.len() - 1
@@ -138,17 +133,16 @@ fn run_demo(
                                 };
                             }
                         } else if key.code == KeyCode::Down || key.code == KeyCode::Char('j') {
-                            let widget = AIChat::new_ai_chat(&mut app.messages, &mut app.input);
-                            let filtered = widget.filtered_commands();
+                            let filtered = app.chat.filtered_commands();
                             if !filtered.is_empty() {
                                 app.selected_command_index =
                                     (app.selected_command_index + 1) % filtered.len();
                             }
                         } else {
-                            app.input.handle_key(key);
+                            app.chat.input().handle_key(key);
                         }
                     } else {
-                        app.input.handle_key(key);
+                        app.chat.input().handle_key(key);
                     }
                 }
                 _ => {}

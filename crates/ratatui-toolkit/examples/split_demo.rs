@@ -70,7 +70,7 @@ fn main() -> io::Result<()> {
 
 fn run_demo(
     terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
-    widget: &mut ResizableGridWidget<'_>,
+    widget: &mut ResizableGridWidget,
     widget_state: &mut ResizableGridWidgetState,
     theme: &AppTheme,
 ) -> io::Result<()> {

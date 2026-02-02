@@ -12,6 +12,9 @@ use crate::widgets::markdown_widget::widget::MarkdownWidget;
 impl<'a> MarkdownWidget<'a> {
     /// Create a new MarkdownWidget with the given content and state managers.
     ///
+    /// This constructor takes owned state values, allowing the widget to own
+    /// its state internally.
+    ///
     /// # Arguments
     ///
     /// * `content` - The markdown content to render
@@ -31,17 +34,17 @@ impl<'a> MarkdownWidget<'a> {
     /// A new `MarkdownWidget` instance.
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        content: &'a str,
-        scroll: &'a mut ScrollState,
-        source: &'a mut SourceState,
-        cache: &'a mut CacheState,
-        display: &'a DisplaySettings,
-        collapse: &'a mut CollapseState,
-        expandable: &'a mut ExpandableState,
-        git_stats_state: &'a mut GitStatsState,
-        vim: &'a mut VimState,
-        selection: &'a mut SelectionState,
-        double_click: &'a mut DoubleClickState,
+        content: String,
+        scroll: ScrollState,
+        source: SourceState,
+        cache: CacheState,
+        display: DisplaySettings,
+        collapse: CollapseState,
+        expandable: ExpandableState,
+        git_stats_state: GitStatsState,
+        vim: VimState,
+        selection: SelectionState,
+        double_click: DoubleClickState,
     ) -> Self {
         Self {
             content,
@@ -78,6 +81,7 @@ impl<'a> MarkdownWidget<'a> {
             pane: None,
             pane_title: None,
             pane_color: None,
+            inner_area: None,
         }
     }
 }

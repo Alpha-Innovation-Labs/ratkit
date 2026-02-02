@@ -38,6 +38,7 @@ impl CodeDiff {
             sidebar_focused: true,
             config,
             theme: AppTheme::default(),
+            area: None,
         }
     }
 }

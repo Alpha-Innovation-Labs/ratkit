@@ -1,11 +1,11 @@
 use crate::primitives::menu_bar::util::display_width;
+use crate::primitives::widget_event::WidgetEvent;
 use crate::services::theme::AppTheme;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::widgets::{Block, BorderType, Borders, Paragraph};
 use ratatui::Frame;
 
-#[derive(Debug, Clone)]
 pub struct MenuItem {
     pub name: String,
     pub icon: Option<String>,
@@ -13,6 +13,7 @@ pub struct MenuItem {
     pub selected: bool,
     pub hovered: bool,
     pub area: Option<Rect>,
+    pub action: Option<Box<dyn FnOnce() + Send>>,
 }
 
 impl MenuItem {
@@ -24,6 +25,7 @@ impl MenuItem {
             selected: false,
             hovered: false,
             area: None,
+            action: None,
         }
     }
 
@@ -35,6 +37,40 @@ impl MenuItem {
             selected: false,
             hovered: false,
             area: None,
+            action: None,
+        }
+    }
+
+    pub fn with_action(
+        name: impl Into<String>,
+        value: usize,
+        action: impl FnOnce() + Send + 'static,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            icon: None,
+            value,
+            selected: false,
+            hovered: false,
+            area: None,
+            action: Some(Box::new(action)),
+        }
+    }
+
+    pub fn with_icon_and_action(
+        name: impl Into<String>,
+        icon: impl Into<String>,
+        value: usize,
+        action: impl FnOnce() + Send + 'static,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            icon: Some(icon.into()),
+            value,
+            selected: false,
+            hovered: false,
+            area: None,
+            action: Some(Box::new(action)),
         }
     }
 
@@ -47,7 +83,6 @@ impl MenuItem {
     }
 }
 
-#[derive(Debug, Clone)]
 pub struct MenuBar {
     pub items: Vec<MenuItem>,
     pub area: Option<Rect>,
@@ -157,6 +192,34 @@ impl MenuBar {
         }
 
         clicked_index
+    }
+
+    pub fn handle_mouse(&mut self, column: u16, row: u16) -> WidgetEvent {
+        let clicked_index = self.items.iter().enumerate().find_map(|(i, item)| {
+            if let Some(area) = item.area {
+                if column >= area.x
+                    && column < area.x + area.width
+                    && row >= area.y
+                    && row < area.y + area.height
+                {
+                    return Some(i);
+                }
+            }
+            None
+        });
+
+        if let Some(clicked) = clicked_index {
+            let action = self.items[clicked].action.take();
+            for (i, item) in self.items.iter_mut().enumerate() {
+                item.selected = i == clicked;
+            }
+            return WidgetEvent::MenuSelected {
+                index: clicked,
+                action,
+            };
+        }
+
+        WidgetEvent::None
     }
 
     pub fn selected(&self) -> Option<usize> {

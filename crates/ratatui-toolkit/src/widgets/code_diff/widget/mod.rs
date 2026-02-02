@@ -52,6 +52,7 @@ use crate::services::theme::AppTheme;
 use crate::widgets::code_diff::diff_config::DiffConfig;
 use crate::widgets::code_diff::diff_file_tree::DiffFileTree;
 use crate::widgets::code_diff::diff_hunk::DiffHunk;
+use ratatui::layout::Rect as RatatuiRect;
 
 /// A widget for displaying code diffs in a terminal UI.
 ///
@@ -122,4 +123,7 @@ pub struct CodeDiff {
 
     /// Application theme for styling.
     pub theme: AppTheme,
+
+    /// Cached area for mouse event handling (set during render).
+    pub area: Option<RatatuiRect>,
 }

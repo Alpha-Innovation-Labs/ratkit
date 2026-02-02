@@ -29,7 +29,7 @@ use crate::widgets::markdown_widget::state::{
 ///     .show_toc(true)
 ///     .show_statusline(true);
 /// ```
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct MarkdownState {
     /// Core scroll state (position, viewport, current line).
     pub scroll: ScrollState,
@@ -68,9 +68,25 @@ pub struct MarkdownState {
     pub filter: Option<String>,
     /// Whether filter mode is currently active.
     pub filter_mode: bool,
+    /// Inner area for mouse event handling (set during render).
+    inner_area: ratatui::layout::Rect,
 }
 
 impl MarkdownState {
+    /// Get the inner area for mouse event handling.
+    ///
+    /// Returns the inner area that was set during the last render.
+    pub fn inner_area(&self) -> ratatui::layout::Rect {
+        self.inner_area
+    }
+
+    /// Set the inner area for mouse event handling.
+    ///
+    /// This is typically called by the widget during render.
+    pub fn set_inner_area(&mut self, area: ratatui::layout::Rect) {
+        self.inner_area = area;
+    }
+
     /// Get the content from the source state.
     ///
     /// Returns the content if set, or an empty string.

@@ -20,7 +20,7 @@ impl<'a, 'b, T> TreeViewRef<'a, 'b, T> {
     /// # Returns
     ///
     /// A vector of tuples containing the rendered line and the path to each visible node.
-    pub(crate) fn flatten_tree(&self, state: &TreeViewState) -> Vec<(Line<'a>, Vec<usize>)> {
+    pub fn flatten_tree(&self, state: &TreeViewState) -> Vec<(Line<'a>, Vec<usize>)> {
         let mut items = Vec::new();
 
         /// Context for tree traversal to reduce function parameters

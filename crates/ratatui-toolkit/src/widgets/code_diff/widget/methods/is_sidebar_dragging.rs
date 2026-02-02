@@ -9,4 +9,9 @@ impl CodeDiff {
     pub fn is_sidebar_dragging(&self) -> bool {
         self.sidebar_split.is_dragging()
     }
+
+    /// Check if the widget needs fast refresh (during drag operations).
+    pub fn needs_fast_refresh(&self) -> bool {
+        self.is_sidebar_dragging() || self.is_sidebar_hovering()
+    }
 }

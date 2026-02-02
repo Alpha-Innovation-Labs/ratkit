@@ -30,11 +30,11 @@ pub enum AIChatEvent {
 }
 
 /// AI Chat widget for interactive chat interfaces.
-pub struct AIChat<'a> {
+pub struct AIChat {
     /// Store for chat messages
-    messages: &'a mut MessageStore,
+    messages: MessageStore,
     /// Input state for text entry
-    input: &'a mut InputState,
+    input: InputState,
     /// Whether AI is generating a response
     is_loading: bool,
     /// Style for user messages

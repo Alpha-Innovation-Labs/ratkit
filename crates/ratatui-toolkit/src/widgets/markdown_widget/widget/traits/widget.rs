@@ -123,7 +123,7 @@ impl<'a> Widget for MarkdownWidget<'a> {
             // TOC: compact when not hovered, expanded when hovered
             // Dynamic width based on content for expanded mode
             let toc_width = if self.toc_hovered {
-                Toc::required_expanded_width(self.content, self.toc_config.show_border)
+                Toc::required_expanded_width(&self.content, self.toc_config.show_border)
                     .min(main_area.width.saturating_sub(padding_right + 4))
             } else {
                 self.toc_config.compact_width
@@ -131,12 +131,12 @@ impl<'a> Widget for MarkdownWidget<'a> {
             // Dynamic height based on content
             let toc_height = if self.toc_hovered {
                 // Expanded: one row per entry
-                Toc::required_height(self.content, self.toc_config.show_border)
+                Toc::required_height(&self.content, self.toc_config.show_border)
                     .min(main_area.height.saturating_sub(1))
             } else {
                 // Compact: based on entries and line_spacing
                 Toc::required_compact_height(
-                    self.content,
+                    &self.content,
                     self.toc_config.line_spacing,
                     self.toc_config.show_border,
                 )
@@ -169,13 +169,14 @@ impl<'a> Widget for MarkdownWidget<'a> {
 
         // Render markdown content (subtract line number width from available width)
         let width = (content_area.width as usize).saturating_sub(line_num_width);
-        let content_hash = hash_content(self.content);
+        let content_hash = hash_content(&self.content);
         let show_line_numbers = self.display.show_line_numbers;
         let theme = self.display.code_block_theme;
 
         // Hash app theme for cache invalidation
         let app_theme_hash = self
             .app_theme
+            .as_ref()
             .map(|t| {
                 use std::collections::hash_map::DefaultHasher;
                 use std::hash::{Hash, Hasher};
@@ -227,7 +228,7 @@ impl<'a> Widget for MarkdownWidget<'a> {
                     self.cache.parsed.as_ref().unwrap().elements.clone()
                 } else {
                     // Parse markdown and cache
-                    let parsed = render_markdown_to_elements(self.content, true);
+                    let parsed = render_markdown_to_elements(&self.content, true);
                     self.cache.parsed = Some(ParsedCache {
                         content_hash,
                         elements: parsed.clone(),
@@ -238,7 +239,7 @@ impl<'a> Widget for MarkdownWidget<'a> {
                 let render_options = RenderOptions {
                     show_line_numbers,
                     theme,
-                    app_theme: self.app_theme,
+                    app_theme: self.app_theme.as_ref(),
                     show_heading_collapse: self.display.show_heading_collapse,
                 };
 
@@ -252,7 +253,7 @@ impl<'a> Widget for MarkdownWidget<'a> {
                 let mut boundaries: Vec<(usize, usize)> = Vec::new();
 
                 for (idx, element) in elements.iter().enumerate() {
-                    if !should_render_line(element, idx, self.collapse) {
+                    if !should_render_line(element, idx, &self.collapse) {
                         continue;
                     }
 
@@ -301,7 +302,7 @@ impl<'a> Widget for MarkdownWidget<'a> {
 
         // Apply selection highlighting if selection is active
         let visible_lines = if self.selection_active {
-            apply_selection_highlighting(visible_lines, self.selection, self.scroll.scroll_offset)
+            apply_selection_highlighting(visible_lines, &self.selection, self.scroll.scroll_offset)
         } else {
             visible_lines
         };
@@ -443,13 +444,13 @@ impl<'a> Widget for MarkdownWidget<'a> {
         // Render TOC overlay
         if let Some(ov_area) = overlay_area {
             // Create state from content with widget's hover state
-            let mut auto_state = TocState::from_content(self.content);
+            let mut auto_state = TocState::from_content(&self.content);
             auto_state.hovered = self.toc_hovered;
             auto_state.hovered_entry = self.toc_hovered_entry;
             auto_state.scroll_offset = self.toc_scroll_offset;
 
             // Use provided state if it has entries, otherwise use auto-extracted
-            let final_state = if let Some(provided) = self.toc_state {
+            let final_state = if let Some(provided) = &self.toc_state {
                 if provided.entries.is_empty() {
                     &auto_state
                 } else {
@@ -481,11 +482,14 @@ impl<'a> Widget for MarkdownWidget<'a> {
                 height: content_area.height,
             };
 
-            let scrollbar = CustomScrollbar::new(self.scroll)
+            let scrollbar = CustomScrollbar::new(&self.scroll)
                 .config(self.scrollbar_config.clone())
                 .show_percentage(false);
 
             scrollbar.render(scrollbar_area, buf);
         }
+
+        // Capture inner area for mouse event handling
+        self.inner_area = Some(content_area);
     }
 }

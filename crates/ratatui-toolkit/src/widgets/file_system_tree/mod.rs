@@ -51,5 +51,5 @@ pub struct FileSystemTree<'a> {
     /// Configuration
     pub(crate) config: FileSystemTreeConfig,
     /// Optional block wrapper
-    block: Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
 }
