@@ -1,0 +1,18 @@
+[package]
+name = "ratkit-git-watcher"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Git watching service for detecting git repository changes in ratkit"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+keywords = ["tui", "ratatui", "git-watcher", "notify"]
+categories = ["command-line-interface", "development-tools"]
+
+[dependencies]
+notify = "6"
+
+[dev-dependencies]
+tempfile = "3"

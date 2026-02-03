@@ -1,0 +1,24 @@
+[package]
+name = "ratkit-code-diff"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Code diff viewer for ratatui"
+documentation = "https://docs.rs/ratkit-code-diff"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+keywords = ["tui", "ratatui", "diff", "code", "widget"]
+categories = ["command-line-interface", "gui"]
+
+[dependencies]
+ratatui.workspace = true
+crossterm.workspace = true
+tokio.workspace = true
+unicode-width.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+
+similar = "2"

@@ -1,0 +1,20 @@
+[package]
+name = "ratkit-repo-watcher"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Repository watcher for detecting git and working tree changes in ratkit"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+keywords = ["tui", "ratatui", "repo-watcher", "git"]
+categories = ["command-line-interface", "development-tools"]
+
+[dependencies]
+notify = "6"
+ratkit-file-watcher = { version = "0.1.0", path = "../../services/ratkit-file-watcher" }
+ratkit-git-watcher = { version = "0.1.0", path = "../../services/ratkit-git-watcher" }
+
+[dev-dependencies]
+tempfile = "3"

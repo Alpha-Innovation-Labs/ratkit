@@ -1,0 +1,26 @@
+[package]
+name = "ratkit-ai-chat"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "AI chat interface for ratatui"
+documentation = "https://docs.rs/ratkit-ai-chat"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+keywords = ["tui", "ratatui", "ai", "chat", "widget"]
+categories = ["command-line-interface", "gui"]
+
+[dependencies]
+ratatui.workspace = true
+crossterm.workspace = true
+tokio.workspace = true
+unicode-width.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

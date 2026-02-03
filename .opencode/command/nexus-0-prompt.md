@@ -1,0 +1,1 @@
+../../.nexus/commands/nexus-0-prompt.md

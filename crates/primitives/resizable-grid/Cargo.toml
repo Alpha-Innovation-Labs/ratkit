@@ -1,0 +1,17 @@
+[package]
+name = "ratkit-resizable-grid"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Resizable grid layouts for ratatui"
+documentation = "https://docs.rs/ratkit-resizable-grid"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+keywords = ["tui", "ratatui", "grid", "resizable", "layout", "widget"]
+categories = ["command-line-interface", "gui"]
+
+[dependencies]
+ratatui.workspace = true
+crossterm.workspace = true

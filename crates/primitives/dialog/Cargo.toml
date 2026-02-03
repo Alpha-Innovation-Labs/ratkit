@@ -1,0 +1,21 @@
+[package]
+name = "ratkit-dialog"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Dialog windows for ratatui"
+documentation = "https://docs.rs/ratkit-dialog"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+keywords = ["tui", "ratatui", "dialog", "modal", "widget"]
+categories = ["command-line-interface", "gui"]
+
+[dependencies]
+ratatui.workspace = true
+ratkit-theme = { workspace = true, optional = true }
+
+[features]
+default = []
+theme = ["ratkit-theme"]

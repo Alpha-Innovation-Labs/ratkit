@@ -1,8 +1,42 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/ratatui-toolkit",
-    "crates/archives",
+    # Legacy crates archived - see _archives/ directory
+    # "crates/ratatui-toolkit",
+    # "crates/archives",
+    
+    # Primitives (12 crates)
+    "crates/primitives/ratkit-button",
+    "crates/primitives/ratkit-pane",
+    "crates/primitives/ratkit-dialog",
+    "crates/primitives/ratkit-toast",
+    "crates/primitives/ratkit-statusline",
+    "crates/primitives/ratkit-scroll",
+    "crates/primitives/ratkit-menu-bar",
+    "crates/primitives/ratkit-resizable-grid",
+    "crates/primitives/ratkit-tree-view",
+    "crates/primitives/ratkit-widget-event",
+    "crates/primitives/ratkit-termtui",
+    
+    # Widgets (6 crates)
+    "crates/widgets/ratkit-markdown-preview",
+    "crates/widgets/ratkit-code-diff",
+    "crates/widgets/ratkit-ai-chat",
+    "crates/widgets/ratkit-hotkey-footer",
+    "crates/widgets/ratkit-file-system-tree",
+    "crates/widgets/ratkit-theme-picker",
+    
+    # Services (4 crates)
+    "crates/services/ratkit-file-watcher",
+    "crates/services/ratkit-git-watcher",
+    "crates/services/ratkit-repo-watcher",
+    "crates/services/ratkit-hotkey-service",
+    
+    # Shared/Theme
+    "crates/ratkit-theme",
+    
+    # Meta-crate
+    "crates/ratkit",
 ]
 
 [workspace.package]
@@ -22,3 +56,4 @@ unicode-width = "0.2"
 tracing = "0.1"
 anyhow = "1"
 thiserror = "2"
+ratkit-theme = { path = "crates/ratkit-theme" }

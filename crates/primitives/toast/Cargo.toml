@@ -1,0 +1,17 @@
+[package]
+name = "ratkit-toast"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Toast notifications for ratatui"
+documentation = "https://docs.rs/ratkit-toast"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+keywords = ["tui", "ratatui", "toast", "notification", "widget"]
+categories = ["command-line-interface", "gui"]
+
+[dependencies]
+ratatui.workspace = true
+tracing.workspace = true

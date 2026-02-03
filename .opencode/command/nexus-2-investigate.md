@@ -1,0 +1,1 @@
+../../.nexus/commands/nexus-2-investigate.md

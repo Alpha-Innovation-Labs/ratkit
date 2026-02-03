@@ -1,0 +1,20 @@
+[package]
+name = "ratkit-tree-view"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Tree view widget for ratatui"
+documentation = "https://docs.rs/ratkit-tree-view"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+keywords = ["tui", "ratatui", "tree", "treeview", "widget"]
+categories = ["command-line-interface", "gui"]
+
+[dependencies]
+ratatui.workspace = true
+crossterm.workspace = true
+unicode-width.workspace = true
+anyhow.workspace = true
+ratkit-widget-event = { path = "../../primitives/ratkit-widget-event" }

@@ -1,0 +1,125 @@
+[package]
+name = "ratkit"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Meta-crate re-exporting all ratkit TUI components. Migrated from ratatui-toolkit."
+documentation = "https://docs.rs/ratkit"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+keywords = ["tui", "ratatui", "widgets", "ui"]
+categories = ["command-line-interface", "gui"]
+
+[dependencies]
+# Core UI widgets (primitives)
+ratkit-button = { path = "../primitives/ratkit-button", optional = true }
+ratkit-pane = { path = "../primitives/ratkit-pane", optional = true }
+ratkit-dialog = { path = "../primitives/ratkit-dialog", optional = true }
+ratkit-toast = { path = "../primitives/ratkit-toast", optional = true }
+ratkit-statusline = { path = "../primitives/ratkit-statusline", optional = true }
+ratkit-scroll = { path = "../primitives/ratkit-scroll", optional = true }
+ratkit-menu-bar = { path = "../primitives/ratkit-menu-bar", optional = true }
+ratkit-resizable-grid = { path = "../primitives/ratkit-resizable-grid", optional = true }
+ratkit-tree-view = { path = "../primitives/ratkit-tree-view", optional = true }
+ratkit-widget-event = { path = "../primitives/ratkit-widget-event", optional = true }
+ratkit-termtui = { path = "../primitives/ratkit-termtui", optional = true }
+
+# Advanced widgets
+ratkit-markdown-preview = { path = "../widgets/ratkit-markdown-preview", optional = true }
+ratkit-code-diff = { path = "../widgets/ratkit-code-diff", optional = true }
+ratkit-ai-chat = { path = "../widgets/ratkit-ai-chat", optional = true }
+ratkit-hotkey-footer = { path = "../widgets/ratkit-hotkey-footer", optional = true }
+ratkit-file-system-tree = { path = "../widgets/ratkit-file-system-tree", optional = true }
+ratkit-theme-picker = { path = "../widgets/ratkit-theme-picker", optional = true }
+
+# Services
+ratkit-file-watcher = { path = "../services/ratkit-file-watcher", optional = true }
+ratkit-git-watcher = { path = "../services/ratkit-git-watcher", optional = true }
+ratkit-repo-watcher = { path = "../services/ratkit-repo-watcher", optional = true }
+ratkit-hotkey-service = { path = "../services/ratkit-hotkey-service", optional = true }
+
+# Theme support
+ratkit-theme = { path = "../ratkit-theme", optional = true }
+
+[features]
+default = [
+    "button",
+    "pane",
+    "dialog",
+    "toast",
+    "statusline",
+    "scroll",
+    "menu-bar",
+    "resizable-grid",
+    "tree-view",
+    "widget-event",
+    "termtui",
+    "markdown-preview",
+    "code-diff",
+    "ai-chat",
+    "hotkey-footer",
+    "file-system-tree",
+    "theme-picker",
+    "file-watcher",
+    "git-watcher",
+    "repo-watcher",
+    "hotkey-service",
+    "theme",
+]
+
+full = ["default"]
+
+# Widget feature groups
+widgets = [
+    "button",
+    "pane",
+    "dialog",
+    "toast",
+    "statusline",
+    "scroll",
+    "menu-bar",
+    "resizable-grid",
+    "tree-view",
+    "widget-event",
+    "termtui",
+    "markdown-preview",
+    "code-diff",
+    "ai-chat",
+    "hotkey-footer",
+    "file-system-tree",
+    "theme-picker",
+]
+
+services = [
+    "file-watcher",
+    "git-watcher",
+    "repo-watcher",
+    "hotkey-service",
+]
+
+theme = ["ratkit-theme"]
+
+# Individual widget features
+button = ["ratkit-button"]
+pane = ["ratkit-pane"]
+dialog = ["ratkit-dialog"]
+toast = ["ratkit-toast"]
+statusline = ["ratkit-statusline"]
+scroll = ["ratkit-scroll"]
+menu-bar = ["ratkit-menu-bar"]
+resizable-grid = ["ratkit-resizable-grid"]
+tree-view = ["ratkit-tree-view"]
+widget-event = ["ratkit-widget-event"]
+termtui = ["ratkit-termtui"]
+markdown-preview = ["ratkit-markdown-preview"]
+code-diff = ["ratkit-code-diff"]
+ai-chat = ["ratkit-ai-chat"]
+hotkey-footer = ["ratkit-hotkey-footer"]
+file-system-tree = ["ratkit-file-system-tree"]
+theme-picker = ["ratkit-theme-picker"]
+file-watcher = ["ratkit-file-watcher"]
+git-watcher = ["ratkit-git-watcher"]
+repo-watcher = ["ratkit-repo-watcher"]
+hotkey-service = ["ratkit-hotkey-service"]

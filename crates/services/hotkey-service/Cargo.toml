@@ -1,0 +1,17 @@
+[package]
+name = "ratkit-hotkey-service"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Hotkey registration and management service for ratkit"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+keywords = ["tui", "ratatui", "hotkey", "keyboard-shortcuts"]
+categories = ["command-line-interface"]
+
+[dependencies]
+crossterm.workspace = true
+
+[dev-dependencies]

@@ -1,0 +1,18 @@
+[package]
+name = "ratkit-widget-event"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Widget event types for ratatui"
+documentation = "https://docs.rs/ratkit-widget-event"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+keywords = ["tui", "ratatui", "event", "widget"]
+categories = ["command-line-interface", "gui"]
+
+[dependencies]
+
+[features]
+default = []
