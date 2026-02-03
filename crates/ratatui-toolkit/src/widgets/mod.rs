@@ -1,5 +1,3 @@
-pub mod ai_chat;
-pub mod code_diff;
 #[cfg(feature = "file-tree")]
 pub mod file_system_tree;
 #[cfg(feature = "hotkey")]

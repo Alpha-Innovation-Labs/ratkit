@@ -1,0 +1,19 @@
+[package]
+name = "ratatui-archives"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Archive widgets for ratatui including AI chat and code diff components"
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+
+[dependencies]
+ratatui.workspace = true
+crossterm.workspace = true
+tokio.workspace = true
+unicode-width.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
