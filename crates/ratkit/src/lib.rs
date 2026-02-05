@@ -1,27 +1,38 @@
-//! # ratkit - Meta-crate for ratkit TUI components
+//! # ratkit - Core runtime for ratkit TUI components
 //!
-//! ⚠️ **DEPRECATION NOTICE**: This crate is part of the ratkit migration from `ratatui-toolkit`.
-//! If you were using `ratatui-toolkit`, please migrate to the individual `ratkit-*` crates directly.
+//! ratkit provides the core runtime (Runner + Layout Manager) and optional
+//! re-exports for ratkit TUI components. Enable only the features you need or
+//! use the `all` feature for the full bundle.
 //!
-//! This meta-crate re-exports all ratkit TUI components for convenient access.
-//! Each component can also be used individually by depending on the specific `ratkit-*` crate.
-//!
-//! # Migration from ratatui-toolkit
+//! # Installation
 //!
 //! ```toml
-//! # Old (deprecated):
-//! ratatui-toolkit = "0.1"
+//! [dependencies]
+//! ratkit = "0.1"
+//! ```
 //!
-//! # New (recommended):
-//! ratkit-button = "0.1"
-//! ratkit-pane = "0.1"
-//! # ... etc for each component you use
+//! For the core runtime only:
+//!
+//! ```toml
+//! ratkit = "0.1"
+//! ```
+//!
+//! For selected components:
+//!
+//! ```toml
+//! ratkit = { version = "0.1", default-features = false, features = ["tree-view", "toast"] }
+//! ```
+//!
+//! For the full bundle:
+//!
+//! ```toml
+//! ratkit = { version = "0.1", features = ["all"] }
 //! ```
 //!
 //! # Quick Start
 //!
 //! ```rust,no_run
-//! use ratkit::{Button, Pane, Dialog};
+//! use ratkit::{Button, Dialog, Pane};
 //! use ratatui::prelude::*;
 //!
 //! fn main() {
@@ -31,22 +42,37 @@
 //!
 //! # Feature Flags
 //!
-//! - `default`: All widgets and services
-//! - `full`: Same as default
+//! - `default`: Core runtime only (Runner + Layout Manager)
+//! - `all`: All widgets and services
+//! - `full`: Alias for `all`
 //! - `widgets`: All UI widgets
 //! - `services`: All service components
-//! - `theme`: Theme support
 //! - Individual feature flags for each component
 
 #![doc(html_root_url = "https://docs.rs/ratkit/0.1")]
 #![warn(missing_docs, clippy::cargo)]
 #![cfg_attr(doc, cfg(feature = "docsrs"))]
 
-#[deprecated(
-    since = "0.1.0",
-    note = "ratkit is deprecated in favor of individual ratkit-* crates. \
-            See https://github.com/alpha-innovation-labs/ratatui-toolkit for migration guide."
-)]
+mod coordinator;
+mod error;
+mod events;
+mod focus;
+mod layout;
+mod mouse_router;
+mod registry;
+mod types;
+
+/// Core runtime pieces for ratkit.
+pub mod core;
+
+pub use core::{
+    CoordinatorAction, CoordinatorApp, CoordinatorConfig, CoordinatorEvent, Element, ElementHandle,
+    ElementId, ElementMetadata, ElementRegistry, FocusManager, FocusRequest, KeyboardEvent,
+    LayoutCoordinator, LayoutError, LayoutManager, LayoutResult, LayoutStats, MouseEvent,
+    MouseRouter, MouseRouterConfig, Region, ResizeEvent, Runner, RunnerAction, RunnerConfig,
+    RunnerEvent, TickEvent, Visibility,
+};
+
 // Core UI widgets
 #[cfg(feature = "button")]
 pub use ratkit_button::*;

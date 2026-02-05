@@ -5,7 +5,7 @@ members = [
     # "crates/ratatui-toolkit",
     # "crates/archives",
     
-    # Primitives (12 crates)
+    # Primitives (11 crates)
     "crates/primitives/button",
     "crates/primitives/pane",
     "crates/primitives/dialog",

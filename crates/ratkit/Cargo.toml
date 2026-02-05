@@ -4,7 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
-description = "Meta-crate re-exporting all ratkit TUI components. Migrated from ratatui-toolkit."
+description = "Core runtime meta-crate re-exporting ratkit TUI components."
 documentation = "https://docs.rs/ratkit"
 repository.workspace = true
 homepage.workspace = true
@@ -25,6 +25,11 @@ ratkit-resizable-grid = { path = "../primitives/resizable-grid", optional = true
 ratkit-tree-view = { path = "../primitives/tree-view", optional = true }
 ratkit-widget-event = { path = "../primitives/widget-event", optional = true }
 ratkit-termtui = { path = "../primitives/termtui", optional = true }
+crossterm = { workspace = true }
+ratatui = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { version = "1.10", features = ["v4", "serde"] }
 
 # Advanced widgets
 ratkit-markdown-preview = { path = "../widgets/markdown-preview", optional = true }
@@ -41,7 +46,9 @@ ratkit-repo-watcher = { path = "../services/repo-watcher", optional = true }
 ratkit-hotkey-service = { path = "../services/hotkey-service", optional = true }
 
 [features]
-default = [
+default = []
+
+all = [
     "button",
     "pane",
     "dialog",
@@ -65,7 +72,7 @@ default = [
     "hotkey-service",
 ]
 
-full = ["default"]
+full = ["all"]
 
 # Widget feature groups
 widgets = [

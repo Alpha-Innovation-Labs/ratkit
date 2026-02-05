@@ -1,12 +1,12 @@
-# ratatui-toolkit
+# ratkit
 
-[![Crates.io](https://img.shields.io/crates/v/ratatui-toolkit.svg)](https://crates.io/crates/ratatui-toolkit)
-[![Documentation](https://img.shields.io/docsrs/ratatui-toolkit)](https://docs.rs/ratatui-toolkit)
-[![License](https://img.shields.io/crates/l/ratatui-toolkit.svg)](LICENSE-MIT)
+[![Crates.io](https://img.shields.io/crates/v/ratkit.svg)](https://crates.io/crates/ratkit)
+[![Documentation](https://img.shields.io/docsrs/ratkit)](https://docs.rs/ratkit)
+[![License](https://img.shields.io/crates/l/ratkit.svg)](LICENSE-MIT)
 
-![ratatui-toolkit Demo](demo/ratatui-toolkit-demo.gif)
+![ratkit Demo](demo/ratatui-toolkit-demo.gif)
 
-A comprehensive collection of reusable TUI components for [ratatui](https://ratatui.rs/), the Rust terminal UI library.
+Core runtime and reusable TUI components for [ratatui](https://ratatui.rs/), the Rust terminal UI library.
 
 ## Features
 
@@ -26,40 +26,75 @@ A comprehensive collection of reusable TUI components for [ratatui](https://rata
 
 ## Installation
 
-Add to your `Cargo.toml`:
+Add the core runtime to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ratatui-toolkit = "0.1"
+ratkit = "0.1"
 ```
 
-Or with specific features:
+For the full bundle of components:
 
 ```toml
 [dependencies]
-ratatui-toolkit = { version = "0.1", default-features = false, features = ["tree", "split", "toast"] }
+ratkit = { version = "0.1", features = ["all"] }
+```
+
+For selected components:
+
+```toml
+[dependencies]
+ratkit = { version = "0.1", default-features = false, features = ["tree-view", "resizable-grid", "toast"] }
 ```
 
 ## Feature Flags
 
-| Feature | Default | Description |
-|---------|---------|-------------|
-| `markdown` | ✅ | Markdown rendering to ratatui Text |
-| `tree` | ✅ | Generic tree view widget |
-| `dialog` | ✅ | Modal dialog components |
-| `toast` | ✅ | Toast notification system |
-| `split` | ✅ | Resizable split panels |
-| `menu` | ✅ | Menu bar component |
-| `statusline` | ✅ | Powerline-style statusline |
-| `terminal` | ✅ | Terminal emulator (TermTui) |
-| `file-tree` | ❌ | File system tree with devicons |
-| `full` | ❌ | Enable all features |
+ratkit ships as a core runtime with optional components. By default only the
+core runtime is enabled; opt in to specific components or use the `all` feature
+to pull everything.
+
+```toml
+ratkit = { version = "0.1", default-features = false, features = ["tree-view", "toast"] }
+```
+
+| Feature | Description |
+|---------|-------------|
+| `default` | Core runtime only (Runner + Layout Manager) |
+| `all` | All widgets and services |
+| `full` | Alias for `all` |
+| `widgets` | All UI widgets |
+| `services` | All service components |
+
+| Feature | Component |
+|---------|-----------|
+| `button` | Button widget |
+| `pane` | Pane widget |
+| `dialog` | Modal dialog components |
+| `toast` | Toast notification system |
+| `statusline` | Powerline-style statusline |
+| `scroll` | Scrollable content helpers |
+| `menu-bar` | Menu bar component |
+| `resizable-grid` | Resizable split panels |
+| `tree-view` | Generic tree view widget |
+| `widget-event` | Widget event helpers |
+| `termtui` | Terminal emulator (TermTui) |
+| `markdown-preview` | Markdown preview widget |
+| `code-diff` | Code diff widget |
+| `ai-chat` | AI chat widget |
+| `hotkey-footer` | Hotkey footer widget |
+| `file-system-tree` | File browser with devicons and sorting |
+| `theme-picker` | Theme picker widget |
+| `file-watcher` | File watcher service |
+| `git-watcher` | Git watcher service |
+| `repo-watcher` | Repo watcher service |
+| `hotkey-service` | Hotkey service |
 
 ## Quick Start
 
 ```rust
 use ratatui::prelude::*;
-use ratatui_toolkit::prelude::*;
+use ratkit::{render_markdown, ResizableSplit, SplitDirection, Toast, ToastLevel};
+use std::time::Duration;
 
 // Create a resizable split
 let split = ResizableSplit::new(SplitDirection::Vertical)
@@ -82,17 +117,17 @@ Run examples with:
 
 ```bash
 cargo run --example resizable_split_demo
-cargo run --example split_demo --features full
+cargo run --example split_demo --features all
 cargo run --example tree_view_demo --features tree
 cargo run --example toast_manager_demo --features toast
 cargo run --example markdown_demo --features markdown
-cargo run --example full_app_demo --features full
+cargo run --example full_app_demo --features all
 ```
 
 ### Resizable Split
 
 ```rust
-use ratatui_toolkit::{ResizableSplit, SplitDirection};
+use ratkit::{ResizableSplit, SplitDirection};
 
 let mut split = ResizableSplit::new(SplitDirection::Horizontal)
     .ratio(0.5)
@@ -115,7 +150,7 @@ For a multi-pane layout with drag-resize, see `examples/split_demo.rs`.
 ### Tree View
 
 ```rust
-use ratatui_toolkit::{TreeView, TreeViewState, TreeNode};
+use ratkit::{TreeNode, TreeView, TreeViewState};
 
 // Build tree structure
 let root = TreeNode::new("root", "Root")
@@ -139,7 +174,7 @@ state.handle_key(KeyCode::Left); // Collapse
 ### Toast Notifications
 
 ```rust
-use ratatui_toolkit::{ToastManager, Toast, ToastLevel, render_toasts};
+use ratkit::{render_toasts, Toast, ToastLevel, ToastManager};
 use std::time::Duration;
 
 let mut manager = ToastManager::new()
@@ -160,7 +195,7 @@ render_toasts(frame, area, &manager);
 ### Markdown Rendering
 
 ```rust
-use ratatui_toolkit::{
+use ratkit::{
     render_markdown, render_markdown_with_style, render_markdown_interactive,
     MarkdownStyle, MarkdownWidget, MarkdownScrollManager,
 };
@@ -188,7 +223,7 @@ frame.render_stateful_widget(widget, area, &mut scroll_manager);
 ### Terminal Emulator (TermTui)
 
 ```rust
-use ratatui_toolkit::{TermTui, TermTuiKeyBindings};
+use ratkit::{TermTui, TermTuiKeyBindings};
 
 // Spawn a terminal with default shell
 let shell = std::env::var("SHELL").unwrap_or("/bin/sh".into());
@@ -222,7 +257,7 @@ All interactive components expose their keybindings through configuration struct
 ### TermTui
 
 ```rust
-use ratatui_toolkit::{TermTui, TermTuiKeyBindings};
+use ratkit::{TermTui, TermTuiKeyBindings};
 use crossterm::event::{KeyCode, KeyModifiers, KeyEvent};
 
 // Create custom keybindings
@@ -236,7 +271,7 @@ let term = TermTui::spawn_with_command("Terminal", "bash", &[])?
 ### TreeView
 
 ```rust
-use ratatui_toolkit::{TreeNavigator, TreeKeyBindings};
+use ratkit::{TreeKeyBindings, TreeNavigator};
 use crossterm::event::KeyCode;
 
 let bindings = TreeKeyBindings::new()
@@ -316,7 +351,7 @@ if let Some(action) = component.handle_mouse(mouse_event, area) {
 
 | Crate | Focus | Components |
 |-------|-------|------------|
-| **ratatui-toolkit** | Comprehensive component library | 17+ components |
+| **ratkit** | Comprehensive component library | 17+ components |
 | `tui-textarea` | Text editing | Textarea only |
 | `tui-tree-widget` | Tree views | Tree only |
 | `ratatui-image` | Image rendering | Images only |
