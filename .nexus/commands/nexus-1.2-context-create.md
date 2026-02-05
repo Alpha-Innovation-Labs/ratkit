@@ -1,6 +1,11 @@
+---
+description: Create new context specifications from user goals
+agent: build
+---
+
 # Command: Create Context
 
-You are creating context specification(s) following `.context/rules/context.md`.
+You are creating context specification(s) following `.nexus/context/rules/context.md`.
 
 ## Workflow
 
@@ -12,7 +17,7 @@ You are creating context specification(s) following `.context/rules/context.md`.
 
 ### 2. Scan Existing Contexts
 
-Before creating anything, **quickly scan all files in `.context/`**:
+Before creating anything, **quickly scan all files in `.nexus/context/`**:
 
 1. **Read all context file Desired Outcomes** - Look for similar desired outcomes
 2. **Grep for keywords** - Search for key terms from the user's request
@@ -39,12 +44,12 @@ If splitting is needed:
 
 ### 4. Identify Project and Determine Context ID
 
-**Scan `.context/` for existing project directories:**
+**Scan `.nexus/context/` for existing project directories:**
 - If adding to an existing project, use that project's prefix
 - If creating a new project, ask user for the project name and derive a 3-letter prefix
 
 **Auto-determine Context ID (NEVER ask the user):**
-- Scan `.context/<project>/` for existing `PRJ_NNN-*.md` files
+- Scan `.nexus/context/<project>/` for existing `PRJ_NNN-*.md` files
 - Find the highest NNN number
 - Use the next number for new context(s)
 
@@ -87,7 +92,7 @@ created: "YYYY-MM-DD"
 ---
 
 <!-- 
-SOURCE OF TRUTH: .context/rules/context.md
+SOURCE OF TRUTH: .nexus/context/rules/context.md
 
 FILE NAMING: PRJ_NNN-brief-description.md
 - PRJ = 3-letter project prefix (e.g., KNO for knowledge-harvester)
@@ -131,18 +136,18 @@ CRITICAL RULES:
 
 ### 8. Save Location
 
-- Pattern: `.context/<project>/PRJ_NNN-brief-description.md`
-- Example: `.context/knowledge-harvester/KNO_001-project-scaffold.md`
+- Pattern: `.nexus/context/<project>/PRJ_NNN-brief-description.md`
+- Example: `.nexus/context/knowledge-harvester/KNO_001-project-scaffold.md`
 - If new project, create the directory first
 
 ### 9. Create index.md If Needed
 
-If this is the first context in a new project directory, create `.context/<project>/index.md` with sections for: Overview, Architecture, CLI Usage, Key Dependencies, Environment Variables, Debugging & Troubleshooting.
+If this is the first context in a new project directory, create `.nexus/context/<project>/index.md` with sections for: Overview, Architecture, CLI Usage, Key Dependencies, Environment Variables, Debugging & Troubleshooting.
 
 ### 10. Read Applicable Rules
 
-After creating the context file(s), read any rules in `.context/rules/` that are relevant to implementation. Common rules:
-- `.context/rules/context.md` - Context file standards
+After creating the context file(s), read any rules in `.nexus/context/rules/` that are relevant to implementation. Common rules:
+- `.nexus/context/rules/context.md` - Context file standards
 - Any language-specific rules (e.g., `rs.md` for Rust)
 - Any tool-specific rules (e.g., `justfiles.md`)
 

@@ -1,3 +1,8 @@
+---
+description: Review context files for standards compliance
+agent: plan
+---
+
 # Command: Review Contexts
 
 You are reviewing existing context files to ensure they follow proper requirements, identify issues, and suggest improvements.
@@ -17,7 +22,7 @@ A proper context file should:
 - File System Diff (tree structure showing expected changes)
 - Lessons Learned section (can be empty or populated)
 - Validation section (commands that must succeed)
-- **Proper location**: Must be in `.context/tasks/<project-folder>/CONTEXT_XXX-description.md`
+- **Proper location**: Must be in `.nexus/context/tasks/<project-folder>/CONTEXT_XXX-description.md`
 
 ❌ **NOT HAVE:**
 - Code snippets or implementation details
@@ -25,13 +30,13 @@ A proper context file should:
 - More than 3-4 goals (too broad)
 - Verbose descriptions (should be concise)
 - Mixed concerns (doing multiple unrelated things)
-- **Contexts directly in `.context/tasks/` root** (must be in a project subfolder)
+- **Contexts directly in `.nexus/context/tasks/` root** (must be in a project subfolder)
 
 ## Instructions
 
 **CRITICAL RULES:**
 1. **SCOPE SELECTION** - Ask user which folder to review, or review all contexts
-2. **SCAN CONTEXTS** - Review context files in specified folder or all of `.context/tasks/`
+2. **SCAN CONTEXTS** - Review context files in specified folder or all of `.nexus/context/tasks/`
 3. **IDENTIFY ISSUES** - Find violations of context requirements
 4. **ONE-BY-ONE RECOMMENDATIONS** - Present each issue individually with recommended fixes
 5. **CONTEXT SPLITTING** - Identify contexts that are too broad and suggest splitting them
@@ -48,22 +53,22 @@ A proper context file should:
      
      | Option | Description |
      |--------|-------------|
-     | A | All contexts - Review everything in .context/tasks/ |
+     | A | All contexts - Review everything in .nexus/context/tasks/ |
      | B | Specific folder - I'll specify which project folder |
      | Short | Specify folder name (e.g., "context-core") |
      
      You can reply with: "A" to review all, "B" to specify a folder, or just type the folder name.
      ```
    - Wait for user response
-   - If user specifies a folder name, validate it exists in `.context/tasks/`
+   - If user specifies a folder name, validate it exists in `.nexus/context/tasks/`
    - Set the scan path accordingly:
-     - All contexts: `.context/tasks/` (recursive)
-     - Specific folder: `.context/tasks/<folder-name>/`
+     - All contexts: `.nexus/context/tasks/` (recursive)
+     - Specific folder: `.nexus/context/tasks/<folder-name>/`
 
 2. **Scan Context Files**:
    - Read all context files from the selected scope
    - For each context, check for:
-     - **File location violation**: Context files in `.context/tasks/` root instead of a project subfolder
+     - **File location violation**: Context files in `.nexus/context/tasks/` root instead of a project subfolder
      - **Wrong project folder**: Context's frontmatter `project` field doesn't match the folder it's in
      - **Format violations**: Missing sections, incorrect structure
      - **Code snippets**: Any code blocks in Summary, Goals, or other sections (except File System Diff)
@@ -188,7 +193,7 @@ A proper context file should:
 7. **Apply Changes**:
    - If user approves (Option A or "yes"):
      - **For file location violations**:
-       - Move context files from `.context/tasks/` root to appropriate project subfolder
+       - Move context files from `.nexus/context/tasks/` root to appropriate project subfolder
        - Use the `project` field from frontmatter to determine destination folder
        - If no `project` field, ask user which folder to move it to
        - Create project folder if it doesn't exist
@@ -268,8 +273,8 @@ A proper context file should:
 ### Critical Issues (Must Fix)
 
 1. **File Location Violations**
-   - Context file in `.context/tasks/` root instead of a project subfolder
-   - Must be: `.context/tasks/<project-name>/CONTEXT_XXX-description.md`
+   - Context file in `.nexus/context/tasks/` root instead of a project subfolder
+   - Must be: `.nexus/context/tasks/<project-name>/CONTEXT_XXX-description.md`
    - **Action**: Move to appropriate project folder based on frontmatter `project` field
 
 2. **Project Folder Mismatch**
@@ -369,14 +374,14 @@ Split if:
 
 **Issue:**
 ```
-File location: .context/tasks/CONTEXT_005-user-authentication.md
+File location: .nexus/context/tasks/CONTEXT_005-user-authentication.md
 ```
 
-**What I noticed:** Context file is in `.context/tasks/` root instead of a project subfolder
+**What I noticed:** Context file is in `.nexus/context/tasks/` root instead of a project subfolder
 
 **Fix:**
 ```
-Move to: .context/tasks/nexus-app/CONTEXT_005-user-authentication.md
+Move to: .nexus/context/tasks/nexus-app/CONTEXT_005-user-authentication.md
 ```
 
 Based on frontmatter `project: nexus-app`, this context should be in the `nexus-app/` folder.
@@ -385,7 +390,7 @@ Based on frontmatter `project: nexus-app`, this context should be in the `nexus-
 
 **Issue:**
 ```
-File location: .context/tasks/context-core/CONTEXT_003-api-design.md
+File location: .nexus/context/tasks/context-core/CONTEXT_003-api-design.md
 
 Frontmatter:
 ---
@@ -396,7 +401,7 @@ project: nexus-app
 **What I noticed:** Context is in `context-core/` folder but frontmatter says `project: nexus-app`
 
 **Fix Options:**
-- Move context to `.context/tasks/nexus-app/CONTEXT_003-api-design.md`, OR
+- Move context to `.nexus/context/tasks/nexus-app/CONTEXT_003-api-design.md`, OR
 - Update frontmatter to `project: context-core`
 
 ### Example 3: Code Snippet in Summary

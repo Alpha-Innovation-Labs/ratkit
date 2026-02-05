@@ -1,6 +1,11 @@
+---
+description: Search existing context files for relevant outcomes/actions
+agent: plan
+---
+
 # Command: Search Contexts
 
-You are searching through existing context files to answer the user's query. You look at the "Desired Outcome" and "Next Actions" sections of all `.context/` files to find relevant information.
+You are searching through existing context files to answer the user's query. You look at the "Desired Outcome" and "Next Actions" sections of all `.nexus/context/` files to find relevant information.
 
 ## Purpose
 
@@ -15,7 +20,7 @@ Help users find existing contexts that match their query, understand what's alre
 
 ### 2. Scan All Context Files
 
-**Read all context files from `.context/`** (excluding `_legacy/` and `_reference/` folders):
+**Read all context files from `.nexus/context/`** (excluding `_legacy/` and `_reference/` folders):
 
 For each context file, extract:
 - **context_id** from frontmatter
@@ -47,7 +52,7 @@ Found N relevant context(s):
 
 ### 1. PRJ_NNN: Title (High Relevance)
 **Project:** project-name
-**File:** `.context/project-name/PRJ_NNN-description.md`
+**File:** `.nexus/context/project-name/PRJ_NNN-description.md`
 
 **Desired Outcome:**
 <One paragraph summary from the context file>
@@ -70,7 +75,7 @@ No contexts found matching "<query>".
 
 **Suggestions:**
 - Try different keywords
-- Check `.context/_reference/` for background information
+- Check `.nexus/context/_reference/` for background information
 - Create a new context with `@nexus-create-context`
 ```
 
@@ -104,7 +109,7 @@ Found 2 relevant context(s):
 
 ### 1. SRV_002: Authentication System (High Relevance)
 **Project:** nexus-server
-**File:** `.context/nexus-server/SRV_002-authentication.md`
+**File:** `.nexus/context/nexus-server/SRV_002-authentication.md`
 
 **Desired Outcome:**
 Users can authenticate with the Nexus server using API keys or JWT tokens. The system validates credentials, manages sessions, and provides secure access to protected resources.
@@ -120,7 +125,7 @@ Users can authenticate with the Nexus server using API keys or JWT tokens. The s
 
 ### 2. CLT_001: Client Architecture (Medium Relevance)
 **Project:** nexus-client
-**File:** `.context/nexus-client/CLT_001-client-architecture.md`
+**File:** `.nexus/context/nexus-client/CLT_001-client-architecture.md`
 
 **Desired Outcome:**
 The client library provides a clean API for interacting with the Nexus server, including automatic authentication handling and request retry logic.

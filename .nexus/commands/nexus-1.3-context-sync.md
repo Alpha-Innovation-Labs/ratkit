@@ -1,27 +1,13 @@
 ---
-description: "Syncs Next Actions between test files and context files based on conversation changes"
-mode: agent
-temperature: 0.2
-disable: false
-tools:
-  bash: false
-  read: true
-  write: false
-  edit: true
-  webfetch: false
-  list: true
-  glob: true
-  grep: true
-  task: false
-  todowrite: true
-  todoread: true
+description: Syncs Next Actions between tests and context files
+agent: plan
 ---
 
 # Sync Context Command
 
 ## Description
 
-Analyzes the current conversation to identify what Next Actions (tests) were implemented or changed, then syncs them to the relevant context file(s) in `.context/`. This ensures the context file's "Next Actions" table stays in sync with actual test implementations.
+Analyzes the current conversation to identify what Next Actions (tests) were implemented or changed, then syncs them to the relevant context file(s) in `.nexus/context/`. This ensures the context file's "Next Actions" table stays in sync with actual test implementations.
 
 ## Usage
 
@@ -38,7 +24,7 @@ No parameters needed - the command analyzes the current conversation automatical
    - What tests were written, modified, or discussed
    - New Next Actions that were implemented
 
-2. **Finds the relevant context file(s)** in `.context/`
+2. **Finds the relevant context file(s)** in `.nexus/context/`
 
 3. **Compares** the documented Next Actions with what was actually implemented
 
@@ -53,7 +39,7 @@ No parameters needed - the command analyzes the current conversation automatical
 1. **Identify context IDs** mentioned in the conversation:
    - Look for patterns like "CLI_010", "TUI_011", etc.
    - Check test file names (e.g., `cli_010_context_chat/` → CLI_010)
-   - Check context file references (e.g., `.context/nexus-cli/CLI_010-*.md`)
+   - Check context file references (e.g., `.nexus/context/nexus-cli/CLI_010-*.md`)
 
 2. **Identify Next Actions** that were implemented:
    - Look for test functions that were written or modified
@@ -64,9 +50,9 @@ No parameters needed - the command analyzes the current conversation automatical
 
 1. **Find matching context files**:
    ```
-   .context/**/<context_id>*.md
+   .nexus/context/**/<context_id>*.md
    ```
-   For example: CLI_010 → `.context/nexus-cli/CLI_010-context-chat.md`
+   For example: CLI_010 → `.nexus/context/nexus-cli/CLI_010-context-chat.md`
 
 2. **Read the context file** and extract:
    - Current "## Next Actions" table
@@ -91,7 +77,7 @@ Use the standardized question format:
 ```
 **Change [N/TOTAL]**: Update CLI_010-context-chat.md - Next Actions
 
-**What I noticed:** During this conversation, a new test `test_context_chat_scans_existing_context_files` was added that verifies the agent scans .context/ for existing files.
+**What I noticed:** During this conversation, a new test `test_context_chat_scans_existing_context_files` was added that verifies the agent scans .nexus/context/ for existing files.
 
 **Recommended:** Option A - Add this action to the context file
 
@@ -131,7 +117,7 @@ After all approvals collected:
 
 ## Next Actions Table Format
 
-Per `.context/rules/context.md`, actions use table format:
+Per `.nexus/context/rules/context.md`, actions use table format:
 
 ```markdown
 ## Next Actions
@@ -162,7 +148,7 @@ Each row should:
    - Found new test: test_context_chat_scans_existing_context_files
    
 2. Finding context file...
-   - Found: .context/nexus-cli/CLI_010-context-chat.md
+   - Found: .nexus/context/nexus-cli/CLI_010-context-chat.md
    
 3. Comparing actions...
    - Context has 10 documented actions
@@ -176,7 +162,7 @@ Each row should:
 
 6. Updating context file...
    Added row to CLI_010-context-chat.md:
-   | Agent scans .context/ for existing files | `context_chat_scans_existing_context_files` |
+   | Agent scans .nexus/context/ for existing files | `context_chat_scans_existing_context_files` |
 ```
 
 ## Important Notes
@@ -185,8 +171,8 @@ Each row should:
 - **One-by-one approval**: Each change is presented individually
 - **Final confirmation**: All changes summarized before applying
 - **Preserves format**: Matches existing table format
-- **Test correlation**: `crates/<project>/tests/<context_id>_*/` → `.context/<project>/<CONTEXT_ID>-*.md`
-- **Standard compliance**: Follows `.context/rules/context.md` format
+- **Test correlation**: `crates/<project>/tests/<context_id>_*/` → `.nexus/context/<project>/<CONTEXT_ID>-*.md`
+- **Standard compliance**: Follows `.nexus/context/rules/context.md` format
 
 ## Related Commands
 

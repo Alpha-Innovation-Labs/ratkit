@@ -41,7 +41,7 @@ flowchart TD
    - Keyboard: routed only to the focused element (top of focus stack)
    - Tick: routed only to scheduled tick handlers (via runner-owned scheduler)
    - Resize: routed only to the layout manager (coalesced)
-3. Layout manager recalculates geometry when triggered (resize or focus/layout changes)
+3. Layout manager recalculates geometry when triggered (resize or element add/remove/visibility change)
 4. Determine redraw need: layout dirty OR any element dirty
 5. If redraw needed:
    - Full-frame redraw
@@ -64,9 +64,8 @@ flowchart TD
 ### Inputs
 - Element registrations/deregistrations
 - Window size / terminal size
-- Element metadata (preferred size, constraints, docking rules, visibility)
+- Element metadata (region, visibility, height for top/bottom, z_order for center)
 - Focus changes (explicit focus requests, mouse clicks, focus cycling)
-- Optional layout invalidation signals from elements (for example, content size change)
 
 ### Outputs
 - Per-element Rects
@@ -75,31 +74,39 @@ flowchart TD
 - Layout dirty flag for the runner
 
 ### Layout Model
-- Uses a clear layout strategy (for example, vertical stack, horizontal split, grid, or named regions)
-- Each element can declare layout preferences:
-  - Min/max size
-  - Fixed vs flexible
-  - Weight or proportion
-  - Alignment and padding
+- Uses a fixed "regions" layout with three areas:
+  - **Top region**: Fixed height (e.g., menu bar)
+  - **Center region**: Resizable, uses existing resizable-grid primitive for pane management
+  - **Bottom region**: Fixed height (e.g., footer)
+- Only the center region is resizable; top and bottom have fixed heights
 - Layout is recalculated only when needed:
   - Resize event
   - Element add/remove
-  - Element requests layout invalidation
-  - Focus changes that affect layout (if focus changes appearance/size)
-- Layout constraints are solved via cassowary-style constraint resolution with standard strengths
+  - Element visibility change
+- **No constraint solver**; simple arithmetic-based sizing rules
+
+### Element Metadata
+Each element declares:
+- **region**: Which region the element belongs to (Top, Center, Bottom)
+- **visible**: Whether the element is currently visible
+- **height**: For Top/Bottom regions, the fixed height in rows
+- **z_order**: For Center region, stacking order for overlays (optional)
 
 ### Focus and Input
 - Focus stack is owned by the layout manager
+- Focus order follows: Top region → Center region (by z-order) → Bottom region
+- Within the center region, focus follows z-order (top-most first)
 - Rules:
   - Click on element pushes it to top of stack
   - Modal or overlay inserts at top and captures focus
-  - Focus cycling (tab) moves through stack or a focusable order list
+  - Focus cycling (tab) moves through stack
 - The runner consults the focus stack for key event routing
 - Fallback focus is tracked: if the focused element unregisters, restore fallback, or focus the first available focusable element
 
 ### Z-Order and Hit Testing
 - Layout manager provides a z-ordered list of visible elements
 - Mouse event routing uses this list to find the top-most element under the cursor
+- Z-order is primarily used within the center region for overlays
 - Optional capture mode:
   - On mouse down, element can capture subsequent mouse events until release
   - Capture overrides hit testing until released
@@ -147,6 +154,8 @@ flowchart TD
 7. Dynamic registration with UUID-based IDs and weak-reference registry
 8. Resize and layout invalidation are coalesced to avoid thrash
 9. **Dirty flag lifecycle is unidirectional**: Layout Manager sets, Runner reads and clears - prevents circular dependencies
+10. **No constraint solver**: Fixed regions with simple sizing rules (top/bottom fixed height, center fills remaining space)
+11. **Center region uses existing resizable-grid primitive** for pane management
 
 ---
 
