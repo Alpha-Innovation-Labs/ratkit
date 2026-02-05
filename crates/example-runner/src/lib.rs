@@ -97,6 +97,7 @@ fn run_loop<A: App>(
     let mut last_tick = Instant::now();
     let mut last_fps = Instant::now();
     let mut frames = 0u32;
+    let mut redraws = 0u64;
     let mut fps = 0u16;
     let mut needs_redraw = true;
 
@@ -104,10 +105,11 @@ fn run_loop<A: App>(
         if needs_redraw {
             terminal.draw(|frame| {
                 app.on_draw(frame);
-                draw_fps(frame, fps);
+                draw_fps(frame, fps, redraws);
             })?;
 
             frames += 1;
+            redraws = redraws.saturating_add(1);
             let fps_elapsed = last_fps.elapsed();
             if fps_elapsed >= Duration::from_secs(1) {
                 let elapsed_ms = fps_elapsed.as_millis().max(1) as u32;
@@ -147,9 +149,9 @@ fn run_loop<A: App>(
     }
 }
 
-fn draw_fps(frame: &mut Frame, fps: u16) {
+fn draw_fps(frame: &mut Frame, fps: u16, redraws: u64) {
     let area = frame.area();
-    let text = format!("FPS {:>3}", fps);
+    let text = format!("FPS {:>3} | Redraws {}", fps, redraws);
     let width = text.len() as u16 + 2;
     let x = area.x + area.width.saturating_sub(width);
     let rect = Rect {

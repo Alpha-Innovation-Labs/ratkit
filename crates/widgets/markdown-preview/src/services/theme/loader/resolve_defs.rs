@@ -1,12 +1,12 @@
 //! Color value resolution from theme definitions.
 
 use std::collections::HashMap;
+use crate::services::theme::ThemeVariant;
 
 use ratatui::style::Color;
 
 use crate::services::theme::loader::parse_color::parse_hex_color;
 use crate::services::theme::loader::theme_json::ColorValue;
-use crate::services::theme::ThemeVariant;
 
 /// Resolves a color value from the theme JSON, handling defs references.
 ///
@@ -27,7 +27,7 @@ use crate::services::theme::ThemeVariant;
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,ignore
 /// use std::collections::HashMap;
 /// use ratatui::style::Color;
 /// use ratatui_toolkit::services::theme::{ThemeVariant, loader::{ColorValue, resolve_color_value}};

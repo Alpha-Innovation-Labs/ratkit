@@ -114,7 +114,7 @@ pub use foundation::elements::{
 };
 
 // Element methods
-pub use foundation::elements::methods::{
+pub use foundation::elements::{
     render as render_element, render_with_options as render_element_with_options, RenderOptions,
 };
 
@@ -137,7 +137,7 @@ pub use foundation::functions::{render_markdown, render_markdown_with_style};
 // Widget
 // ============================================================================
 
-pub use widget::enums::MarkdownWidgetMode;
+pub use widget::MarkdownWidgetMode;
 pub use widget::MarkdownWidget;
 
 // ============================================================================
@@ -177,6 +177,5 @@ pub use extensions::theme::{
 
 // Selection handlers
 pub use extensions::selection::{
-    handlers::{handle_mouse_event, handle_mouse_event_with_double_click},
-    helpers::{handle_click, should_render_line},
+    handle_click, handle_mouse_event, handle_mouse_event_with_double_click, should_render_line,
 };

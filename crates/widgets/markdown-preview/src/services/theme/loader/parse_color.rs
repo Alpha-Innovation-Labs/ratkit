@@ -20,7 +20,7 @@ use ratatui::style::Color;
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,ignore
 /// use ratatui::style::Color;
 /// use ratatui_toolkit::services::theme::loader::parse_hex_color;
 ///

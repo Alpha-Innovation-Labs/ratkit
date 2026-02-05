@@ -20,4 +20,8 @@ pub use scrollbar::{CustomScrollbar, ScrollbarConfig};
 pub use selection::{
     handle_click, handle_mouse_event, handle_mouse_event_with_double_click, should_render_line,
 };
+pub use theme::{
+    get_effective_theme_variant, load_theme_from_json, palettes, ColorMapping, ColorPalette,
+    MarkdownStyle, MarkdownTheme, SyntaxHighlighter, SyntaxThemeVariant, ThemeVariant,
+};
 pub use toc::{Toc, TocConfig};

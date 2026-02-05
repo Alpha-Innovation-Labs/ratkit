@@ -15,29 +15,29 @@
 //! - `DoubleClickState` - Double-click detection state
 
 // Focused state modules
-pub mod cache_state;
-pub mod collapse_state;
+pub mod cache;
+pub mod collapse;
 pub mod display_settings;
-pub mod double_click_state;
-pub mod expandable_state;
-pub mod git_stats_state;
-pub mod markdown_state;
-pub mod scroll_state;
-pub mod selection_state;
-pub mod source_state;
-pub mod toc_state;
-pub mod vim_state;
+pub mod double_click;
+pub mod expandable;
+pub mod git_stats;
+pub mod markdown;
+pub mod scroll;
+pub mod selection;
+pub mod source;
+pub mod toc;
+pub mod vim;
 
 // State exports
-pub use cache_state::{CacheState, ParsedCache, RenderCache};
-pub use collapse_state::CollapseState;
+pub use cache::{CacheState, ParsedCache, RenderCache};
+pub use collapse::CollapseState;
 pub use display_settings::DisplaySettings;
-pub use double_click_state::DoubleClickState;
-pub use expandable_state::{ExpandableEntry, ExpandableState};
-pub use git_stats_state::GitStatsState;
-pub use markdown_state::MarkdownState;
-pub use scroll_state::ScrollState;
-pub use selection_state::SelectionState;
-pub use source_state::SourceState;
-pub use toc_state::{TocEntry, TocState};
-pub use vim_state::VimState;
+pub use double_click::DoubleClickState;
+pub use expandable::{ExpandableEntry, ExpandableState};
+pub use git_stats::GitStatsState;
+pub use markdown::MarkdownState;
+pub use scroll::ScrollState;
+pub use selection::SelectionState;
+pub use source::SourceState;
+pub use toc::{TocEntry, TocState};
+pub use vim::VimState;

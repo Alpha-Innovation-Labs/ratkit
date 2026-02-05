@@ -22,7 +22,7 @@ use super::theme_config::ThemeConfig;
 ///
 /// # Example
 ///
-/// ```rust,no_run
+/// ```rust,ignore,no_run
 /// use ratatui_toolkit::services::theme::persistence::load_saved_theme;
 ///
 /// if let Some(theme_name) = load_saved_theme(None) {

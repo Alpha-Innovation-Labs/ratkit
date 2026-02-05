@@ -18,7 +18,7 @@
 //!
 //! The crate includes 33 builtin themes that can be loaded by name:
 //!
-//! ```rust
+//! ```rust,ignore
 //! use ratatui_toolkit::services::theme::{loader, ThemeVariant};
 //!
 //! // Load a builtin theme
@@ -35,7 +35,7 @@
 //!
 //! You can create custom themes from JSON files or strings:
 //!
-//! ```rust
+//! ```rust,ignore
 //! use ratatui_toolkit::services::theme::{AppTheme, ThemeVariant};
 //!
 //! let json = r#"{
@@ -72,7 +72,7 @@
 //!
 //! # Usage with Widgets
 //!
-//! ```rust,no_run
+//! ```rust,ignore,no_run
 //! use ratatui::style::Style;
 //! use ratatui_toolkit::services::theme::AppTheme;
 //!

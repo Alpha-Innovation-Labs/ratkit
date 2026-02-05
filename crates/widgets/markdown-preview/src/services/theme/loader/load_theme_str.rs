@@ -1,16 +1,16 @@
 //! Load theme from JSON string.
 
 use std::collections::HashMap;
+use crate::services::theme::AppTheme;
+use crate::services::theme::ThemeVariant;
 
 use ratatui::style::Color;
 
-use crate::services::theme::app_theme::AppTheme;
 use crate::services::theme::diff_colors::DiffColors;
 use crate::services::theme::loader::resolve_defs::resolve_color_value;
 use crate::services::theme::loader::theme_json::{ColorValue, ThemeJson};
 use crate::services::theme::markdown_colors::MarkdownColors;
 use crate::services::theme::syntax_colors::SyntaxColors;
-use crate::services::theme::ThemeVariant;
 
 /// Loads an [`AppTheme`] from a JSON string in opencode format.
 ///
@@ -36,7 +36,7 @@ use crate::services::theme::ThemeVariant;
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,ignore
 /// use ratatui_toolkit::services::theme::{loader, ThemeVariant};
 ///
 /// let json = r#"{

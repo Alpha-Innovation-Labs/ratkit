@@ -1,6 +1,6 @@
-//! Constants for markdown rendering styling.
-//!
-//! Contains icons, markers, and color constants used in markdown rendering.
+/// Constants for markdown rendering styling.
+///
+/// Contains icons, markers, and color constants used in markdown rendering.
 
 use ratatui::style::Color;
 

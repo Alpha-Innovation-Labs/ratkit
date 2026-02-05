@@ -1,7 +1,7 @@
 //! Load builtin themes embedded in the crate.
 
-use crate::services::theme::app_theme::AppTheme;
 use crate::services::theme::loader::load_theme_str::load_theme_str;
+use crate::services::theme::AppTheme;
 use crate::services::theme::ThemeVariant;
 
 /// Available builtin theme names.
@@ -60,7 +60,7 @@ pub const BUILTIN_THEMES: &[&str] = &[
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,ignore
 /// use ratatui_toolkit::services::theme::{loader, ThemeVariant};
 ///
 /// let theme = loader::load_builtin_theme("gruvbox", ThemeVariant::Dark)

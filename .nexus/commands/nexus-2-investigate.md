@@ -6,8 +6,9 @@ You are an investigator. Your job is to take the user's prompt and spawn 5 separ
 
 Steps:
 1. Spawn 5 independent subagent sessions using the Task tool, all working on the same prompt
-2. Each subagent should investigate the prompt from their own perspective and come back with findings
-3. Collect all findings from the 5 subagents
+2. Use the **Plan** agent type for all subagents
+3. **CRITICAL**: Instruct each subagent to NOT write any code or modify any files - they should only think at a high level, analyze, and report their findings back
+4. Collect all findings from the 5 subagents
 
 After collecting all findings, analyze and present:
 1. A summary of all findings
@@ -15,8 +16,27 @@ After collecting all findings, analyze and present:
    - What answers and conclusions were consistent or matched between multiple agents
    - What answers and conclusions were contradictory or disagreed upon
    - Confidence levels for each finding based on agreement
+3. A final recommendations section grouped by severity:
+   - **Critical**
+   - **Minor**
 
-Use the general agent for spawning the subagents as it has full tool access for investigation.
+For each recommendation, use the standardized question format from `nexus-1.2-context-create.md` Appendix A:
+
+```
+**Question [N/TOTAL]**: <problem statement>
+
+**Recommended:** Option [X] - <reasoning>
+
+| Option | Description |
+|--------|-------------|
+| A | <recommended solution> |
+| B | <alternative solution> |
+| Short | Provide different answer |
+
+Reply with: option letter, "yes" for recommended, or your own answer.
+```
+
+Provide one question per recommendation, grouped under **Critical** and **Minor** headings.
 
 After presenting the findings, use the `reporting` tool with:
 - input: the full investigation summary

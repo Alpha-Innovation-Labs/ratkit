@@ -37,6 +37,7 @@ ratkit-file-watcher = { path = "../../services/file-watcher" }
 ratkit-example-runner.workspace = true
 ratatui.workspace = true
 crossterm.workspace = true
+tempfile = "3"
 
 [features]
 default = ["markdown"]

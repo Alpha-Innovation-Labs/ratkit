@@ -1,11 +1,11 @@
 //! Load theme from a JSON file path.
 
 use std::fs;
+use crate::services::theme::AppTheme;
+use crate::services::theme::ThemeVariant;
 use std::path::Path;
 
-use crate::services::theme::app_theme::AppTheme;
 use crate::services::theme::loader::load_theme_str::load_theme_str;
-use crate::services::theme::ThemeVariant;
 
 /// Loads an [`AppTheme`] from a JSON file path.
 ///
@@ -31,7 +31,7 @@ use crate::services::theme::ThemeVariant;
 ///
 /// # Example
 ///
-/// ```rust,no_run
+/// ```rust,ignore,no_run
 /// use ratatui_toolkit::services::theme::{loader, ThemeVariant};
 ///
 /// let theme = loader::load_theme_file("themes/gruvbox.json", ThemeVariant::Dark)

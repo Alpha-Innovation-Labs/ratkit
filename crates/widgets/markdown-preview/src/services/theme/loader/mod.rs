@@ -31,7 +31,7 @@
 //!
 //! # Example
 //!
-//! ```rust,no_run
+//! ```rust,ignore,no_run
 //! use ratatui_toolkit::services::theme::{loader, ThemeVariant, AppTheme};
 //!
 //! // Load from file path

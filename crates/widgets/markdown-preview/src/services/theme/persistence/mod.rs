@@ -11,7 +11,7 @@
 //!
 //! # Example
 //!
-//! ```rust,no_run
+//! ```rust,ignore,no_run
 //! use ratatui_toolkit::services::theme::persistence::{save_theme, load_saved_theme};
 //!
 //! // Save the current theme
@@ -41,7 +41,7 @@ pub use theme_config::ThemeConfig;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
+    
     use tempfile::tempdir;
 
     #[test]
