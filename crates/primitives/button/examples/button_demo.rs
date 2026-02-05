@@ -1,14 +1,16 @@
 use std::io;
 
-use crossterm::event::{Event, KeyCode, KeyEventKind, MouseButton, MouseEventKind};
+use crossterm::event::{MouseButton, MouseEventKind};
 use ratatui::{
     layout::Rect,
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
+use ratkit::{
+    run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig,
+};
 use ratkit_button::Button;
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
 
 struct ButtonDemo {
     button: Button,
@@ -24,15 +26,17 @@ impl ButtonDemo {
     }
 }
 
-impl App for ButtonDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for ButtonDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key))
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') =>
-            {
-                Ok(RunnerAction::Quit)
+            CoordinatorEvent::Keyboard(keyboard) => {
+                if keyboard.is_key_down() && keyboard.is_char('q') {
+                    Ok(CoordinatorAction::Quit)
+                } else {
+                    Ok(CoordinatorAction::Redraw)
+                }
             }
-            RunnerEvent::Crossterm(Event::Mouse(mouse)) => {
+            CoordinatorEvent::Mouse(mouse) => {
                 match mouse.kind {
                     MouseEventKind::Moved => {
                         self.button.update_hover(mouse.column, mouse.row);
@@ -45,9 +49,9 @@ impl App for ButtonDemo {
                     }
                     _ => {}
                 }
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -96,6 +100,6 @@ fn button_demo_area(inner: Rect, button: &Button) -> Rect {
 }
 
 fn main() -> io::Result<()> {
-    let mut app = ButtonDemo::new();
-    run(&mut app, RunConfig::default())
+    let app = ButtonDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

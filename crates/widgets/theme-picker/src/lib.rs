@@ -18,12 +18,12 @@
 //! picker.show();
 //! ```
 
+mod builtin_themes;
+mod picker;
 mod state;
 mod theme_colors;
-mod picker;
-mod builtin_themes;
 
 pub use builtin_themes::BUILTIN_THEMES;
-pub use picker::ThemePicker;
+pub use picker::{ThemePicker, ThemePickerEvent};
 pub use state::{ThemePickerState, ThemePickerStateSnapshot};
 pub use theme_colors::ThemeColors;

@@ -1,8 +1,8 @@
-use std::io;
-
-use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, MouseEvent};
+use crossterm::event::{KeyCode, KeyEventKind, KeyModifiers, MouseEvent as CrosstermMouseEvent};
 use ratatui::{widgets::Block, Frame};
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{
+    run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, MouseEvent, ResizeEvent, RunnerConfig,
+};
 use ratkit_termtui::TermTui;
 
 struct TermTuiDemo {
@@ -20,30 +20,44 @@ impl TermTuiDemo {
         }
     }
 
-    fn handle_mouse(&mut self, mouse: MouseEvent) {
+    fn handle_mouse(&mut self, mouse: CrosstermMouseEvent) {
         let _ = self.term.handle_mouse(mouse, self.last_area);
     }
 }
 
-impl App for TermTuiDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for TermTuiDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Resize { width, height } => {
+            CoordinatorEvent::Resize(ResizeEvent { width, height }) => {
                 self.term.resize(height, width);
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            RunnerEvent::Crossterm(Event::Key(key)) if key.kind == KeyEventKind::Press => {
-                if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {
-                    return Ok(RunnerAction::Quit);
+            CoordinatorEvent::Keyboard(keyboard) => {
+                if keyboard.key_code == KeyCode::Char('q')
+                    && keyboard.modifiers.contains(KeyModifiers::CONTROL)
+                {
+                    return Ok(CoordinatorAction::Quit);
                 }
-                self.term.handle_key(key);
-                Ok(RunnerAction::Redraw)
+                let key_event = crossterm::event::KeyEvent {
+                    code: keyboard.key_code,
+                    modifiers: keyboard.modifiers,
+                    kind: KeyEventKind::Press,
+                    state: crossterm::event::KeyEventState::empty(),
+                };
+                self.term.handle_key(key_event);
+                Ok(CoordinatorAction::Redraw)
             }
-            RunnerEvent::Crossterm(Event::Mouse(mouse)) => {
-                self.handle_mouse(mouse);
-                Ok(RunnerAction::Redraw)
+            CoordinatorEvent::Mouse(mouse) => {
+                let crossterm_mouse = crossterm::event::MouseEvent {
+                    kind: mouse.kind,
+                    column: mouse.column,
+                    row: mouse.row,
+                    modifiers: mouse.modifiers,
+                };
+                self.handle_mouse(crossterm_mouse);
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -57,7 +71,7 @@ impl App for TermTuiDemo {
     }
 }
 
-fn main() -> io::Result<()> {
-    let mut app = TermTuiDemo::new();
-    run(&mut app, RunConfig::default())
+fn main() -> std::io::Result<()> {
+    let app = TermTuiDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

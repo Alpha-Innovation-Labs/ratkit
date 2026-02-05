@@ -1,12 +1,12 @@
 use std::io;
 
-use crossterm::event::{Event, KeyCode, KeyEventKind};
+use crossterm::event::KeyCode;
 use ratatui::{
     text::Line,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_toast::{render_toasts, ToastManager};
 
 struct ToastDemo {
@@ -21,24 +21,24 @@ impl ToastDemo {
     }
 }
 
-impl App for ToastDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for ToastDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Tick => {
+            CoordinatorEvent::Tick(_) => {
                 self.toasts.remove_expired();
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            RunnerEvent::Crossterm(Event::Key(key)) if key.kind == KeyEventKind::Press => {
-                match key.code {
-                    KeyCode::Char('q') => return Ok(RunnerAction::Quit),
+            CoordinatorEvent::Keyboard(keyboard) => {
+                match keyboard.key_code {
+                    KeyCode::Char('q') => return Ok(CoordinatorAction::Quit),
                     KeyCode::Char('t') => self.toasts.info("Background task finished"),
                     KeyCode::Char('e') => self.toasts.error("Something went wrong"),
                     KeyCode::Char('c') => self.toasts.clear(),
                     _ => {}
                 }
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -58,6 +58,6 @@ impl App for ToastDemo {
 }
 
 fn main() -> io::Result<()> {
-    let mut app = ToastDemo::new();
-    run(&mut app, RunConfig::default())
+    let app = ToastDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

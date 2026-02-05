@@ -1,13 +1,12 @@
 use std::io;
 
-use crossterm::event::{Event, KeyCode, KeyEventKind};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     text::Line,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_statusline::{OperationalMode, StyledStatusLine};
 
 struct StatusLineDemo {
@@ -15,16 +14,16 @@ struct StatusLineDemo {
     events: usize,
 }
 
-impl App for StatusLineDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for StatusLineDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         self.events += 1;
         match event {
-            RunnerEvent::Crossterm(Event::Key(key))
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') =>
+            CoordinatorEvent::Keyboard(keyboard)
+                if keyboard.key_code == crossterm::event::KeyCode::Char('q') =>
             {
-                Ok(RunnerAction::Quit)
+                Ok(CoordinatorAction::Quit)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -54,9 +53,9 @@ impl App for StatusLineDemo {
 }
 
 fn main() -> io::Result<()> {
-    let mut app = StatusLineDemo {
+    let app = StatusLineDemo {
         renders: 0,
         events: 0,
     };
-    run(&mut app, RunConfig::default())
+    run_with_diagnostics(app, RunnerConfig::default())
 }

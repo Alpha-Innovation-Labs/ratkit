@@ -1,13 +1,13 @@
 use std::io;
 use std::path::PathBuf;
 
-use crossterm::event::{Event, KeyCode, KeyEventKind};
+use crossterm::event::KeyCode;
 use ratatui::{
     text::Line,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_repo_watcher::RepoWatcher;
 
 struct RepoWatcherDemo {
@@ -31,10 +31,10 @@ impl RepoWatcherDemo {
     }
 }
 
-impl App for RepoWatcherDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for RepoWatcherDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Tick => {
+            CoordinatorEvent::Tick(_) => {
                 if self.watcher.check_for_changes() {
                     let changes = self.watcher.get_change_set();
                     let summary = format!(
@@ -46,17 +46,15 @@ impl App for RepoWatcherDemo {
                         changes.untracked.len()
                     );
                     self.last_summary = summary;
-                    Ok(RunnerAction::Redraw)
+                    Ok(CoordinatorAction::Redraw)
                 } else {
-                    Ok(RunnerAction::Continue)
+                    Ok(CoordinatorAction::Continue)
                 }
             }
-            RunnerEvent::Crossterm(Event::Key(key))
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') =>
-            {
-                Ok(RunnerAction::Quit)
+            CoordinatorEvent::Keyboard(keyboard) if keyboard.key_code == KeyCode::Char('q') => {
+                Ok(CoordinatorAction::Quit)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -77,6 +75,6 @@ impl App for RepoWatcherDemo {
 }
 
 fn main() -> io::Result<()> {
-    let mut app = RepoWatcherDemo::new()?;
-    run(&mut app, RunConfig::default())
+    let app = RepoWatcherDemo::new()?;
+    run_with_diagnostics(app, RunnerConfig::default())
 }

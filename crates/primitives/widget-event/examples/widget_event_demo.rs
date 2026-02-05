@@ -1,12 +1,9 @@
-use std::io;
-
-use crossterm::event::{Event, KeyCode, KeyEventKind};
 use ratatui::{
     text::Line,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_widget_event::WidgetEvent;
 
 struct WidgetEventDemo {
@@ -21,22 +18,24 @@ impl WidgetEventDemo {
     }
 }
 
-impl App for WidgetEventDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for WidgetEventDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key)) if key.kind == KeyEventKind::Press => {
-                match key.code {
-                    KeyCode::Char('q') => return Ok(RunnerAction::Quit),
-                    KeyCode::Char('s') => {
+            CoordinatorEvent::Keyboard(keyboard) => {
+                match keyboard.key_code {
+                    ratatui::crossterm::event::KeyCode::Char('q') => {
+                        return Ok(CoordinatorAction::Quit)
+                    }
+                    ratatui::crossterm::event::KeyCode::Char('s') => {
                         self.last = WidgetEvent::Selected { path: vec![0, 1] };
                     }
-                    KeyCode::Char('t') => {
+                    ratatui::crossterm::event::KeyCode::Char('t') => {
                         self.last = WidgetEvent::Toggled {
                             path: vec![0, 2],
                             expanded: true,
                         };
                     }
-                    KeyCode::Char('f') => {
+                    ratatui::crossterm::event::KeyCode::Char('f') => {
                         self.last = WidgetEvent::FilterModeChanged {
                             active: true,
                             filter: "name".to_string(),
@@ -46,9 +45,9 @@ impl App for WidgetEventDemo {
                         self.last = WidgetEvent::None;
                     }
                 }
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -69,7 +68,7 @@ impl App for WidgetEventDemo {
     }
 }
 
-fn main() -> io::Result<()> {
-    let mut app = WidgetEventDemo::new();
-    run(&mut app, RunConfig::default())
+fn main() -> std::io::Result<()> {
+    let app = WidgetEventDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

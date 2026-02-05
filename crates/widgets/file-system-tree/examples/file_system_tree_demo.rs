@@ -1,13 +1,13 @@
 use std::io;
 use std::path::PathBuf;
 
-use crossterm::event::{Event, KeyCode, KeyEventKind};
+use crossterm::event::KeyCode;
 use ratatui::{
     text::Line,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_file_system_tree::{FileSystemTree, FileSystemTreeState};
 
 struct FileSystemTreeDemo {
@@ -32,12 +32,12 @@ impl FileSystemTreeDemo {
     }
 }
 
-impl App for FileSystemTreeDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for FileSystemTreeDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key)) if key.kind == KeyEventKind::Press => {
-                match key.code {
-                    KeyCode::Char('q') => return Ok(RunnerAction::Quit),
+            CoordinatorEvent::Keyboard(keyboard) => {
+                match keyboard.key_code {
+                    KeyCode::Char('q') => return Ok(CoordinatorAction::Quit),
                     KeyCode::Down => self.tree.select_next(&mut self.state),
                     KeyCode::Up => self.tree.select_previous(&mut self.state),
                     KeyCode::Enter => {
@@ -50,7 +50,9 @@ impl App for FileSystemTreeDemo {
                     }
                     _ => {
                         if self.tree.is_filter_mode(&self.state) {
-                            let _ = self.tree.handle_filter_key(key.code, &mut self.state);
+                            let _ = self
+                                .tree
+                                .handle_filter_key(keyboard.key_code, &mut self.state);
                         }
                     }
                 }
@@ -59,9 +61,9 @@ impl App for FileSystemTreeDemo {
                     self.last_selection = entry.path.display().to_string();
                 }
 
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -91,7 +93,7 @@ impl App for FileSystemTreeDemo {
     }
 }
 
-fn main() -> io::Result<()> {
-    let mut app = FileSystemTreeDemo::new()?;
-    run(&mut app, RunConfig::default())
+fn main() -> std::io::Result<()> {
+    let app = FileSystemTreeDemo::new()?;
+    run_with_diagnostics(app, RunnerConfig::default())
 }

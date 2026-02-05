@@ -20,6 +20,6 @@ anyhow.workspace = true
 ratkit-widget-event = { path = "../../primitives/widget-event" }
 
 [dev-dependencies]
-ratkit-example-runner.workspace = true
 ratatui.workspace = true
 crossterm.workspace = true
+ratkit = { path = "../../ratkit" }

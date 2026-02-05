@@ -32,9 +32,6 @@ members = [
     "crates/services/repo-watcher",
     "crates/services/hotkey-service",
     
-    # Shared runner for examples
-    "crates/example-runner",
-    
     # Meta-crate
     "crates/ratkit",
 ]
@@ -56,4 +53,3 @@ unicode-width = "0.2"
 tracing = "0.1"
 anyhow = "1"
 thiserror = "2"
-ratkit-example-runner = { path = "crates/example-runner" }

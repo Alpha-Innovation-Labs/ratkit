@@ -1,12 +1,9 @@
-use std::io;
-
-use crossterm::event::{Event, KeyCode, KeyEventKind};
 use ratatui::{
     text::Line,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_theme_picker::{ThemePicker, ThemePickerEvent};
 
 struct ThemePickerDemo {
@@ -25,24 +22,26 @@ impl ThemePickerDemo {
     }
 }
 
-impl App for ThemePickerDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for ThemePickerDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key)) if key.kind == KeyEventKind::Press => {
-                if key.code == KeyCode::Char('q') {
-                    return Ok(RunnerAction::Quit);
+            CoordinatorEvent::Keyboard(keyboard) if keyboard.is_key_down() => {
+                use crossterm::event::KeyCode;
+
+                if keyboard.key_code == KeyCode::Char('q') {
+                    return Ok(CoordinatorAction::Quit);
                 }
 
-                if key.code == KeyCode::Char('t') {
+                if keyboard.key_code == KeyCode::Char('t') {
                     if self.picker.is_visible() {
                         self.picker.hide();
                     } else {
                         self.picker.show();
                     }
-                    return Ok(RunnerAction::Redraw);
+                    return Ok(CoordinatorAction::Redraw);
                 }
 
-                if let Some(event) = self.picker.handle_key(&key.code) {
+                if let Some(event) = self.picker.handle_key(&keyboard.key_code) {
                     self.last_event = match event {
                         ThemePickerEvent::Selected(name) => format!("Selected: {}", name),
                         ThemePickerEvent::Cancelled => "Cancelled".to_string(),
@@ -51,9 +50,9 @@ impl App for ThemePickerDemo {
                         }
                     };
                 }
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Continue),
         }
     }
 
@@ -74,7 +73,7 @@ impl App for ThemePickerDemo {
     }
 }
 
-fn main() -> io::Result<()> {
-    let mut app = ThemePickerDemo::new();
-    run(&mut app, RunConfig::default())
+fn main() -> std::io::Result<()> {
+    let app = ThemePickerDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

@@ -1,14 +1,15 @@
 use std::io;
 
-use crossterm::event::{Event, KeyCode, KeyEventKind};
+use crossterm::event::KeyCode;
 use ratatui::{
     style::{Color, Style},
     text::Line,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use ratkit::{Button, Pane};
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
+use ratkit_button::Button;
+use ratkit_pane::Pane;
 
 struct RatkitDemo {
     button: Button,
@@ -22,15 +23,13 @@ impl RatkitDemo {
     }
 }
 
-impl App for RatkitDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for RatkitDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key))
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') =>
-            {
-                Ok(RunnerAction::Quit)
+            CoordinatorEvent::Keyboard(keyboard) if keyboard.key_code == KeyCode::Char('q') => {
+                Ok(CoordinatorAction::Quit)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -54,6 +53,6 @@ impl App for RatkitDemo {
 }
 
 fn main() -> io::Result<()> {
-    let mut app = RatkitDemo::new();
-    run(&mut app, RunConfig::default())
+    let app = RatkitDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

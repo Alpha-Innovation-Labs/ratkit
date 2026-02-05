@@ -24,6 +24,6 @@ thiserror.workspace = true
 devicons = "0.6"
 
 [dev-dependencies]
-ratkit-example-runner.workspace = true
+ratkit = { path = "../../ratkit" }
 ratatui.workspace = true
 crossterm.workspace = true

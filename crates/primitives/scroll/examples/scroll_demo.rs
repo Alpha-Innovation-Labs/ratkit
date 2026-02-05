@@ -1,13 +1,15 @@
 use std::io;
 
-use crossterm::event::{Event, KeyCode, KeyEventKind};
+use crossterm::event::KeyCode;
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     text::Line,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{
+    run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, KeyboardEvent, RunnerConfig,
+};
 use ratkit_scroll::calculate_scroll_offset;
 
 struct ScrollDemo {
@@ -22,12 +24,12 @@ impl ScrollDemo {
     }
 }
 
-impl App for ScrollDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for ScrollDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key)) if key.kind == KeyEventKind::Press => {
-                match key.code {
-                    KeyCode::Char('q') => return Ok(RunnerAction::Quit),
+            CoordinatorEvent::Keyboard(keyboard) => {
+                match keyboard.key_code {
+                    KeyCode::Char('q') => return Ok(CoordinatorAction::Quit),
                     KeyCode::Up => {
                         if self.selected > 0 {
                             self.selected -= 1;
@@ -40,9 +42,9 @@ impl App for ScrollDemo {
                     }
                     _ => {}
                 }
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -82,6 +84,6 @@ impl App for ScrollDemo {
 }
 
 fn main() -> io::Result<()> {
-    let mut app = ScrollDemo::new();
-    run(&mut app, RunConfig::default())
+    let app = ScrollDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

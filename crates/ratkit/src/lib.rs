@@ -60,10 +60,13 @@ mod focus;
 mod layout;
 mod mouse_router;
 mod registry;
+mod runner_helper;
 mod types;
 
 /// Core runtime pieces for ratkit.
 pub mod core;
+
+pub use runner_helper::{run, run_with_diagnostics};
 
 pub use core::{
     CoordinatorAction, CoordinatorApp, CoordinatorConfig, CoordinatorEvent, Element, ElementHandle,

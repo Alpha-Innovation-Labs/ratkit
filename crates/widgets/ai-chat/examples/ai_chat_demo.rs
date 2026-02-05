@@ -1,9 +1,7 @@
-use std::io;
-
-use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
+use crossterm::event::{KeyCode, KeyModifiers};
 use ratatui::{widgets::Block, Frame};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_ai_chat::{AIChat, AIChatEvent, Message};
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
 
 struct AiChatDemo {
     chat: AIChat,
@@ -18,15 +16,17 @@ impl AiChatDemo {
     }
 }
 
-impl App for AiChatDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for AiChatDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key)) if key.kind == KeyEventKind::Press => {
-                if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {
-                    return Ok(RunnerAction::Quit);
+            CoordinatorEvent::Keyboard(keyboard) => {
+                if keyboard.key_code == KeyCode::Char('q')
+                    && keyboard.modifiers.contains(KeyModifiers::CONTROL)
+                {
+                    return Ok(CoordinatorAction::Quit);
                 }
 
-                match self.chat.handle_key(key.code) {
+                match self.chat.handle_key(keyboard.key_code) {
                     AIChatEvent::MessageSubmitted(text) => {
                         self.chat.set_loading(false);
                         self.chat
@@ -42,9 +42,9 @@ impl App for AiChatDemo {
                     _ => {}
                 }
 
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Continue),
         }
     }
 
@@ -57,7 +57,7 @@ impl App for AiChatDemo {
     }
 }
 
-fn main() -> io::Result<()> {
-    let mut app = AiChatDemo::new();
-    run(&mut app, RunConfig::default())
+fn main() -> std::io::Result<()> {
+    let app = AiChatDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

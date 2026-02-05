@@ -18,6 +18,6 @@ ratkit-git-watcher = { version = "0.1.0", path = "../../services/git-watcher" }
 
 [dev-dependencies]
 tempfile = "3"
-ratkit-example-runner.workspace = true
 ratatui.workspace = true
 crossterm.workspace = true
+ratkit = { path = "../../ratkit" }

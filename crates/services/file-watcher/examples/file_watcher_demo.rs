@@ -1,13 +1,13 @@
 use std::io;
 use std::path::PathBuf;
 
-use crossterm::event::{Event, KeyCode, KeyEventKind};
+use crossterm::event::KeyCode;
 use ratatui::{
     text::Line,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_file_watcher::FileWatcher;
 
 struct FileWatcherDemo {
@@ -31,10 +31,10 @@ impl FileWatcherDemo {
     }
 }
 
-impl App for FileWatcherDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for FileWatcherDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Tick => {
+            CoordinatorEvent::Tick(_) => {
                 if self.watcher.check_for_changes() {
                     let paths = self.watcher.get_changed_paths();
                     if let Some(path) = paths.first() {
@@ -42,17 +42,15 @@ impl App for FileWatcherDemo {
                     } else {
                         self.last_change = "Changes detected".to_string();
                     }
-                    Ok(RunnerAction::Redraw)
+                    Ok(CoordinatorAction::Redraw)
                 } else {
-                    Ok(RunnerAction::Continue)
+                    Ok(CoordinatorAction::Continue)
                 }
             }
-            RunnerEvent::Crossterm(Event::Key(key))
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') =>
-            {
-                Ok(RunnerAction::Quit)
+            CoordinatorEvent::Keyboard(keyboard) if keyboard.key_code == KeyCode::Char('q') => {
+                Ok(CoordinatorAction::Quit)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -73,6 +71,6 @@ impl App for FileWatcherDemo {
 }
 
 fn main() -> io::Result<()> {
-    let mut app = FileWatcherDemo::new()?;
-    run(&mut app, RunConfig::default())
+    let app = FileWatcherDemo::new()?;
+    run_with_diagnostics(app, RunnerConfig::default())
 }

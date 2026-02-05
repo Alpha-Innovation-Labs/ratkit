@@ -1,5 +1,13 @@
 use crate::HotkeyScope;
 
+mod constructors;
+mod methods;
+mod traits;
+
+pub use constructors::*;
+pub use methods::*;
+pub use traits::*;
+
 /// A registered hotkey.
 ///
 /// Represents a single keyboard shortcut with associated metadata

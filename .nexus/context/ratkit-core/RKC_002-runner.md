@@ -9,7 +9,7 @@ created: "2026-02-05"
 
 ## Desired Outcome
 
-A Runner system that owns the event loop and render orchestration for the ratkit core runtime. The Runner polls for events, dispatches mouse, keyboard, tick, and resize inputs, and coordinates with the Layout Manager to recompute geometry when needed. Keyboard events route only to the focused element, mouse events route by z-order (with capture support), tick events route to scheduled handlers, and resize events route to the Layout Manager with coalescing. The Runner determines redraws when layout is dirty or any element is dirty, renders all visible elements on each redraw, and clears the layout dirty flag only after a successful render.
+A Runner system that owns the event loop and render orchestration for the ratkit core runtime. The Runner polls for events, dispatches mouse, keyboard, tick, and resize inputs, and coordinates with the Layout Manager to recompute geometry when needed. Keyboard events route only to the focused element, mouse events route by z-order (with capture support), tick events route to scheduled handlers, and resize events route to the Layout Manager with coalescing. The Runner determines redraws when layout is dirty or any element is dirty, renders all visible elements on each redraw, and clears the layout dirty flag only after a successful render. Diagnostics overlays (FPS/redraws) are optional and must be explicitly enabled.
 
 ## Reference
 
@@ -29,3 +29,4 @@ See `.nexus/context/ratkit-core/_reference/layout-manager-plan.md` for runtime e
 | Render all visible elements on each redraw | `runner_renders_all_visible` |
 | Clear layout dirty flag only after successful render | `runner_clears_layout_dirty_after_render` |
 | Collect async tick results without blocking render loop | `runner_collects_async_tick_results` |
+| Provide optional diagnostics overlay for FPS/redraws | `runner_diagnostics_optional` |

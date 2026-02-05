@@ -1,13 +1,11 @@
-use std::io;
-
-use crossterm::event::{Event, KeyCode, KeyEventKind, MouseButton, MouseEventKind};
+use crossterm::event::{KeyCode, MouseButton, MouseEventKind};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     text::Line,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, MouseEvent, RunnerConfig};
 use ratkit_menu_bar::{MenuBar, MenuItem};
 
 struct MenuBarDemo {
@@ -38,12 +36,12 @@ impl MenuBarDemo {
     }
 }
 
-impl App for MenuBarDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for MenuBarDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key)) if key.kind == KeyEventKind::Press => {
-                match key.code {
-                    KeyCode::Char('q') => return Ok(RunnerAction::Quit),
+            CoordinatorEvent::Keyboard(keyboard) => {
+                match keyboard.key_code {
+                    KeyCode::Char('q') => return Ok(CoordinatorAction::Quit),
                     KeyCode::Left => {
                         let current = self.menu.selected().unwrap_or(0);
                         let next = current.saturating_sub(1);
@@ -56,9 +54,9 @@ impl App for MenuBarDemo {
                     }
                     _ => {}
                 }
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            RunnerEvent::Crossterm(Event::Mouse(mouse)) => {
+            CoordinatorEvent::Mouse(mouse) => {
                 match mouse.kind {
                     MouseEventKind::Moved => self.menu.update_hover(mouse.column, mouse.row),
                     MouseEventKind::Down(MouseButton::Left) => {
@@ -68,9 +66,9 @@ impl App for MenuBarDemo {
                     }
                     _ => {}
                 }
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -92,7 +90,7 @@ impl App for MenuBarDemo {
     }
 }
 
-fn main() -> io::Result<()> {
-    let mut app = MenuBarDemo::new();
-    run(&mut app, RunConfig::default())
+fn main() -> std::io::Result<()> {
+    let app = MenuBarDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

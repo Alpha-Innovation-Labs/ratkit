@@ -1,9 +1,7 @@
-use std::io;
-
-use crossterm::event::{Event, KeyCode, KeyEventKind};
+use crossterm::event::KeyCode;
 use ratatui::{widgets::Block, Frame};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_code_diff::CodeDiff;
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
 
 struct CodeDiffDemo {
     diff: CodeDiff,
@@ -17,15 +15,13 @@ impl CodeDiffDemo {
     }
 }
 
-impl App for CodeDiffDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for CodeDiffDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key))
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') =>
-            {
-                Ok(RunnerAction::Quit)
+            CoordinatorEvent::Keyboard(keyboard) if keyboard.key_code == KeyCode::Char('q') => {
+                Ok(CoordinatorAction::Quit)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -38,7 +34,7 @@ impl App for CodeDiffDemo {
     }
 }
 
-fn main() -> io::Result<()> {
-    let mut app = CodeDiffDemo::new();
-    run(&mut app, RunConfig::default())
+fn main() -> std::io::Result<()> {
+    let app = CodeDiffDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

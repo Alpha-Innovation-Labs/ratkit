@@ -126,6 +126,7 @@ repo-watcher = ["ratkit-repo-watcher"]
 hotkey-service = ["ratkit-hotkey-service"]
 
 [dev-dependencies]
-ratkit-example-runner.workspace = true
 ratatui.workspace = true
 crossterm.workspace = true
+ratkit-button = { path = "../primitives/button" }
+ratkit-pane = { path = "../primitives/pane" }

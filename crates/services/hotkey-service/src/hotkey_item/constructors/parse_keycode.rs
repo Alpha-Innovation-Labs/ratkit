@@ -1,6 +1,6 @@
 use crossterm::event::KeyCode;
 
-impl crate::services::hotkey::Hotkey {
+impl crate::Hotkey {
     /// Parse KeyCode from key string.
     ///
     /// # Returns

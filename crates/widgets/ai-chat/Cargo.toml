@@ -26,6 +26,6 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 [dev-dependencies]
-ratkit-example-runner.workspace = true
 ratatui.workspace = true
 crossterm.workspace = true
+ratkit = { path = "../../ratkit" }

@@ -1,9 +1,11 @@
 use std::io;
 
-use crossterm::event::{Event, KeyCode, KeyEventKind};
+use crossterm::event::KeyCode;
 use ratatui::Frame;
+use ratkit::{
+    run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, KeyboardEvent, RunnerConfig,
+};
 use ratkit_dialog::{Dialog, DialogWidget};
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
 
 struct DialogDemo {
     dialog: Dialog<'static>,
@@ -20,12 +22,12 @@ impl DialogDemo {
     }
 }
 
-impl App for DialogDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for DialogDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key)) if key.kind == KeyEventKind::Press => {
-                match key.code {
-                    KeyCode::Char('q') => return Ok(RunnerAction::Quit),
+            CoordinatorEvent::Keyboard(keyboard) => {
+                match keyboard.key_code {
+                    KeyCode::Char('q') => return Ok(CoordinatorAction::Quit),
                     KeyCode::Left => {
                         if self.dialog.selected_button > 0 {
                             self.dialog.selected_button -= 1;
@@ -38,9 +40,9 @@ impl App for DialogDemo {
                     }
                     _ => {}
                 }
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -51,6 +53,6 @@ impl App for DialogDemo {
 }
 
 fn main() -> io::Result<()> {
-    let mut app = DialogDemo::new();
-    run(&mut app, RunConfig::default())
+    let app = DialogDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

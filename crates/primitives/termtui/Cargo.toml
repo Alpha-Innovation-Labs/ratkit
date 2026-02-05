@@ -25,6 +25,6 @@ base64 = "0.22"
 portable-pty = "0.9"
 
 [dev-dependencies]
-ratkit-example-runner.workspace = true
+ratkit = { path = "../../ratkit" }
 ratatui.workspace = true
 crossterm.workspace = true

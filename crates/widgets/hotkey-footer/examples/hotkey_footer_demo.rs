@@ -1,26 +1,23 @@
-use std::io;
-
-use crossterm::event::{Event, KeyCode, KeyEventKind};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     text::Line,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_hotkey_footer::{HotkeyFooter, HotkeyItem};
 
 struct HotkeyFooterDemo;
 
-impl App for HotkeyFooterDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for HotkeyFooterDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key))
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') =>
+            CoordinatorEvent::Keyboard(keyboard)
+                if keyboard.key_code == crossterm::event::KeyCode::Char('q') =>
             {
-                Ok(RunnerAction::Quit)
+                Ok(CoordinatorAction::Quit)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -47,7 +44,7 @@ impl App for HotkeyFooterDemo {
     }
 }
 
-fn main() -> io::Result<()> {
-    let mut app = HotkeyFooterDemo;
-    run(&mut app, RunConfig::default())
+fn main() -> std::io::Result<()> {
+    let app = HotkeyFooterDemo;
+    run_with_diagnostics(app, RunnerConfig::default())
 }

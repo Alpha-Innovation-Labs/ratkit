@@ -1,6 +1,4 @@
-use std::io;
-
-use crossterm::event::{Event, KeyCode, KeyEventKind};
+use crossterm::event::KeyCode;
 use ratatui::{
     layout::Rect,
     style::{Color, Style},
@@ -8,7 +6,7 @@ use ratatui::{
     widgets::{Block, Borders},
     Frame,
 };
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_tree_view::{TreeNavigator, TreeNode, TreeView, TreeViewState};
 
 struct TreeViewDemo {
@@ -56,23 +54,30 @@ impl TreeViewDemo {
     }
 }
 
-impl App for TreeViewDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for TreeViewDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key)) if key.kind == KeyEventKind::Press => {
-                match key.code {
-                    KeyCode::Char('q') => return Ok(RunnerAction::Quit),
+            CoordinatorEvent::Keyboard(keyboard) => {
+                let key = keyboard.key_code;
+                match key {
+                    KeyCode::Char('q') => return Ok(CoordinatorAction::Quit),
                     KeyCode::Char('/') => {
                         self.state.enter_filter_mode();
                     }
                     _ => {
                         let mut tree = self.build_tree();
-                        let _ = tree.handle_key_event(key, &self.navigator, &mut self.state);
+                        let key_event = crossterm::event::KeyEvent {
+                            code: key,
+                            modifiers: keyboard.modifiers,
+                            kind: keyboard.kind,
+                            state: crossterm::event::KeyEventState::empty(),
+                        };
+                        let _ = tree.handle_key_event(key_event, &self.navigator, &mut self.state);
                     }
                 }
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -83,7 +88,7 @@ impl App for TreeViewDemo {
     }
 }
 
-fn main() -> io::Result<()> {
-    let mut app = TreeViewDemo::new();
-    run(&mut app, RunConfig::default())
+fn main() -> std::io::Result<()> {
+    let app = TreeViewDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }

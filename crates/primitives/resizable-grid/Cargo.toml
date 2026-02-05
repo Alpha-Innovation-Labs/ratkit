@@ -17,6 +17,6 @@ ratatui.workspace = true
 crossterm.workspace = true
 
 [dev-dependencies]
-ratkit-example-runner.workspace = true
 ratatui.workspace = true
 crossterm.workspace = true
+ratkit = { path = "../../ratkit" }

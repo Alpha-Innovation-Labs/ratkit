@@ -16,6 +16,6 @@ categories = ["command-line-interface", "gui"]
 ratatui.workspace = true
 
 [dev-dependencies]
-ratkit-example-runner.workspace = true
+ratkit = { path = "../../ratkit" }
 ratatui.workspace = true
 crossterm.workspace = true

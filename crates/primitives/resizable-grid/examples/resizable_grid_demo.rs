@@ -1,10 +1,7 @@
-use std::io;
-
-use crossterm::event::{Event, KeyCode, KeyEventKind, MouseEvent};
 use ratatui::layout::Rect;
 use ratatui::widgets::{Block, Borders};
 use ratatui::Frame;
-use ratkit_example_runner::{run, App, RunConfig, RunnerAction, RunnerEvent};
+use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
 use ratkit_resizable_grid::{ResizableGrid, ResizableGridWidget, ResizableGridWidgetState};
 
 struct ResizableGridDemo {
@@ -29,27 +26,33 @@ impl ResizableGridDemo {
         }
     }
 
-    fn handle_mouse(&mut self, mouse: MouseEvent) {
+    fn handle_mouse(&mut self, mouse: ratkit::MouseEvent) {
+        let crossterm_mouse = crossterm::event::MouseEvent {
+            kind: mouse.kind,
+            column: mouse.column,
+            row: mouse.row,
+            modifiers: mouse.modifiers,
+        };
         let mut widget = ResizableGridWidget::new(self.layout.clone()).with_state(self.state);
-        widget.handle_mouse(mouse, self.last_area);
+        widget.handle_mouse(crossterm_mouse, self.last_area);
         self.state = widget.state();
         self.layout = widget.layout().clone();
     }
 }
 
-impl App for ResizableGridDemo {
-    fn on_event(&mut self, event: RunnerEvent) -> io::Result<RunnerAction> {
+impl CoordinatorApp for ResizableGridDemo {
+    fn on_event(&mut self, event: CoordinatorEvent) -> ratkit::LayoutResult<CoordinatorAction> {
         match event {
-            RunnerEvent::Crossterm(Event::Key(key))
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') =>
+            CoordinatorEvent::Keyboard(keyboard)
+                if keyboard.key_code == crossterm::event::KeyCode::Char('q') =>
             {
-                Ok(RunnerAction::Quit)
+                Ok(CoordinatorAction::Quit)
             }
-            RunnerEvent::Crossterm(Event::Mouse(mouse)) => {
+            CoordinatorEvent::Mouse(mouse) => {
                 self.handle_mouse(mouse);
-                Ok(RunnerAction::Redraw)
+                Ok(CoordinatorAction::Redraw)
             }
-            _ => Ok(RunnerAction::Redraw),
+            _ => Ok(CoordinatorAction::Redraw),
         }
     }
 
@@ -69,7 +72,7 @@ impl App for ResizableGridDemo {
     }
 }
 
-fn main() -> io::Result<()> {
-    let mut app = ResizableGridDemo::new();
-    run(&mut app, RunConfig::default())
+fn main() -> std::io::Result<()> {
+    let app = ResizableGridDemo::new();
+    run_with_diagnostics(app, RunnerConfig::default())
 }
