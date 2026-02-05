@@ -35,3 +35,4 @@ pub struct ToastManager {
     toasts: Vec<Toast>,
     max_toasts: usize,
 }
+pub use render::render_toasts;

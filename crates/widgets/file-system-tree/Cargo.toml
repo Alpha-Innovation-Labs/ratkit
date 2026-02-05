@@ -22,3 +22,8 @@ anyhow.workspace = true
 thiserror.workspace = true
 
 devicons = "0.6"
+
+[dev-dependencies]
+ratkit-example-runner.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true

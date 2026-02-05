@@ -14,8 +14,11 @@ categories = ["command-line-interface", "gui"]
 
 [dependencies]
 ratatui.workspace = true
-ratkit-theme = { workspace = true, optional = true }
 
 [features]
 default = []
-theme = ["ratkit-theme"]
+
+[dev-dependencies]
+ratkit-example-runner.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true

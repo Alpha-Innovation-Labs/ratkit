@@ -17,6 +17,11 @@ ratatui.workspace = true
 unicode-width.workspace = true
 anyhow.workspace = true
 
-ratkit-widget-event = { path = "../../primitives/ratkit-widget-event" }
+ratkit-widget-event = { path = "../../primitives/widget-event" }
 
+crossterm.workspace = true
+
+[dev-dependencies]
+ratkit-example-runner.workspace = true
+ratatui.workspace = true
 crossterm.workspace = true

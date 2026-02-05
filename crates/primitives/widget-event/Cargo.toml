@@ -16,3 +16,8 @@ categories = ["command-line-interface", "gui"]
 
 [features]
 default = []
+
+[dev-dependencies]
+ratkit-example-runner.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true

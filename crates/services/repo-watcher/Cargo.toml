@@ -13,8 +13,11 @@ categories = ["command-line-interface", "development-tools"]
 
 [dependencies]
 notify = "6"
-ratkit-file-watcher = { version = "0.1.0", path = "../../services/ratkit-file-watcher" }
-ratkit-git-watcher = { version = "0.1.0", path = "../../services/ratkit-git-watcher" }
+ratkit-file-watcher = { version = "0.1.0", path = "../../services/file-watcher" }
+ratkit-git-watcher = { version = "0.1.0", path = "../../services/git-watcher" }
 
 [dev-dependencies]
 tempfile = "3"
+ratkit-example-runner.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true

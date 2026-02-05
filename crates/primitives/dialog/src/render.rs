@@ -7,17 +7,17 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Clear, Paragraph, Widget, Wrap},
 };
 
-pub struct DialogWidget<'a> {
-    pub dialog: &'a mut Dialog<'a>,
+pub struct DialogWidget<'a, 'b> {
+    pub dialog: &'a mut Dialog<'b>,
 }
 
-impl<'a> DialogWidget<'a> {
-    pub fn new(dialog: &'a mut Dialog<'a>) -> Self {
+impl<'a, 'b> DialogWidget<'a, 'b> {
+    pub fn new(dialog: &'a mut Dialog<'b>) -> Self {
         Self { dialog }
     }
 }
 
-impl Widget for DialogWidget<'_> {
+impl Widget for DialogWidget<'_, '_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         if self.dialog.overlay {
             let overlay = Paragraph::new("").style(self.dialog.overlay_style);

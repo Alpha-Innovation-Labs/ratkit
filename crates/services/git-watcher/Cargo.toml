@@ -16,3 +16,6 @@ notify = "6"
 
 [dev-dependencies]
 tempfile = "3"
+ratkit-example-runner.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true

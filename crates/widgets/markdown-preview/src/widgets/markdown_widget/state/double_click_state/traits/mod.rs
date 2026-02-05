@@ -1,0 +1,1 @@
+//! Trait implementations for DoubleClickState.

@@ -23,3 +23,8 @@ libc = "0.2"
 arboard = "3"
 base64 = "0.22"
 portable-pty = "0.9"
+
+[dev-dependencies]
+ratkit-example-runner.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true

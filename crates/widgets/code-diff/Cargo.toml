@@ -21,4 +21,9 @@ tracing.workspace = true
 anyhow.workspace = true
 thiserror.workspace = true
 
+[dev-dependencies]
+ratkit-example-runner.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true
+
 similar = "2"
