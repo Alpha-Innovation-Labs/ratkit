@@ -6,34 +6,34 @@ members = [
     # "crates/archives",
     
     # Primitives (12 crates)
-    "crates/primitives/ratkit-button",
-    "crates/primitives/ratkit-pane",
-    "crates/primitives/ratkit-dialog",
-    "crates/primitives/ratkit-toast",
-    "crates/primitives/ratkit-statusline",
-    "crates/primitives/ratkit-scroll",
-    "crates/primitives/ratkit-menu-bar",
-    "crates/primitives/ratkit-resizable-grid",
-    "crates/primitives/ratkit-tree-view",
-    "crates/primitives/ratkit-widget-event",
-    "crates/primitives/ratkit-termtui",
+    "crates/primitives/button",
+    "crates/primitives/pane",
+    "crates/primitives/dialog",
+    "crates/primitives/toast",
+    "crates/primitives/statusline",
+    "crates/primitives/scroll",
+    "crates/primitives/menu-bar",
+    "crates/primitives/resizable-grid",
+    "crates/primitives/tree-view",
+    "crates/primitives/widget-event",
+    "crates/primitives/termtui",
     
     # Widgets (6 crates)
-    "crates/widgets/ratkit-markdown-preview",
-    "crates/widgets/ratkit-code-diff",
-    "crates/widgets/ratkit-ai-chat",
-    "crates/widgets/ratkit-hotkey-footer",
-    "crates/widgets/ratkit-file-system-tree",
-    "crates/widgets/ratkit-theme-picker",
+    "crates/widgets/markdown-preview",
+    "crates/widgets/code-diff",
+    "crates/widgets/ai-chat",
+    "crates/widgets/hotkey-footer",
+    "crates/widgets/file-system-tree",
+    "crates/widgets/theme-picker",
     
     # Services (4 crates)
-    "crates/services/ratkit-file-watcher",
-    "crates/services/ratkit-git-watcher",
-    "crates/services/ratkit-repo-watcher",
-    "crates/services/ratkit-hotkey-service",
+    "crates/services/file-watcher",
+    "crates/services/git-watcher",
+    "crates/services/repo-watcher",
+    "crates/services/hotkey-service",
     
-    # Shared/Theme
-    "crates/ratkit-theme",
+    # Shared runner for examples
+    "crates/example-runner",
     
     # Meta-crate
     "crates/ratkit",
@@ -56,4 +56,4 @@ unicode-width = "0.2"
 tracing = "0.1"
 anyhow = "1"
 thiserror = "2"
-ratkit-theme = { path = "crates/ratkit-theme" }
+ratkit-example-runner = { path = "crates/example-runner" }
