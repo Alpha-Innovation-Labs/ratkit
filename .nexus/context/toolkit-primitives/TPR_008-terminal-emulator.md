@@ -9,7 +9,11 @@ created: "2026-01-21"
 
 ## Desired Outcome
 
-A `TermTui` primitive that renders terminal emulator output in a TUI application. Users can view terminal content, scroll through history, enter copy mode to select and copy text, and spawn interactive processes. The terminal supports VT100 escape sequences, provides infinite scrollback, and integrates with system clipboard for text selection.
+A `TermTui` primitive that renders interactive terminal output in a TUI application with behavior matching full-screen terminal apps. Users can view terminal content, scroll through history, enter copy mode to select and copy text, and run interactive processes that correctly resize and occupy the full available area.
+
+## Reference
+
+- `/.nexus/context/toolkit-primitives/_reference/terminal-emulator-parity-notes.md`
 
 ## Next Actions
 
@@ -23,3 +27,7 @@ A `TermTui` primitive that renders terminal emulator output in a TUI application
 | Selected text copies to system clipboard | `copy_to_clipboard_succeeds` |
 | Mouse wheel scrolls terminal content up and down | `mouse_wheel_scrolls_content` |
 | Spawned command runs in PTY and displays output | `command_spawns_process` |
+| Full-screen apps render within the full available terminal area | `fullscreen_apps_fill_area` |
+| Resizing the container updates the PTY size and visible output | `pty_resize_updates_output` |
+| Alternate screen apps enter and exit without leaving artifacts | `alternate_screen_enters_exits_cleanly` |
+| Shell startup completes without terminal capability errors | `shell_startup_has_no_errors` |
