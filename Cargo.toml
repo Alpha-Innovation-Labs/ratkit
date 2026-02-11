@@ -9,8 +9,8 @@ documentation = "https://docs.rs/ratkit"
 repository = "https://github.com/alpha-innovation-labs/ratatui-toolkit"
 homepage = "https://github.com/alpha-innovation-labs/ratatui-toolkit"
 license = "MIT"
-keywords = ["tui", "ratatui", "widgets", "ui"]
-categories = ["command-line-interface", "gui"]
+keywords = ["tui", "ratatui", "terminal", "widgets", "components", "cli"]
+categories = ["command-line-interface"]
 
 [dependencies]
 ratatui = "0.29"
