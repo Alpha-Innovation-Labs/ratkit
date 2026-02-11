@@ -170,7 +170,7 @@ impl<A: CoordinatorApp> Runner<A> {
 
     /// Whether the runner should redraw based on dirty state.
     pub fn needs_redraw(&self) -> bool {
-        self.coordinator.is_dirty() || self.coordinator.layout().is_dirty()
+        self.coordinator.is_dirty()
     }
 
     /// Render all visible elements and clear layout dirty flags.

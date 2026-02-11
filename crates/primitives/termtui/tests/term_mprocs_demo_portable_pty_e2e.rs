@@ -71,7 +71,7 @@ fn term_mprocs_demo_renders_yazi_portable_pty() -> Result<()> {
     cmd.cwd(workspace_root);
     cmd.arg("run");
     cmd.arg("-p");
-    cmd.arg("ratkit-term-mprocs");
+    cmd.arg("ratkit-termtui");
     cmd.arg("--example");
     cmd.arg("term_mprocs_demo");
 
@@ -134,6 +134,6 @@ fn term_mprocs_demo_renders_yazi_portable_pty() -> Result<()> {
     child.wait()?;
 
     Err(anyhow!(
-        "term-mprocs demo did not terminate after Ctrl+X then q"
+        "termtui demo did not terminate after Ctrl+X then q"
     ))
 }

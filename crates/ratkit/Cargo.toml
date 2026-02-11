@@ -24,7 +24,6 @@ ratkit-menu-bar = { path = "../primitives/menu-bar", optional = true }
 ratkit-resizable-grid = { path = "../primitives/resizable-grid", optional = true }
 ratkit-tree-view = { path = "../primitives/tree-view", optional = true }
 ratkit-widget-event = { path = "../primitives/widget-event", optional = true }
-ratkit-termtui = { path = "../primitives/termtui", optional = true }
 crossterm = { workspace = true }
 ratatui = { workspace = true }
 thiserror = { workspace = true }
@@ -59,7 +58,6 @@ all = [
     "resizable-grid",
     "tree-view",
     "widget-event",
-    "termtui",
     "markdown-preview",
     "code-diff",
     "ai-chat",
@@ -86,7 +84,6 @@ widgets = [
     "resizable-grid",
     "tree-view",
     "widget-event",
-    "termtui",
     "markdown-preview",
     "code-diff",
     "ai-chat",
@@ -113,7 +110,6 @@ menu-bar = ["ratkit-menu-bar"]
 resizable-grid = ["ratkit-resizable-grid"]
 tree-view = ["ratkit-tree-view"]
 widget-event = ["ratkit-widget-event"]
-termtui = ["ratkit-termtui"]
 markdown-preview = ["ratkit-markdown-preview"]
 code-diff = ["ratkit-code-diff"]
 ai-chat = ["ratkit-ai-chat"]

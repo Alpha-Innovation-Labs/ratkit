@@ -178,8 +178,8 @@ impl<A: CoordinatorApp> LayoutCoordinator<A> {
             }
         }
 
-        self.app.on_event(CoordinatorEvent::Keyboard(keyboard))?;
-        Ok(CoordinatorAction::Continue)
+        let action = self.app.on_event(CoordinatorEvent::Keyboard(keyboard))?;
+        Ok(action)
     }
 
     fn handle_mouse(&mut self, mouse: MouseEvent) -> LayoutResult<CoordinatorAction> {
@@ -199,8 +199,8 @@ impl<A: CoordinatorApp> LayoutCoordinator<A> {
         }
 
         self.mouse.handle_click_outside(x, y, &self.layout);
-        self.app.on_event(CoordinatorEvent::Mouse(mouse))?;
-        Ok(CoordinatorAction::Continue)
+        let action = self.app.on_event(CoordinatorEvent::Mouse(mouse))?;
+        Ok(action)
     }
 
     fn handle_tick(&mut self, count: u64) -> LayoutResult<CoordinatorAction> {
@@ -214,8 +214,8 @@ impl<A: CoordinatorApp> LayoutCoordinator<A> {
 
         self.mouse.check_capture_expired();
 
-        self.app.on_event(CoordinatorEvent::Tick(count))?;
-        Ok(CoordinatorAction::Continue)
+        let action = self.app.on_event(CoordinatorEvent::Tick(count))?;
+        Ok(action)
     }
 
     fn handle_resize(&mut self, resize: ResizeEvent) -> LayoutResult<CoordinatorAction> {

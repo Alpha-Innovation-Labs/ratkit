@@ -59,6 +59,7 @@ mod events;
 mod focus;
 mod layout;
 mod mouse_router;
+mod redraw_signal;
 mod registry;
 mod runner_helper;
 mod types;
@@ -72,8 +73,8 @@ pub use core::{
     CoordinatorAction, CoordinatorApp, CoordinatorConfig, CoordinatorEvent, Element, ElementHandle,
     ElementId, ElementMetadata, ElementRegistry, FocusManager, FocusRequest, KeyboardEvent,
     LayoutCoordinator, LayoutError, LayoutManager, LayoutResult, LayoutStats, MouseEvent,
-    MouseRouter, MouseRouterConfig, Region, ResizeEvent, Runner, RunnerAction, RunnerConfig,
-    RunnerEvent, TickEvent, Visibility,
+    MouseRouter, MouseRouterConfig, RedrawSignal, Region, ResizeEvent, Runner, RunnerAction,
+    RunnerConfig, RunnerEvent, TickEvent, Visibility,
 };
 
 // Core UI widgets
@@ -106,9 +107,6 @@ pub use ratkit_tree_view::*;
 
 #[cfg(feature = "widget-event")]
 pub use ratkit_widget_event::*;
-
-#[cfg(feature = "termtui")]
-pub use ratkit_termtui::*;
 
 // Advanced widgets
 #[cfg(feature = "markdown-preview")]

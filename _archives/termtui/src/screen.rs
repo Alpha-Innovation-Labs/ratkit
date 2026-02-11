@@ -10,13 +10,12 @@ use unicode_width::UnicodeWidthChar;
 // Terminal mode flags
 const MODE_CURSOR_VISIBLE: u8 = 1 << 0;
 const MODE_ALTERNATE_SCREEN: u8 = 1 << 1;
-#[allow(dead_code)]
 const MODE_APPLICATION_CURSOR: u8 = 1 << 2;
-#[allow(dead_code)]
 const MODE_BRACKETED_PASTE: u8 = 1 << 3;
 const MODE_AUTO_WRAP: u8 = 1 << 4;
-#[allow(dead_code)]
 const MODE_ORIGIN: u8 = 1 << 5;
+#[allow(dead_code)]
+const MODE_APPLICATION_KEYPAD: u8 = 1 << 6;
 
 /// Terminal screen state
 #[derive(Clone)]
@@ -326,6 +325,29 @@ impl Screen {
             CSI::Keyboard(_) => {} // Keyboard modes not implemented
             CSI::Mouse(_) => {}    // Mouse reporting not implemented
             CSI::Device(_) => {}   // Device queries not implemented
+            CSI::Unspecified(unspec) => {
+                // Handle CSI r (DECSTBM - Set Top and Bottom Margins)
+                // Format: CSI top ; bottom r
+                if unspec.control == 'r' {
+                    let params: Vec<u16> = unspec
+                        .params
+                        .iter()
+                        .map(|p| match p {
+                            termwiz::escape::csi::CsiParam::Integer(n) => *n as u16,
+                            _ => 0u16,
+                        })
+                        .collect();
+                    let top = params.get(0).copied().unwrap_or(1).saturating_sub(1);
+                    let bottom = params
+                        .get(1)
+                        .copied()
+                        .unwrap_or(self.grid().size().rows)
+                        .saturating_sub(1);
+                    self.grid_mut().set_scroll_region(top, bottom);
+                    // Move cursor to top-left of scroll region
+                    self.grid_mut().set_pos(Pos::new(0, top));
+                }
+            }
             _ => {}
         }
     }
@@ -494,10 +516,119 @@ impl Screen {
         }
     }
 
-    /// Handle mode changes
+    /// Handle mode changes (DECSET/DECRST)
     fn handle_mode(&mut self, mode: Mode) {
-        // Standard ANSI modes - not commonly used
-        let _ = mode;
+        use termwiz::escape::csi::Mode as TermwizMode;
+
+        match mode {
+            TermwizMode::SetDecPrivateMode(dec_mode) => {
+                self.handle_dec_private_mode(dec_mode, true);
+            }
+            TermwizMode::ResetDecPrivateMode(dec_mode) => {
+                self.handle_dec_private_mode(dec_mode, false);
+            }
+            _ => {
+                // Standard ANSI modes - not commonly used
+            }
+        }
+    }
+
+    /// Handle DEC private mode changes (?47, ?1049, ?25, ?6, ?2004, etc.)
+    fn handle_dec_private_mode(
+        &mut self,
+        dec_mode: termwiz::escape::csi::DecPrivateMode,
+        enable: bool,
+    ) {
+        use termwiz::escape::csi::DecPrivateMode;
+
+        let mode_num = match dec_mode {
+            DecPrivateMode::Code(code) => code as u16,
+            DecPrivateMode::Unspecified(n) => n,
+        };
+
+        match mode_num {
+            1 => {
+                // DECCKM - Application cursor keys
+                if enable {
+                    self.set_mode(MODE_APPLICATION_CURSOR);
+                } else {
+                    self.clear_mode(MODE_APPLICATION_CURSOR);
+                }
+            }
+            6 => {
+                // DECOM - Origin mode
+                if enable {
+                    self.set_mode(MODE_ORIGIN);
+                    // Move cursor to origin (top-left of scroll region)
+                    self.grid_mut().set_pos(Pos::new(0, 0));
+                } else {
+                    self.clear_mode(MODE_ORIGIN);
+                    // Move cursor to absolute top-left
+                    self.grid_mut().set_pos(Pos::new(0, 0));
+                }
+            }
+            25 => {
+                // DECTCEM - Show/hide cursor
+                if enable {
+                    self.set_mode(MODE_CURSOR_VISIBLE);
+                } else {
+                    self.clear_mode(MODE_CURSOR_VISIBLE);
+                }
+            }
+            47 => {
+                // Alternate screen buffer
+                if enable {
+                    self.enter_alternate_screen();
+                } else {
+                    self.exit_alternate_screen();
+                }
+            }
+            1049 => {
+                // Alternate screen buffer with cursor save and clear on enter
+                if enable {
+                    self.save_cursor();
+                    self.alternate_grid.clear();
+                    self.enter_alternate_screen();
+                } else {
+                    self.exit_alternate_screen();
+                    self.restore_cursor();
+                }
+            }
+            2004 => {
+                // Bracketed paste mode
+                if enable {
+                    self.set_mode(MODE_BRACKETED_PASTE);
+                } else {
+                    self.clear_mode(MODE_BRACKETED_PASTE);
+                }
+            }
+            _ => {
+                // Unknown DEC private mode - ignore
+            }
+        }
+    }
+
+    /// Enter alternate screen mode
+    fn enter_alternate_screen(&mut self) {
+        self.grid_mut().set_scrollback(0);
+        self.set_mode(MODE_ALTERNATE_SCREEN);
+    }
+
+    /// Exit alternate screen mode
+    fn exit_alternate_screen(&mut self) {
+        self.clear_mode(MODE_ALTERNATE_SCREEN);
+    }
+
+    /// Save cursor position and attributes
+    fn save_cursor(&mut self) {
+        self.grid_mut().save_pos();
+        self.grid_mut().save_origin_mode();
+    }
+
+    /// Restore cursor position and attributes
+    fn restore_cursor(&mut self) {
+        self.grid_mut().restore_pos();
+        self.grid_mut().restore_origin_mode();
     }
 
     /// Handle OSC (Operating System Command)

@@ -42,6 +42,10 @@ pub struct Grid {
     scroll_bottom: u16,
     /// Saved cursor position
     saved_pos: Option<Pos>,
+    /// Origin mode (DECOM)
+    origin_mode: bool,
+    /// Saved origin mode
+    saved_origin_mode: bool,
 }
 
 impl Grid {
@@ -61,6 +65,8 @@ impl Grid {
             scroll_top: 0,
             scroll_bottom: size.rows,
             saved_pos: None,
+            origin_mode: false,
+            saved_origin_mode: false,
         }
     }
 
@@ -102,6 +108,16 @@ impl Grid {
         if let Some(pos) = self.saved_pos {
             self.pos = pos;
         }
+    }
+
+    /// Save origin mode
+    pub fn save_origin_mode(&mut self) {
+        self.saved_origin_mode = self.origin_mode;
+    }
+
+    /// Restore origin mode
+    pub fn restore_origin_mode(&mut self) {
+        self.origin_mode = self.saved_origin_mode;
     }
 
     /// Get the index where visible rows begin in the deque

@@ -1,7 +1,8 @@
 use crossterm::event::{KeyCode, KeyEventKind, KeyModifiers, MouseEvent as CrosstermMouseEvent};
 use ratatui::{widgets::Block, Frame};
 use ratkit::{
-    run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, MouseEvent, ResizeEvent, RunnerConfig,
+    run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, MouseEvent,
+    ResizeEvent, RunnerConfig,
 };
 use ratkit_termtui::TermTui;
 
@@ -12,7 +13,11 @@ struct TermTuiDemo {
 
 impl TermTuiDemo {
     fn new() -> Self {
-        let mut term = TermTui::new("TermTui");
+        let shell = std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string());
+        let mut term = TermTui::spawn_with_command("TermTui", &shell, &[]).unwrap_or_else(|err| {
+            eprintln!("Failed to spawn shell {shell}: {err}");
+            TermTui::new("TermTui")
+        });
         term.focused = true;
         Self {
             term,
@@ -33,6 +38,12 @@ impl CoordinatorApp for TermTuiDemo {
                 Ok(CoordinatorAction::Redraw)
             }
             CoordinatorEvent::Keyboard(keyboard) => {
+                if keyboard.is_char('q')
+                    && keyboard.modifiers.is_empty()
+                    && self.term.has_selection()
+                {
+                    return Ok(CoordinatorAction::Quit);
+                }
                 if keyboard.key_code == KeyCode::Char('q')
                     && keyboard.modifiers.contains(KeyModifiers::CONTROL)
                 {
@@ -66,6 +77,7 @@ impl CoordinatorApp for TermTuiDemo {
         let block = Block::default().title(" Ctrl+Q to quit ");
         let inner = block.inner(area);
         self.last_area = inner;
+        self.term.resize(inner.height, inner.width);
         frame.render_widget(block, area);
         self.term.render(frame, inner);
     }

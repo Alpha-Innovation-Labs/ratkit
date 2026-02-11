@@ -11,6 +11,7 @@ pub use crate::{
     focus::{FocusManager, FocusRequest},
     layout::{LayoutManager, LayoutStats},
     mouse_router::{MouseRouter, MouseRouterConfig},
+    redraw_signal::RedrawSignal,
     registry::{Element, ElementHandle, ElementRegistry},
     types::{ElementId, ElementMetadata, Region, Visibility},
 };

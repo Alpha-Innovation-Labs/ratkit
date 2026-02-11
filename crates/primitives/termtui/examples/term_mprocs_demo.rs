@@ -11,14 +11,15 @@ use ratatui::widgets::{Block, Borders};
 use ratatui::Frame;
 use ratkit::{
     run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, KeyboardEvent,
-    ResizeEvent, RunnerConfig,
+    RedrawSignal, ResizeEvent, RunnerConfig,
 };
-use ratkit_term_mprocs::{render_screen, CursorStyle, Parser, VtEvent};
+use ratkit_termtui::{render_screen, CursorStyle, Parser, VtEvent};
 
 struct TermMprocsTerminal {
     parser: Arc<Mutex<Parser>>,
     writer: Arc<Mutex<Box<dyn Write + Send>>>,
     master: Arc<Mutex<Box<dyn MasterPty + Send>>>,
+    redraw_signal: RedrawSignal,
     _child: Box<dyn Child + Send + Sync>,
 }
 
@@ -53,9 +54,12 @@ impl TermMprocsTerminal {
 
         let writer = Arc::new(Mutex::new(writer));
         let parser = Arc::new(Mutex::new(Parser::new(rows, cols, 10000)));
+        let redraw_signal = RedrawSignal::new();
+        redraw_signal.request_redraw();
 
         let parser_clone = Arc::clone(&parser);
         let writer_clone = Arc::clone(&writer);
+        let redraw_signal_clone = redraw_signal.clone();
         thread::spawn(move || {
             let mut buf = [0u8; 8192];
             loop {
@@ -65,6 +69,7 @@ impl TermMprocsTerminal {
                         let mut events = Vec::new();
                         if let Ok(mut parser) = parser_clone.lock() {
                             parser.screen.process(&buf[..n], &mut events);
+                            redraw_signal_clone.request_redraw();
                         }
                         if !events.is_empty() {
                             if let Ok(mut writer) = writer_clone.lock() {
@@ -86,6 +91,7 @@ impl TermMprocsTerminal {
             parser,
             writer,
             master: Arc::new(Mutex::new(master)),
+            redraw_signal,
             _child: child,
         })
     }
@@ -105,6 +111,7 @@ impl TermMprocsTerminal {
                 pixel_height: 0,
             });
         }
+        self.redraw_signal.request_redraw();
     }
 
     fn render(&self, frame: &mut Frame, area: Rect) {
@@ -118,6 +125,10 @@ impl TermMprocsTerminal {
             let _ = writer.write_all(bytes);
             let _ = writer.flush();
         }
+    }
+
+    fn take_needs_redraw(&self) -> bool {
+        self.redraw_signal.take_redraw_request()
     }
 }
 
@@ -176,7 +187,13 @@ impl CoordinatorApp for TermMprocsDemo {
                 }
                 Ok(CoordinatorAction::Continue)
             }
-            CoordinatorEvent::Tick(_) => Ok(CoordinatorAction::Redraw),
+            CoordinatorEvent::Tick(_) => {
+                if self.terminal.take_needs_redraw() {
+                    Ok(CoordinatorAction::Redraw)
+                } else {
+                    Ok(CoordinatorAction::Continue)
+                }
+            }
             _ => Ok(CoordinatorAction::Continue),
         }
     }
@@ -184,9 +201,9 @@ impl CoordinatorApp for TermMprocsDemo {
     fn on_draw(&mut self, frame: &mut Frame) {
         let area = frame.area();
         let title = if self.terminal_focused {
-            " term-mprocs demo (terminal focused) "
+            " termtui demo (terminal focused) "
         } else {
-            " term-mprocs demo (wrapper focused) "
+            " termtui demo (wrapper focused) "
         };
         let border_style = if self.terminal_focused {
             Style::default().fg(Color::Cyan)
@@ -229,8 +246,8 @@ fn apply_cursor_style(style: CursorStyle) {
         CursorStyle::Default => SetCursorStyle::DefaultUserShape,
         CursorStyle::BlinkingBlock => SetCursorStyle::BlinkingBlock,
         CursorStyle::SteadyBlock => SetCursorStyle::SteadyBlock,
-        CursorStyle::BlinkingUnderline => SetCursorStyle::BlinkingUnderline,
-        CursorStyle::SteadyUnderline => SetCursorStyle::SteadyUnderline,
+        CursorStyle::BlinkingUnderline => SetCursorStyle::BlinkingUnderScore,
+        CursorStyle::SteadyUnderline => SetCursorStyle::SteadyUnderScore,
         CursorStyle::BlinkingBar => SetCursorStyle::BlinkingBar,
         CursorStyle::SteadyBar => SetCursorStyle::SteadyBar,
     };
