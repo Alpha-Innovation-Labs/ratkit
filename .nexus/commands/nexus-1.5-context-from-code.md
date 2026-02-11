@@ -1,5 +1,6 @@
 ---
 description: Generate context recommendations from code paths
+agent: build
 ---
 
 # Generate Contexts From Code

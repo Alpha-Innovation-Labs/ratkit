@@ -1,5 +1,6 @@
 ---
 description: Syncs Next Actions between tests and context files
+agent: plan
 ---
 
 # Sync Context Command

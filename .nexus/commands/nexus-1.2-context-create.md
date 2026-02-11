@@ -1,5 +1,6 @@
 ---
 description: Create new context specifications from user goals
+agent: build
 ---
 
 # Command: Create Context
