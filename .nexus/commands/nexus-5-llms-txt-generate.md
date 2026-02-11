@@ -35,6 +35,8 @@ Produce an `llms.txt` that helps coding agents:
 4. Use verified facts only; do not invent paths, crates, commands, features, or conventions.
 5. Verify link targets exist before including them.
 6. Keep writing concise, technical, and instruction-first.
+7. Use committed history only as input for generation decisions.
+8. Never use unstaged, staged-but-uncommitted, or untracked working-tree changes to drive updates.
 
 ## Orchestration Workflow
 
@@ -42,10 +44,13 @@ Before spawning any subagent, read and treat `.nexus/rules/llms-txt.md` as the s
 
 ### Phase 0: Mode selection and baseline
 
+- Run a working-tree cleanliness check first (`git status --porcelain`).
+- If any uncommitted changes exist, stop immediately and return a blocking message: generation is commit-based only and requires a clean working tree.
 - Check if `llms.txt` exists.
 - Check if `.nexus/llms-state.json` exists and has `last_generated_commit`.
 - If either is missing, run full mode.
 - If both exist, run incremental mode using git diff from `last_generated_commit` to current `HEAD`.
+- In incremental mode, source changes only from committed history (`last_generated_commit..HEAD`), never from working tree.
 
 State file schema:
 
@@ -204,6 +209,7 @@ Card coverage rules:
 - usage cards reflect inferred entity type and include executable usage guidance
 - all APIs named in usage cards are verified against current codebase symbols
 - incremental updates changed only impacted sections unless escalation to full mode occurred
+- generation input came from committed history only (clean working tree check passed)
 
 ## Finalization
 
@@ -211,6 +217,7 @@ Card coverage rules:
 2. Write/update `.nexus/llms-state.json` with current `HEAD` as `last_generated_commit` only after successful validation and write.
 3. Return a brief completion note including:
    - mode used (`full` or `incremental`)
+   - clean working tree check status
    - baseline commit and current commit
    - changed files considered (incremental mode)
    - detected domain split

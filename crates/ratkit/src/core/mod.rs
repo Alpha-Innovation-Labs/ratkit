@@ -8,11 +8,10 @@ pub use crate::{
     },
     error::{LayoutError, LayoutResult},
     events::{KeyboardEvent, MouseEvent, ResizeEvent, TickEvent},
-    focus::{FocusManager, FocusRequest},
-    layout::{LayoutManager, LayoutStats},
-    mouse_router::{MouseRouter, MouseRouterConfig},
+    focus::FocusRequest,
+    mouse_router::MouseRouterConfig,
     redraw_signal::RedrawSignal,
-    registry::{Element, ElementHandle, ElementRegistry},
-    types::{ElementId, ElementMetadata, Region, Visibility},
+    registry::{Element, ElementHandle},
+    types::{ElementId, ElementMetadata, Visibility},
 };
 pub use runner::{Runner, RunnerAction, RunnerConfig, RunnerEvent};

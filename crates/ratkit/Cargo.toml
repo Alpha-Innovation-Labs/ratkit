@@ -126,3 +126,10 @@ ratatui.workspace = true
 crossterm.workspace = true
 ratkit-button = { path = "../primitives/button" }
 ratkit-pane = { path = "../primitives/pane" }
+
+[[example]]
+name = "ratkit_demo"
+required-features = ["button", "pane"]
+
+[[example]]
+name = "mouse_only"

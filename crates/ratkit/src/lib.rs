@@ -32,13 +32,25 @@
 //! # Quick Start
 //!
 //! ```rust,no_run
-//! use ratkit::{Button, Dialog, Pane};
-//! use ratatui::prelude::*;
+//! use ratkit::prelude::*;
+//! use ratatui::Frame;
 //!
-//! fn main() {
-//!     // Your app code here
+//! struct MyApp;
+//!
+//! impl CoordinatorApp for MyApp {
+//!     fn on_event(&mut self, _event: CoordinatorEvent) -> LayoutResult<CoordinatorAction> {
+//!         Ok(CoordinatorAction::Continue)
+//!     }
+//!
+//!     fn on_draw(&mut self, _frame: &mut Frame) {}
+//! }
+//!
+//! fn main() -> std::io::Result<()> {
+//!     run(MyApp, RunnerConfig::default())
 //! }
 //! ```
+//!
+//! With widget features enabled, import UI primitives from `ratkit::widgets`.
 //!
 //! # Feature Flags
 //!
@@ -71,75 +83,64 @@ pub use runner_helper::{run, run_with_diagnostics};
 
 pub use core::{
     CoordinatorAction, CoordinatorApp, CoordinatorConfig, CoordinatorEvent, Element, ElementHandle,
-    ElementId, ElementMetadata, ElementRegistry, FocusManager, FocusRequest, KeyboardEvent,
-    LayoutCoordinator, LayoutError, LayoutManager, LayoutResult, LayoutStats, MouseEvent,
-    MouseRouter, MouseRouterConfig, RedrawSignal, Region, ResizeEvent, Runner, RunnerAction,
+    ElementId, ElementMetadata, FocusRequest, KeyboardEvent, LayoutCoordinator, LayoutError,
+    LayoutResult, MouseEvent, MouseRouterConfig, RedrawSignal, ResizeEvent, Runner, RunnerAction,
     RunnerConfig, RunnerEvent, TickEvent, Visibility,
 };
 
-// Core UI widgets
-#[cfg(feature = "button")]
-pub use ratkit_button::*;
+/// Runner-first imports for applications.
+pub mod prelude {
+    pub use crate::{
+        run, run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorConfig,
+        CoordinatorEvent, KeyboardEvent, LayoutResult, MouseEvent, MouseRouterConfig, ResizeEvent,
+        Runner, RunnerAction, RunnerConfig, RunnerEvent, TickEvent,
+    };
+}
 
-#[cfg(feature = "pane")]
-pub use ratkit_pane::*;
+/// Feature-gated UI widgets.
+pub mod widgets {
+    #[cfg(feature = "ai-chat")]
+    pub use ratkit_ai_chat::*;
+    #[cfg(feature = "button")]
+    pub use ratkit_button::*;
+    #[cfg(feature = "code-diff")]
+    pub use ratkit_code_diff::*;
+    #[cfg(feature = "dialog")]
+    pub use ratkit_dialog::*;
+    #[cfg(feature = "file-system-tree")]
+    pub use ratkit_file_system_tree::*;
+    #[cfg(feature = "hotkey-footer")]
+    pub use ratkit_hotkey_footer::*;
+    #[cfg(feature = "markdown-preview")]
+    pub use ratkit_markdown_preview::*;
+    #[cfg(feature = "menu-bar")]
+    pub use ratkit_menu_bar::*;
+    #[cfg(feature = "pane")]
+    pub use ratkit_pane::*;
+    #[cfg(feature = "resizable-grid")]
+    pub use ratkit_resizable_grid::*;
+    #[cfg(feature = "scroll")]
+    pub use ratkit_scroll::*;
+    #[cfg(feature = "statusline")]
+    pub use ratkit_statusline::*;
+    #[cfg(feature = "theme-picker")]
+    pub use ratkit_theme_picker::*;
+    #[cfg(feature = "toast")]
+    pub use ratkit_toast::*;
+    #[cfg(feature = "tree-view")]
+    pub use ratkit_tree_view::*;
+    #[cfg(feature = "widget-event")]
+    pub use ratkit_widget_event::*;
+}
 
-#[cfg(feature = "dialog")]
-pub use ratkit_dialog::*;
-
-#[cfg(feature = "toast")]
-pub use ratkit_toast::*;
-
-#[cfg(feature = "statusline")]
-pub use ratkit_statusline::*;
-
-#[cfg(feature = "scroll")]
-pub use ratkit_scroll::*;
-
-#[cfg(feature = "menu-bar")]
-pub use ratkit_menu_bar::*;
-
-#[cfg(feature = "resizable-grid")]
-pub use ratkit_resizable_grid::*;
-
-#[cfg(feature = "tree-view")]
-pub use ratkit_tree_view::*;
-
-#[cfg(feature = "widget-event")]
-pub use ratkit_widget_event::*;
-
-// Advanced widgets
-#[cfg(feature = "markdown-preview")]
-pub use ratkit_markdown_preview::*;
-
-#[cfg(feature = "code-diff")]
-pub use ratkit_code_diff::*;
-
-#[cfg(feature = "ai-chat")]
-pub use ratkit_ai_chat::*;
-
-#[cfg(feature = "hotkey-footer")]
-pub use ratkit_hotkey_footer::*;
-
-#[cfg(feature = "file-system-tree")]
-pub use ratkit_file_system_tree::*;
-
-#[cfg(feature = "theme-picker")]
-pub use ratkit_theme_picker::*;
-
-// Services
-#[cfg(feature = "file-watcher")]
-pub use ratkit_file_watcher::*;
-
-#[cfg(feature = "git-watcher")]
-pub use ratkit_git_watcher::*;
-
-#[cfg(feature = "repo-watcher")]
-pub use ratkit_repo_watcher::*;
-
-#[cfg(feature = "hotkey-service")]
-pub use ratkit_hotkey_service::*;
-
-// Theme support
-#[cfg(feature = "theme")]
-pub use ratkit_theme::*;
+/// Feature-gated services.
+pub mod services {
+    #[cfg(feature = "file-watcher")]
+    pub use ratkit_file_watcher::*;
+    #[cfg(feature = "git-watcher")]
+    pub use ratkit_git_watcher::*;
+    #[cfg(feature = "hotkey-service")]
+    pub use ratkit_hotkey_service::*;
+    #[cfg(feature = "repo-watcher")]
+    pub use ratkit_repo_watcher::*;
+}

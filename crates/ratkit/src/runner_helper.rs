@@ -7,6 +7,7 @@ use crossterm::{
     cursor::Show,
     event::{self, DisableMouseCapture, EnableMouseCapture, Event},
     execute,
+    style::Print,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{
@@ -19,10 +20,9 @@ use ratatui::{
 };
 
 use crate::core::{
-    CoordinatorApp, CoordinatorEvent, KeyboardEvent, MouseEvent, ResizeEvent, Runner, RunnerAction,
-    RunnerConfig, RunnerEvent, TickEvent,
+    CoordinatorApp, KeyboardEvent, MouseEvent, ResizeEvent, Runner, RunnerAction, RunnerConfig,
+    RunnerEvent, TickEvent,
 };
-use crate::error::LayoutResult;
 
 /// Run a coordinator application with the ratkit core runtime.
 ///
@@ -32,7 +32,7 @@ use crate::error::LayoutResult;
 /// # Example
 ///
 /// ```rust,no_run
-/// use ratkit::{run, CoordinatorApp, CoordinatorEvent, CoordinatorAction, LayoutResult};
+/// use ratkit::prelude::*;
 /// use ratatui::Frame;
 ///
 /// struct MyApp;
@@ -57,7 +57,12 @@ pub fn run<A: CoordinatorApp>(app: A, config: RunnerConfig) -> io::Result<()> {
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    execute!(
+        stdout,
+        EnterAlternateScreen,
+        EnableMouseCapture,
+        Print("\x1b[?1006h\x1b[?1003h")
+    )?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
@@ -67,7 +72,8 @@ pub fn run<A: CoordinatorApp>(app: A, config: RunnerConfig) -> io::Result<()> {
     execute!(
         terminal.backend_mut(),
         LeaveAlternateScreen,
-        DisableMouseCapture
+        DisableMouseCapture,
+        Print("\x1b[?1003l\x1b[?1006l")
     )?;
     terminal.show_cursor()?;
 
@@ -80,7 +86,12 @@ pub fn run_with_diagnostics<A: CoordinatorApp>(app: A, config: RunnerConfig) -> 
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    execute!(
+        stdout,
+        EnterAlternateScreen,
+        EnableMouseCapture,
+        Print("\x1b[?1006h\x1b[?1003h")
+    )?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
@@ -90,7 +101,8 @@ pub fn run_with_diagnostics<A: CoordinatorApp>(app: A, config: RunnerConfig) -> 
     execute!(
         terminal.backend_mut(),
         LeaveAlternateScreen,
-        DisableMouseCapture
+        DisableMouseCapture,
+        Print("\x1b[?1003l\x1b[?1006l")
     )?;
     terminal.show_cursor()?;
 
@@ -104,6 +116,13 @@ fn run_loop<A: CoordinatorApp>(
     draw_diagnostics: bool,
 ) -> io::Result<()> {
     let mut runner = Runner::new(app).with_config(config);
+    let size = terminal.size()?;
+    runner
+        .handle_event(RunnerEvent::Resize(ResizeEvent::new(
+            size.width,
+            size.height,
+        )))
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
     let mut last_tick = Instant::now();
     let tick_rate = config.tick_rate;
     let mut tick_count: u64 = 0;
@@ -213,7 +232,12 @@ fn install_panic_hook() {
     let original_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |panic_info| {
         let _ = disable_raw_mode();
-        let _ = execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture);
+        let _ = execute!(
+            io::stdout(),
+            LeaveAlternateScreen,
+            DisableMouseCapture,
+            Print("\x1b[?1003l\x1b[?1006l")
+        );
         let _ = execute!(io::stdout(), Show);
         original_hook(panic_info);
     }));

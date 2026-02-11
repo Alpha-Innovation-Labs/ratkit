@@ -4,12 +4,13 @@ use crossterm::event::KeyCode;
 use ratatui::{
     style::{Color, Style},
     text::Line,
-    widgets::{Block, Borders, Paragraph},
+    widgets::Paragraph,
     Frame,
 };
-use ratkit::{run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig};
-use ratkit_button::Button;
-use ratkit_pane::Pane;
+use ratkit::prelude::{
+    run_with_diagnostics, CoordinatorAction, CoordinatorApp, CoordinatorEvent, RunnerConfig,
+};
+use ratkit::widgets::{Button, Pane};
 
 struct RatkitDemo {
     button: Button,
@@ -44,7 +45,7 @@ impl CoordinatorApp for RatkitDemo {
         let content = vec![
             button_line,
             Line::from("Press q to quit"),
-            Line::from("(Meta-crate re-export demo)"),
+            Line::from("(Runner-first + master widgets namespace demo)"),
         ];
 
         let inner = pane.render_block(frame, area).0;

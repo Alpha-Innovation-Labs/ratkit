@@ -6,7 +6,7 @@ use std::time::Duration;
 use crate::coordinator::{
     CoordinatorAction, CoordinatorApp, CoordinatorConfig, CoordinatorEvent, LayoutCoordinator,
 };
-use crate::error::LayoutResult;
+use crate::error::{LayoutError, LayoutResult};
 use crate::events::{RunnerEvent as LayoutRunnerEvent, TickEvent};
 use crate::focus::FocusRequest;
 use crate::mouse_router::MouseRouterConfig;
@@ -109,6 +109,12 @@ impl<A: CoordinatorApp> Runner<A> {
 
     /// Handle a runner event and return the desired action.
     pub fn handle_event(&mut self, event: RunnerEvent) -> LayoutResult<RunnerAction> {
+        if !self.is_layout_initialized() && !matches!(event, RunnerEvent::Resize(_)) {
+            return Err(LayoutError::layout_computation(
+                "runner layout is not initialized; dispatch a resize event before handling events",
+            ));
+        }
+
         let action = match event {
             RunnerEvent::Keyboard(keyboard) => {
                 self.handle_coordinator_event(CoordinatorEvent::Keyboard(keyboard))?
@@ -174,7 +180,11 @@ impl<A: CoordinatorApp> Runner<A> {
     }
 
     /// Render all visible elements and clear layout dirty flags.
+    ///
+    /// A resize event must be dispatched before the first render so layout regions
+    /// have a valid terminal area.
     pub fn render(&mut self, frame: &mut Frame) -> LayoutResult<()> {
+        self.ensure_layout_initialized()?;
         self.render_visible_elements();
         self.coordinator.app_mut().on_draw(frame);
         self.coordinator.clear_dirty();
@@ -213,5 +223,20 @@ impl<A: CoordinatorApp> Runner<A> {
                 }
             }
         }
+    }
+
+    fn ensure_layout_initialized(&self) -> LayoutResult<()> {
+        if !self.is_layout_initialized() {
+            return Err(LayoutError::layout_computation(
+                "runner layout is not initialized; dispatch a resize event before rendering",
+            ));
+        }
+
+        Ok(())
+    }
+
+    fn is_layout_initialized(&self) -> bool {
+        let (width, height) = self.coordinator.layout().terminal_size();
+        width > 0 && height > 0
     }
 }

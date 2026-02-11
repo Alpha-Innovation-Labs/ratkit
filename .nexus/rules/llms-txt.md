@@ -13,6 +13,7 @@ Define a consistent standard for generating and maintaining `llms.txt` as an ins
 3. **Verified facts only** - Never include unverified paths, APIs, counts, or commands.
 4. **Adaptive structure** - Infer repository domains and public entity types from current codebase.
 5. **Incremental by default when possible** - Use commit baseline diffing to update only impacted sections.
+6. **Committed-history only** - Generation and refresh decisions must use committed git history, never uncommitted working-tree changes.
 
 ## Required Files
 
@@ -30,6 +31,15 @@ State file schema:
 ```
 
 ## Generation Modes
+
+## Commit Baseline Requirement
+
+Generation is commit-based:
+
+- Run only on a clean working tree.
+- If `git status --porcelain` is not empty, abort generation.
+- Never derive impact analysis from unstaged, staged-but-uncommitted, or untracked files.
+- Incremental diff source is strictly `last_generated_commit..HEAD`.
 
 ### Full Mode
 
