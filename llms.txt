@@ -1,0 +1,497 @@
+# ratkit
+
+> Comprehensive Rust TUI component library built on ratatui 0.29, providing modular primitives, composite widgets, and reactive services for building rich terminal applications.
+
+This file provides a complete reference for working with the ratkit codebase. Use it to understand component relationships, find APIs, and follow established patterns when implementing new features or fixing bugs.
+
+## Agent Operating Rules
+
+1. Implement `CoordinatorApp` trait for all ratkit applications to handle events and rendering
+2. Register UI elements with `ElementMetadata` specifying their `Region` (Top/Center/Bottom) before receiving events
+3. Persist widget state structs (DialogState, TreeViewState, etc.) in the app struct across renders
+4. Use `Element::on_keyboard`, `on_mouse`, `on_focus_gain`, `on_focus_loss`, and `on_tick` for element-specific events
+5. Enable features via feature flags in Cargo.toml (e.g., `feature = "button"`)
+6. Call `check_for_changes()` or `drain_events()` regularly on all watchers in the event loop
+7. Return `true` from event handlers when consuming events, `false` to propagate
+8. Use `just check` before commits (runs format, lint, and test verification)
+9. Elements must have `focusable: true` in metadata to participate in focus traversal
+10. Mouse capture must be enabled via crossterm for mouse interactions to function
+11. Always wrap shared state in `Arc<RwLock<>>` or `Rc<RefCell<>>` when sharing between threads or components
+12. Call `invalidate_layout()` after registering or unregistering elements to trigger recomputation
+13. Use `LayoutManager::get_region_area()` to get available space for each region before rendering
+14. Handle `IO::Result` from `expand_directory()` and other file operations explicitly
+
+## Environment and Version Constraints
+
+- Rust 1.70+ required (workspace.rust-version in Cargo.toml)
+- ratatui 0.29 as the underlying rendering library
+- crossterm 0.28 for terminal input/events
+- notify crate v6 for filesystem watching (all services)
+- sccache wrapper recommended for builds (`export CARGO_BUILD_RUSTC_WRAPPER=sccache`)
+- Python 3 required for documentation generation scripts
+- npm required for serving documentation site
+- TTY or script required for `just dev` command
+- No default features enabled; explicitly enable needed components
+
+## Quick Task Playbooks
+
+### Add a new primitive/widget/service crate
+- **Where to edit**: `Cargo.toml`, `crates/ratkit/src/lib.rs`
+- **Related files**: Workspace manifest, meta-crate re-exports
+- **Validation**: Run `just check` to verify all checks pass
+
+### Add a new example
+- **Where to edit**: `examples/` directory
+- **Related files**: Example source files
+- **Validation**: Run with `just example <name>` or `just dev`
+
+### Run complete verification
+- **Where to edit**: N/A (run commands)
+- **Related files**: All source files
+- **Validation**: `just check` runs fmt-check, lint, and test
+
+### Build and serve documentation
+- **Where to edit**: `docs/` directory
+- **Related files**: MDX content, Python generator scripts
+- **Validation**: `just docs` serves on port 3000
+
+## Getting Started
+
+```toml
+# Cargo.toml - enable specific features
+[dependencies]
+ratkit = { version = "0.1", features = ["button", "dialog", "pane"] }
+```
+
+```rust
+use ratkit::{run, CoordinatorApp, RunnerConfig};
+use ratatui::Frame;
+
+struct MyApp;
+
+impl CoordinatorApp for MyApp {
+    fn on_event(&mut self, event: ratkit::CoordinatorEvent) -> ratkit::LayoutResult<ratkit::CoordinatorAction> {
+        Ok(ratkit::CoordinatorAction::Continue)
+    }
+
+    fn on_draw(&mut self, frame: &mut Frame) {
+        // Render your UI here
+    }
+}
+
+fn main() -> std::io::Result<()> {
+    let config = RunnerConfig::default();
+    run(MyApp, config)
+}
+```
+
+## Workspace Overview
+
+The ratkit workspace contains 22 crates organized into:
+
+- **Primitives** (11 crates): Core UI building blocks - Button, Dialog, MenuBar, TreeView, Pane, Toast, StatusLine, Scroll, ResizableGrid, WidgetEvent, Termtui
+- **Widgets** (6 crates): Higher-level TUI widgets - MarkdownPreview, CodeDiff, AIChat, HotkeyFooter, FileSystemTree, ThemePicker
+- **Services** (4 crates): Reactive monitoring - FileWatcher, GitWatcher, RepoWatcher, HotkeyService
+- **Meta-crate** (1 crate): ratkit aggregates all components with feature-gated re-exports
+
+All crates follow modular architecture: types in `mod.rs`, constructors in `constructors/` or `new.rs`, methods in `methods/`, traits in `traits/`.
+
+## Core Runtime
+
+The core runtime provides the main event loop, layout coordination, focus management, and mouse routing. It orchestrates the LayoutManager for three-region geometry (Top/Center/Bottom), FocusManager for keyboard focus traversal, and MouseRouter for mouse event dispatch with capture semantics.
+
+### Key Components
+
+- **Runner** ([crates/ratkit/src/runner_helper.rs](crates/ratkit/src/runner_helper.rs)): Main event loop coordinator, implements event processing and render passes. Entry points: `run()`, `run_with_diagnostics()`.
+- **LayoutManager** ([crates/ratkit/src/layout.rs](crates/ratkit/src/layout.rs)): Three-region geometry (Top/Center/Bottom) with debounced resize (default 16ms). Enforces minimum terminal size (10x5).
+- **ElementRegistry** ([crates/ratkit/src/registry.rs](crates/ratkit/src/registry.rs)): Weak reference registry with automatic cleanup. Stores `Arc<dyn Element>` weakly; elements must be kept alive by application.
+- **FocusManager** ([crates/ratkit/src/focus.rs](crates/ratkit/src/focus.rs)): Focus stack with traversal (Next/Previous/First/Last) and capture support for modal dialogs.
+- **MouseRouter** ([crates/ratkit/src/mouse_router.rs](crates/ratkit/src/mouse_router.rs)): Z-order mouse hit testing with capture semantics. Capture expires after 5 seconds by default.
+- **LayoutCoordinator** ([crates/ratkit/src/coordinator.rs](crates/ratkit/src/coordinator.rs)): Orchestrates layout, focus, and mouse routing together.
+
+### Key APIs
+
+- **Runner&lt;A: CoordinatorApp&gt;** ([crates/ratkit/src/runner_helper.rs](crates/ratkit/src/runner_helper.rs)): `run(app, config)`, `run_with_diagnostics(app, config)` - Entry points to start application
+- **CoordinatorApp trait** ([crates/ratkit/src/coordinator.rs](crates/ratkit/src/coordinator.rs)): Implement `on_event()`, `on_draw()`, `on_layout_changed()` for application logic
+- **Element trait** ([crates/ratkit/src/registry.rs](crates/ratkit/src/registry.rs)): Implement `id()`, `on_render()`, `on_keyboard()`, `on_mouse()`, `on_focus_gain()`, `on_focus_loss()`, `on_tick()` for UI elements
+- **ElementRegistry** ([crates/ratkit/src/registry.rs](crates/ratkit/src/registry.rs)): `register()`, `unregister()`, `get_strong_ref()`, `focusable_elements()`, `cleanup_dead_refs()`
+- **FocusManager** ([crates/ratkit/src/focus.rs](crates/ratkit/src/focus.rs)): `handle_request()`, `focused()`, `capture_focus()`, `release_capture()`
+- **LayoutManager** ([crates/ratkit/src/layout.rs](crates/ratkit/src/layout.rs)): `on_resize()`, `get_region_area()`, `hit_test()`, `recompute()`
+- **MouseRouter** ([crates/ratkit/src/mouse_router.rs](crates/ratkit/src/mouse_router.rs)): `route_mouse_event()`, `capture()`, `release_capture()`, `check_capture_expired()`
+
+### Configuration
+
+- **RunnerConfig**: `tick_rate` (default 50ms), `layout_debounce` (default 16ms)
+- **MouseRouterConfig**: `capture_timeout` (default 5s), `snapshot_max_age` (default 100ms)
+- Feature flags enable specific primitives/widgets/services individually; no default features
+
+## Primitives
+
+Core UI building blocks for ratkit TUI applications. All primitives depend on ratatui for rendering and support optional theming via the 'theme' feature.
+
+### Common Patterns
+
+- **Builder pattern**: `new()` constructor followed by `with_*` methods for configuration
+- **Optional theming**: Style methods available when 'theme' feature enabled
+- **Mouse interaction tracking**: Hover/drag state tracked in widget state
+- **State separation**: State structs (e.g., `DialogState`) held separately from widget logic
+- **Event emission**: Interactive primitives emit `WidgetEvent` variants for app-level handling
+
+### Primitive Inventory
+
+| Primitive | Purpose | Location |
+|-----------|---------|----------|
+| **button** | Interactive clickable button with hover state | [crates/primitives/button/src/lib.rs](crates/primitives/button/src/lib.rs) |
+| **pane** | Styled container with title, icon, padding, borders | [crates/primitives/pane/src/lib.rs](crates/primitives/pane/src/lib.rs) |
+| **dialog** | Modal dialogs (Info/Success/Warning/Error/Confirm) | [crates/primitives/dialog/src/lib.rs](crates/primitives/dialog/src/lib.rs) |
+| **toast** | Auto-expiring notifications with severity levels | [crates/primitives/toast/src/lib.rs](crates/primitives/toast/src/lib.rs) |
+| **statusline** | PowerLine-style status bar with stacked indicators | [crates/primitives/statusline/src/lib.rs](crates/primitives/statusline/src/lib.rs) |
+| **scroll** | Scroll offset calculation algorithm | [crates/primitives/scroll/src/lib.rs](crates/primitives/scroll/src/lib.rs) |
+| **menu-bar** | Horizontal menu bar with items and icons | [crates/primitives/menu-bar/src/lib.rs](crates/primitives/menu-bar/src/lib.rs) |
+| **resizable-grid** | Hierarchical split pane layout with draggable dividers | [crates/primitives/resizable-grid/src/lib.rs](crates/primitives/resizable-grid/src/lib.rs) |
+| **tree-view** | Hierarchical tree with expand/collapse/selection/filtering | [crates/primitives/tree-view/src/lib.rs](crates/primitives/tree-view/src/lib.rs) |
+| **widget-event** | Common event enum for widget communication | [crates/primitives/widget-event/src/lib.rs](crates/primitives/widget-event/src/lib.rs) |
+| **termtui** | VT100 terminal emulation for embedded terminal output | [crates/primitives/termtui/src/lib.rs](crates/primitives/termtui/src/lib.rs) |
+
+### Key APIs by Primitive
+
+- **Button**: `Button::new(text)`, `.normal_style()`, `.hover_style()`, `.is_clicked()`, `.update_hover()`
+- **Pane**: `Pane::new(title)`, `.with_icon()`, `.with_padding()`, `.render_with_footer()`
+- **Dialog**: `Dialog::new()`, `.buttons()`, `.dialog_type()`, `.handle_click()`
+- **ToastManager**: `ToastManager::new()`, `.add()`, `.info()`, `.success()`, `.warning()`, `.error()`
+- **StatusLineStacked**: `StatusLineStacked::new()`, `.start()`, `.center()`, `.end()`
+- **calculate_scroll_offset**: `(selected_index, visible_count, total_count) -> usize`
+- **MenuBar**: `MenuBar::new()`, `MenuItem::new()`, `.handle_click()`, `.handle_mouse()`
+- **ResizableGrid**: `ResizableGrid::new()`, `.split_pane_horizontally()`, `.layout_panes()`
+- **TreeNode/TreeView**: `TreeNode::new()`, `TreeView::new()`, `TreeViewState::new()`, `TreeNavigator`
+- **WidgetEvent**: `None`, `Selected { path }`, `Toggled { path, expanded }`, `Scrolled`, `FilterModeChanged`, `FilterModeExited`, `MenuSelected`
+- **Termtui**: `Screen::new()`, `render_screen()`, `write_screen_diff()`
+
+### Configuration
+
+Each primitive enabled via individual feature flag:
+
+```toml
+[dependencies]
+ratkit = { version = "0.1", features = ["button", "pane", "dialog"] }
+```
+
+Optional theming requires 'theme' feature and ratkit-theme dependency.
+
+## Widgets
+
+Higher-level composite components that combine primitives and services. All widgets follow ratatui's StatefulWidget pattern with persistent state management.
+
+### Widget Inventory
+
+| Widget | Purpose | Location |
+|--------|---------|----------|
+| **markdown-preview** | Markdown viewer with TOC, themes, syntax highlighting | [crates/widgets/markdown-preview/src/lib.rs](crates/widgets/markdown-preview/src/lib.rs) |
+| **code-diff** | VS Code-style diff viewer with syntax highlighting | [crates/widgets/code-diff/src/lib.rs](crates/widgets/code-diff/src/lib.rs) |
+| **ai-chat** | AI chat interface with multi-line input and file attachments | [crates/widgets/ai-chat/src/lib.rs](crates/widgets/ai-chat/src/lib.rs) |
+| **hotkey-footer** | Keyboard shortcut display footer (Aerospace-tui style) | [crates/widgets/hotkey-footer/src/lib.rs](crates/widgets/hotkey-footer/src/lib.rs) |
+| **file-system-tree** | File browser with devicons, filtering, and navigation | [crates/widgets/file-system-tree/src/lib.rs](crates/widgets/file-system-tree/src/lib.rs) |
+| **theme-picker** | Modal theme selector with 35+ themes and search | [crates/widgets/theme-picker/src/lib.rs](crates/widgets/theme-picker/src/lib.rs) |
+
+### Key APIs
+
+- **MarkdownWidget**: `from_state()`, `.show_toc()`, `.handle_key()`, `.handle_mouse()`
+- **CodeDiff**: `new()`, `.with_file_path()`, `.from_unified_diff()`
+- **AIChat**: `new()`, `.with_prompt()`, `.handle_key()`, `.register_command()`
+- **HotkeyFooter**: `new()`, `.key_color()`, `.render()`
+- **FileSystemTree**: `new()`, `.select_next()`, `.toggle_selected()`, `.enter_filter_mode()`
+- **ThemePicker**: `new()`, `.show()`, `.handle_key()`, `.width()`
+
+### Integration Patterns
+
+- **StatefulWidget pattern**: Most widgets use separate state structs (e.g., `MarkdownState`, `FileSystemTreeState`)
+- **Event-driven**: Return event enums (e.g., `AIChatEvent::MessageSubmitted`) for app-level handling
+- **Builder pattern**: Configuration via `with_*` methods during construction
+- **Service integration**: markdown-preview uses git-watcher and file-watcher; file-system-tree integrates with file-watcher
+
+## Services
+
+Reactive monitoring and event management capabilities for ratkit TUI applications. All services use non-blocking interfaces suitable for TUI event loops. Services use the notify crate internally and synchronous MPSC channels (no async runtime required).
+
+### Service Inventory
+
+| Service | Purpose | Location |
+|---------|---------|----------|
+| **file-watcher** | Watch files and directories for changes | [crates/services/file-watcher/src/lib.rs](crates/services/file-watcher/src/lib.rs) |
+| **git-watcher** | Monitor .git directory for repository state changes | [crates/services/git-watcher/src/lib.rs](crates/services/git-watcher/src/lib.rs) |
+| **repo-watcher** | Combined git + working tree monitoring with git status integration | [crates/services/repo-watcher/src/lib.rs](crates/services/repo-watcher/src/lib.rs) |
+| **hotkey-service** | Centralized hotkey registration with scope-based filtering | [crates/services/hotkey-service/src/lib.rs](crates/services/hotkey-service/src/lib.rs) |
+
+### Key APIs
+
+- **FileWatcher**: `new()`, `.for_file()`, `.for_directory()`, `.watch()`, `.check_for_changes()`, `.get_changed_paths()`
+- **GitWatcher**: `new()`, `.watch()`, `.check_for_changes()`, `.has_pending_changes()`
+- **RepoWatcher**: `new()`, `.watch()`, `.check_for_changes()`, `.get_change_set()`
+- **HotkeyRegistry**: `new()`, `.register()`, `.lookup()`, `.set_active_scope()`
+- **Hotkey**: `new()`, `.scope()`, `.priority()`
+
+### Lifecycle Management
+
+- **Polling model**: Call `check_for_changes()` in event loop for non-blocking change detection
+- **Queue clearing**: `get_changed_paths()` clears the queue after reading; use before checking if you need to retain
+- **Debounce intervals**: File watcher (100ms), directory/repo watcher (200ms)
+- **Event draining**: `drain_events()` removes all pending events from buffer
+
+## Usage Cards
+
+### Widget Usage Cards
+
+#### MarkdownWidget
+- **Use when**: Rendering markdown content with syntax highlighting, TOC, and scroll state
+- **Enable/Install**: `feature = "markdown-preview"` in Cargo.toml
+- **Import/Invoke**: `use ratkit::MarkdownWidget;` or `use ratkit_markdown_preview::MarkdownWidget;`
+- **Minimal flow**:
+  1. Create `MarkdownState::default()` and store it persistently in app struct
+  2. Create `MarkdownWidget::from_state(content, &mut state)`
+  3. Call `frame.render_stateful_widget(widget, area, &mut state.scroll)`
+  4. Handle keyboard events via `widget.handle_key()` for navigation
+- **Key APIs**: `from_state()`, `show_toc()`, `show_scrollbar()`, `handle_key()`, `handle_mouse()`
+- **Pitfalls**: Requires EnableMouseCapture for click handling; scroll state must persist across frames; creating state in render loop causes broken UI
+- **Source**: [crates/widgets/markdown-preview/src/lib.rs](crates/widgets/markdown-preview/src/lib.rs)
+
+#### CodeDiff
+- **Use when**: Displaying side-by-side code diffs with syntax highlighting
+- **Enable/Install**: `feature = "code-diff"` in Cargo.toml
+- **Import/Invoke**: `use ratkit::CodeDiff;` or `use ratkit_code_diff::{CodeDiff, DiffConfig, get_git_diff};`
+- **Minimal flow**:
+  1. Create `DiffConfig::default()` for configuration
+  2. Call `get_git_diff(old_text, new_text, &config)` to compute diff
+  3. Create `CodeDiff::new(diff_result)` widget
+  4. Render with `frame.render_widget(code_diff, area)`
+- **Key APIs**: `get_git_diff()`, `DiffConfig::default()`, `CodeDiff::new()`, `CodeDiff::with_file_path()`
+- **Pitfalls**: Similar crate dependency required for diff algorithm; returns IO errors that must be handled
+- **Source**: [crates/widgets/code-diff/src/lib.rs](crates/widgets/code-diff/src/lib.rs)
+
+#### AIChat
+- **Use when**: Building interactive AI chat interfaces with file attachments and commands
+- **Enable/Install**: `feature = "ai-chat"` in Cargo.toml
+- **Import/Invoke**: `use ratkit::AIChat;` or `use ratkit_ai_chat::{AIChat, AIChatEvent, MessageStore};`
+- **Minimal flow**:
+  1. Create `AIChat::new()` with optional prompt
+  2. Handle key events via `AIChat::handle_key(key)` for input processing
+  3. Call `AIChat::render(frame, area)` to display chat interface
+  4. Process `AIChatEvent::MessageSubmitted` events from handle_key return
+- **Key APIs**: `new()`, `with_prompt()`, `handle_key()`, `render()`, `register_command()`, `load_files_from_cwd()`
+- **Pitfalls**: Ctrl+J required for newlines in input; @ prefix triggers file mode, / prefix triggers command mode; must call `load_files_from_cwd()` for @ completion to work
+- **Source**: [crates/widgets/ai-chat/src/lib.rs](crates/widgets/ai-chat/src/lib.rs)
+
+#### HotkeyFooter
+- **Use when**: Displaying keyboard shortcuts in a styled footer bar (Aerospace-tui style)
+- **Enable/Install**: `feature = "hotkey-footer"` in Cargo.toml
+- **Import/Invoke**: `use ratkit::HotkeyFooter;` or `use ratkit_hotkey_footer::{HotkeyFooter, HotkeyItem};`
+- **Minimal flow**:
+  1. Create `HotkeyItem::new(key, description)` for each shortcut
+  2. Build `HotkeyFooter::new(items_vec)` from items
+  3. Configure colors via `.key_color()`, `.description_color()`, `.background_color()`
+  4. Render with `frame.render_widget(footer, area)`
+- **Key APIs**: `new()`, `key_color()`, `description_color()`, `background_color()`, `render()`, `HotkeyItem::new()`
+- **Pitfalls**: Footer renders as single line - ensure adequate height allocated; key display requires Nerd Font for special characters
+- **Source**: [crates/widgets/hotkey-footer/src/lib.rs](crates/widgets/hotkey-footer/src/lib.rs)
+
+#### FileSystemTree
+- **Use when**: Navigating directory structures with icons, selection, and filter mode
+- **Enable/Install**: `feature = "file-system-tree"` in Cargo.toml
+- **Import/Invoke**: `use ratkit::FileSystemTree;` or `use ratkit_file_system_tree::{FileSystemTree, FileSystemTreeState};`
+- **Minimal flow**:
+  1. Create `FileSystemTree::new(root_path)` with starting directory
+  2. Create `FileSystemTreeState::new()` to track selection and expansion
+  3. Handle navigation: `select_next()`, `select_previous()`, `toggle_selected()`
+  4. Handle filter mode: `enter_filter_mode()`, `handle_filter_key()`
+  5. Render with `frame.render_stateful_widget(tree, area, &mut state)`
+- **Key APIs**: `new()`, `select_next()`, `select_previous()`, `toggle_selected()`, `enter_filter_mode()`, `handle_filter_key()`, `expand_directory()`
+- **Pitfalls**: `expand_directory()` returns IO::Result - handle errors; paths are Vec<usize> indices, not strings; filter mode must be explicitly exited; requires correct theme for devicons to display
+- **Source**: [crates/widgets/file-system-tree/src/lib.rs](crates/widgets/file-system-tree/src/lib.rs)
+
+#### ThemePicker
+- **Use when**: Providing theme selection via modal dialog with search and live preview
+- **Enable/Install**: `feature = "theme-picker"` in Cargo.toml
+- **Import/Invoke**: `use ratkit::ThemePicker;` or `use ratkit_theme_picker::{ThemePicker, ThemePickerEvent, ThemeColors};`
+- **Minimal flow**:
+  1. Create `ThemePicker::new()` with optional theme list
+  2. Call `.show()` to display modal (required before rendering)
+  3. Handle keyboard events via `ThemePicker::handle_key(key)`
+  4. Process `ThemePickerEvent::Selected` or `ThemePickerEvent::Cancelled`
+  5. Render with `frame.render_widget(picker, area)`
+- **Key APIs**: `new()`, `show()`, `hide()`, `handle_key()`, `width()`, `ThemeColors::default()`
+- **Pitfalls**: Must call `show()` before rendering; `handle_key()` returns `None` if picker not visible; 35+ themes available but must be configured in application
+- **Source**: [crates/widgets/theme-picker/src/lib.rs](crates/widgets/theme-picker/src/lib.rs)
+
+### Service Usage Cards
+
+#### FileWatcher
+- **Use when**: Need to detect file system changes (single file or directory tree)
+- **Enable/Install**: `feature = "file-watcher"` in Cargo.toml
+- **Import/Invoke**: `use ratkit::FileWatcher;` or `use ratkit_file_watcher::{FileWatcher, WatchMode, WatchConfig};`
+- **Minimal flow**:
+  1. Create watcher: `FileWatcher::for_file()` or `FileWatcher::for_directory()`
+  2. Add paths: `watcher.watch(Path::new("./src"))?`
+  3. Poll in event loop: `if watcher.check_for_changes() { ... }`
+  4. Get changes: `let paths = watcher.get_changed_paths()`
+- **Key APIs**: `for_file()`, `for_directory()`, `new()`, `with_config()`, `watch()`, `unwatch()`, `check_for_changes()`, `drain_events()`, `get_changed_paths()`
+- **Pitfalls**: Must drain events or check changes regularly to prevent buffer overflow; recursive watching can be resource-intensive; debounce (100ms) may mask rapid successive changes; `get_changed_paths()` clears queue - use `peek_changed_paths()` if you need to read without clearing
+- **Source**: [crates/services/file-watcher/src/lib.rs](crates/services/file-watcher/src/lib.rs)
+
+#### GitWatcher
+- **Use when**: Need to detect git repository state changes (commits, branches, refs)
+- **Enable/Install**: `feature = "git-watcher"` in Cargo.toml
+- **Import/Invoke**: `use ratkit::GitWatcher;` or `use ratkit_git_watcher::{GitWatcher, GitWatchConfig};`
+- **Minimal flow**:
+  1. Create `GitWatcher::new()` or `GitWatcher::with_config(config)`
+  2. Watch repository: `watcher.watch(Path::new(".git"))?`
+  3. Poll in event loop: `if watcher.check_for_changes() { ... }`
+  4. Drain events: `watcher.drain_events()`
+- **Key APIs**: `new()`, `with_config()`, `watch()`, `unwatch()`, `check_for_changes()`, `drain_events()`, `has_pending_changes()`
+- **Pitfalls**: Only watches .git directory - does not detect working tree file edits; won't catch uncommitted changes - use RepoWatcher instead for complete monitoring; debounce 200ms
+- **Source**: [crates/services/git-watcher/src/lib.rs](crates/services/git-watcher/src/lib.rs)
+
+#### RepoWatcher
+- **Use when**: Need complete git repository monitoring including working tree changes
+- **Enable/Install**: `feature = "repo-watcher"` in Cargo.toml
+- **Import/Invoke**: `use ratkit::RepoWatcher;` or `use ratkit_repo_watcher::{RepoWatcher, GitChangeSet};`
+- **Minimal flow**:
+  1. Create `RepoWatcher::new()` or `RepoWatcher::with_config(config)`
+  2. Watch repository root: `watcher.watch(Path::new("."))?`
+  3. Poll in event loop: `if watcher.check_for_changes() { ... }`
+  4. Get detailed changes: `let change_set = watcher.get_change_set()`
+- **Key APIs**: `new()`, `with_config()`, `watch()`, `check_for_changes()`, `get_change_set()`
+- **Pitfalls**: Discards file watcher paths internally - only `GitChangeSet` available via `get_change_set()`; requires git binary in PATH for `git status --porcelain`; returns repository-relative paths - convert to absolute for display; debounce 200ms
+- **Source**: [crates/services/repo-watcher/src/lib.rs](crates/services/repo-watcher/src/lib.rs)
+
+#### HotkeyRegistry
+- **Use when**: Need centralized hotkey management with scope-based filtering
+- **Enable/Install**: `feature = "hotkey-service"` in Cargo.toml
+- **Import/Invoke**: `use ratkit::{Hotkey, HotkeyRegistry, HotkeyScope};` or `use ratkit_hotkey_service::*;`
+- **Minimal flow**:
+  1. Create `HotkeyRegistry::new()`
+  2. Register hotkeys: `registry.register(Hotkey::new(key, action).scope(scope).priority(1))`
+  3. Set active scope: `registry.set_active_scope(HotkeyScope::Normal)`
+  4. Process crossterm key events in your event loop
+  5. Query: `if let Some(hotkey) = registry.lookup(key, current_scope) { ... }`
+- **Key APIs**: `HotkeyRegistry::new()`, `register()`, `lookup()`, `get_hotkeys()`, `set_active_scope()`, `get_active_scope()`, `Hotkey::new()`, `Hotkey::scope()`, `Hotkey::priority()`
+- **Pitfalls**: Registry doesn't consume/process input - must handle crossterm events separately; `HotkeyScope` uses `&'static str` (no dynamic strings); priority only resolves conflicts between same-key hotkeys; `parse_keycode()` only supports single letters + specific keys (no modifiers)
+- **Source**: [crates/services/hotkey-service/src/lib.rs](crates/services/hotkey-service/src/lib.rs)
+
+## API Reference
+
+### Primitives APIs
+
+| Component | Key Methods |
+|-----------|-------------|
+| Button | `new()`, `normal_style()`, `hover_style()`, `update_hover()`, `is_clicked()`, `render()` |
+| Pane | `new()`, `with_icon()`, `with_padding()`, `with_uniform_padding()`, `with_text_footer()`, `border_style()`, `border_type()` |
+| Dialog | `new()`, `info()`, `warning()`, `error()`, `success()`, `confirm()`, `buttons()`, `style()`, `border_color()`, `width_percent()` |
+| ToastManager | `new()`, `add()`, `cleanup()`, `info()`, `success()`, `warning()`, `error()` |
+| StatusLineStacked | `new()`, `start()`, `end()`, `center()` |
+| calculate_scroll_offset | `(selected_index, visible_count, total_count) -> usize` |
+| MenuBar | `new()`, `normal_style()`, `selected_style()`, `update_hover()`, `handle_mouse()`, `render()` |
+| ResizableGrid | `new()`, `split_pane_horizontally()`, `layout_panes()` |
+| TreeView | `new()`, `render_fn()`, `TreeViewState::new()`, `select()`, `toggle_expansion()`, `TreeNavigator::new()` |
+| WidgetEvent | `None`, `Selected`, `Toggled`, `Scrolled`, `FilterModeChanged`, `FilterModeExited`, `MenuSelected` |
+| Termtui | `Screen::new()`, `render_screen()`, `write_screen_diff()` |
+
+### Widgets APIs
+
+| Component | Key Methods |
+|-----------|-------------|
+| MarkdownWidget | `from_state()`, `show_toc()`, `show_scrollbar()`, `handle_key()`, `handle_mouse()` |
+| CodeDiff | `new()`, `with_file_path()`, `from_unified_diff()`, `get_git_diff()` |
+| AIChat | `new()`, `with_prompt()`, `handle_key()`, `render()`, `register_command()` |
+| HotkeyFooter | `new()`, `key_color()`, `description_color()`, `render()` |
+| FileSystemTree | `new()`, `select_next()`, `toggle_selected()`, `enter_filter_mode()`, `handle_filter_key()` |
+| ThemePicker | `new()`, `show()`, `handle_key()`, `width()` |
+
+### Services APIs
+
+| Component | Key Methods |
+|-----------|-------------|
+| FileWatcher | `for_file()`, `for_directory()`, `watch()`, `unwatch()`, `check_for_changes()`, `drain_events()`, `get_changed_paths()` |
+| GitWatcher | `new()`, `with_config()`, `watch()`, `unwatch()`, `check_for_changes()`, `drain_events()` |
+| RepoWatcher | `new()`, `with_config()`, `watch()`, `check_for_changes()`, `get_change_set()` |
+| HotkeyRegistry | `new()`, `register()`, `get_hotkeys()`, `lookup()`, `set_active_scope()`, `get_active_scope()` |
+| Hotkey | `new()`, `scope()`, `priority()` |
+
+### Core Runtime APIs
+
+| Component | Key Methods |
+|-----------|-------------|
+| Runner | `run()`, `run_with_diagnostics()`, `RunnerConfig::default()` |
+| CoordinatorApp | `on_event()`, `on_draw()`, `on_layout_changed()` |
+| LayoutCoordinator | `new()`, `handle_event()`, `invalidate_layout()`, `invalidate_elements()` |
+| LayoutManager | `new()`, `on_resize()`, `recompute()`, `get_region_area()`, `hit_test()` |
+| FocusManager | `new()`, `handle_request()`, `focus_next()`, `focus_previous()`, `capture_focus()`, `release_capture()` |
+| MouseRouter | `new()`, `capture()`, `release_capture()`, `route_mouse_event()`, `is_captured()` |
+| ElementRegistry | `new()`, `register()`, `unregister()`, `get_metadata()`, `focusable_elements()` |
+| Element trait | `id()`, `on_render()`, `on_keyboard()`, `on_mouse()`, `on_focus_gain()`, `on_focus_loss()`, `on_tick()` |
+
+## Common Pitfalls
+
+### Primitives Pitfalls
+
+1. **Weak reference drops**: Elements must be kept alive by application; registry stores weak references only
+2. **Missing event handling**: Return `true` when handling events, `false` to propagate
+3. **Focus without focusable flag**: Elements must have `focusable: true` in metadata to appear in focus traversal
+4. **Button hover state**: Requires `update_hover()` call before rendering for correct hover detection
+5. **Pane padding**: CSS-style (top, right, bottom, left) - reduces available inner content area
+6. **Toast dismissal**: Call `handle_click()` to dismiss, then `cleanup()` to remove expired
+7. **ResizableGrid pane IDs**: Auto-incrementing u32 - store references carefully
+8. **TreeView paths**: Cloned frequently; use `Vec<usize>` indices, not strings
+9. **MenuItem actions**: Consumed on execution (Once closure); recreate if needed again
+10. **StatusLine Nerd Font**: PowerLine separators require Nerd Font installed
+
+### Widgets Pitfalls
+
+1. **Creating state in render loop**: Causes state loss and broken UI; persist in app struct
+2. **Missing mouse capture**: Enable via crossterm for all mouse interactions including scroll wheel
+3. **MarkdownWidget**: Requires `EnableMouseCapture` and persistent scroll state
+4. **AIChat @ completion**: Must call `load_files_from_cwd()` first for file completion to work
+5. **ThemePicker visibility**: Must call `show()` before rendering; `handle_key()` returns None if not visible
+6. **FileSystemTree errors**: `expand_directory()` returns IO errors that must be handled
+7. **Filter mode exit**: Must explicitly exit filter mode in FileSystemTree
+
+### Services Pitfalls
+
+1. **Forgetting to poll**: Must call `check_for_changes()` or `drain_events()` regularly to prevent buffer overflow
+2. **GitWatcher limitations**: Only watches .git directory, not working tree changes
+3. **RepoWatcher paths**: Discards file watcher paths internally - only `GitChangeSet` available
+4. **HotkeyScope strings**: Uses `&'static str` - no dynamic string scopes
+5. **parse_keycode limitations**: Only supports single letters + specific keys; no modifier support
+6. **Queue clearing**: `get_changed_paths()` clears queue; use `peek_changed_paths()` to read without clearing
+7. **RepoWatcher git binary**: Requires git binary in PATH for status commands
+8. **Too many watches**: Watching excessive paths without debouncing degrades performance
+
+### Core Runtime Pitfalls
+
+1. **Runner ownership**: Takes ownership of app - wrap shared state in `Arc<RwLock<>>` or `Rc<RefCell<>>`
+2. **Layout invalidation**: Must call `invalidate_layout()` after registering/unregistering elements
+3. **Resize debouncing**: Events debounced 16ms by default; immediate updates require `process_pending_resize()`
+4. **Mouse capture expiration**: Capture expires after 5 seconds - renew for long drag operations
+5. **Element lifecycle**: Registry stores weak references; keep strong refs in app state
+6. **Event return values**: Event callbacks return `bool` - true means handled, false means propagate
+7. **Minimum terminal size**: LayoutManager enforces 10x5 minimum - smaller sizes return `LayoutError`
+8. **Region allocation**: Fixed heights for Top/Bottom reduce Center region proportionally
+
+## Optional
+
+### Additional Resources
+
+- **Documentation site**: Run `just docs` to build and serve on port 3000
+- **Examples**: Located in `examples/` directory, run with `just example <name>`
+- **Tests**: Integration tests in `tests/integration/`, run with `just test`
+- **Component documentation**: Each crate has README.md with usage examples
+- **Theme support**: Enable 'theme' feature for AppTheme integration
+
+### Version History
+
+- v0.1.16: Current workspace version
+- See CHANGELOG.md for detailed release notes
+
+### Related Projects
+
+- ratatui: Underlying TUI rendering library (v0.29)
+- crossterm: Cross-platform terminal manipulation (v0.28)
+- notify: Filesystem event watching (v6)

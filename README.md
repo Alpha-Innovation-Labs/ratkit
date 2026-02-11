@@ -292,32 +292,6 @@ let navigator = TreeNavigator::with_keybindings(bindings);
 
 ## Architecture
 
-### Module Structure
-
-All components follow a consistent module organization pattern for maintainability:
-
-```
-src/component_name/
-├── mod.rs              # Type definition only (struct/enum)
-├── constructors/       # Constructors and builders (new, with_*, builder)
-│   ├── mod.rs
-│   ├── new.rs
-│   └── with_*.rs
-├── methods/            # Instance methods (&self, &mut self)
-│   ├── mod.rs
-│   └── method_name.rs
-└── traits/             # Trait implementations (Widget, Default, etc.)
-    ├── mod.rs
-    └── trait_name.rs
-```
-
-This structure ensures:
-- **Single responsibility**: Each file contains one impl block
-- **Easy navigation**: Find constructors in `constructors/`, methods in `methods/`
-- **Consistent patterns**: All components organized identically
-
-### Component Pattern
-
 All components follow ratatui's `Widget` and `StatefulWidget` patterns:
 
 ```rust
