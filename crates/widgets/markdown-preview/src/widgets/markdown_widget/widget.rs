@@ -1134,6 +1134,7 @@ impl<'a> MarkdownWidget<'a> {
         // Handle selection-related keys first
         if key.code == KeyCode::Esc && self.selection.is_active() {
             self.selection.exit();
+            self.selection_active = false;
             self.mode = MarkdownWidgetMode::Normal;
             self.vim.clear_pending_g();
             return MarkdownEvent::SelectionEnded;
@@ -1146,6 +1147,7 @@ impl<'a> MarkdownWidget<'a> {
                     if let Ok(mut clipboard) = arboard::Clipboard::new() {
                         if clipboard.set_text(&text).is_ok() {
                             self.selection.exit();
+                            self.selection_active = false;
                             self.mode = MarkdownWidgetMode::Normal;
                             self.vim.clear_pending_g();
                             return MarkdownEvent::Copied { text };
@@ -1165,6 +1167,7 @@ impl<'a> MarkdownWidget<'a> {
                     if let Ok(mut clipboard) = arboard::Clipboard::new() {
                         if clipboard.set_text(&text).is_ok() {
                             self.selection.exit();
+                            self.selection_active = false;
                             self.mode = MarkdownWidgetMode::Normal;
                             self.vim.clear_pending_g();
                             return MarkdownEvent::Copied { text };
@@ -1434,6 +1437,7 @@ impl<'a> MarkdownWidget<'a> {
             // Click outside area exits selection mode
             if self.selection.is_active() {
                 self.selection.exit();
+                self.selection_active = false;
                 return MarkdownEvent::SelectionEnded;
             }
             return MarkdownEvent::None;
@@ -1459,12 +1463,24 @@ impl<'a> MarkdownWidget<'a> {
                 if is_over_toc {
                     match event.kind {
                         MouseEventKind::Moved => {
+                            let prev_hovered = self.toc_hovered;
+                            let prev_entry = self.toc_hovered_entry;
                             self.handle_toc_hover_internal(event, toc_area);
+                            if prev_hovered != self.toc_hovered
+                                || prev_entry != self.toc_hovered_entry
+                            {
+                                return MarkdownEvent::TocHoverChanged {
+                                    hovered: self.toc_hovered,
+                                };
+                            }
                             return MarkdownEvent::None;
                         }
                         MouseEventKind::Down(MouseButton::Left) => {
                             if self.handle_toc_click_internal(event, toc_area) {
-                                return MarkdownEvent::None;
+                                return MarkdownEvent::Scrolled {
+                                    offset: self.scroll.scroll_offset,
+                                    direction: 0,
+                                };
                             }
                             return MarkdownEvent::None;
                         }
@@ -1490,8 +1506,12 @@ impl<'a> MarkdownWidget<'a> {
                         _ => {}
                     }
                 } else if matches!(event.kind, MouseEventKind::Moved) {
+                    let was_hovered = self.toc_hovered || self.toc_hovered_entry.is_some();
                     self.toc_hovered = false;
                     self.toc_hovered_entry = None;
+                    if was_hovered {
+                        return MarkdownEvent::TocHoverChanged { hovered: false };
+                    }
                 }
             }
         }
@@ -1538,6 +1558,7 @@ impl<'a> MarkdownWidget<'a> {
                 // Exit active selection on new click
                 if self.selection.is_active() {
                     self.selection.exit();
+                    self.selection_active = false;
                 }
 
                 // Process click for double-click detection
@@ -1573,6 +1594,7 @@ impl<'a> MarkdownWidget<'a> {
                         self.rendered_lines.clone(),
                         width,
                     );
+                    self.selection_active = true;
                     self.selection.anchor = Some(SelectionPos::new(document_x, document_y));
                     self.mode = MarkdownWidgetMode::Drag;
                     MarkdownEvent::SelectionStarted
@@ -1586,25 +1608,34 @@ impl<'a> MarkdownWidget<'a> {
                 event_result
             }
             MouseEventKind::Up(MouseButton::Left) => {
-                // Selection complete - auto-copy to clipboard
-                if self.selection.is_active() && self.selection.has_selection() {
-                    // Update frozen lines with current rendered lines
-                    self.selection.frozen_lines = Some(self.rendered_lines.clone());
-                    self.selection.frozen_width = width;
+                if self.selection.is_active() {
+                    // Selection complete - auto-copy to clipboard.
+                    let copied_text = if self.selection.has_selection() {
+                        self.selection.frozen_lines = Some(self.rendered_lines.clone());
+                        self.selection.frozen_width = width;
+                        self.selection.get_selected_text()
+                    } else {
+                        None
+                    };
 
-                    // Auto-copy to clipboard
-                    if let Some(text) = self.selection.get_selected_text() {
+                    self.selection.exit();
+                    self.selection_active = false;
+                    self.mode = MarkdownWidgetMode::Normal;
+
+                    if let Some(text) = copied_text {
                         if !text.is_empty() {
                             if let Ok(mut clipboard) = arboard::Clipboard::new() {
                                 if clipboard.set_text(&text).is_ok() {
-                                    // Store in selection state for app to retrieve (shows toast)
                                     self.selection.last_copied_text = Some(text.clone());
                                     return MarkdownEvent::Copied { text };
                                 }
                             }
                         }
                     }
+
+                    return MarkdownEvent::SelectionEnded;
                 }
+
                 MarkdownEvent::None
             }
             MouseEventKind::ScrollUp => {
@@ -1630,9 +1661,6 @@ impl<'a> MarkdownWidget<'a> {
     }
 
     fn handle_toc_hover_internal(&mut self, event: &MouseEvent, toc_area: Rect) {
-        let _prev_hovered = self.toc_hovered;
-        let _prev_entry = self.toc_hovered_entry;
-
         let auto_state = TocState::from_content(&self.content);
         let toc_state = if let Some(provided) = &self.toc_state {
             if provided.entries.is_empty() {
@@ -1648,15 +1676,8 @@ impl<'a> MarkdownWidget<'a> {
             .expanded(self.toc_hovered)
             .config(self.toc_config.clone());
 
-        let entry = toc.entry_at_position(event.column, event.row, toc_area);
-
-        if entry.is_some() {
-            self.toc_hovered = true;
-            self.toc_hovered_entry = entry;
-        } else {
-            self.toc_hovered = false;
-            self.toc_hovered_entry = None;
-        }
+        self.toc_hovered = true;
+        self.toc_hovered_entry = toc.entry_at_position(event.column, event.row, toc_area);
     }
 
     fn handle_toc_click_internal(&mut self, event: &MouseEvent, toc_area: Rect) -> bool {
@@ -2185,16 +2206,8 @@ impl<'a> MarkdownWidget<'a> {
                 .expanded(self.toc_hovered)
                 .config(self.toc_config.clone());
 
-            let entry = toc.entry_at_position(event.column, event.row, toc_area);
-
-            // Only consider hovering if we found an entry
-            if entry.is_some() {
-                self.toc_hovered = true;
-                self.toc_hovered_entry = entry;
-            } else {
-                self.toc_hovered = false;
-                self.toc_hovered_entry = None;
-            }
+            self.toc_hovered = true;
+            self.toc_hovered_entry = toc.entry_at_position(event.column, event.row, toc_area);
         } else {
             self.toc_hovered = false;
             self.toc_hovered_entry = None;
@@ -2716,8 +2729,8 @@ const CURRENT_LINE_BG: Color = Color::Rgb(38, 52, 63);
 /// Current line highlight color when dragging (selection is active)
 const CURRENT_LINE_DRAG_BG: Color = Color::Rgb(70, 80, 100);
 
-impl<'a> Widget for MarkdownWidget<'a> {
-    fn render(mut self, area: Rect, buf: &mut ratatui::buffer::Buffer) {
+impl<'a> Widget for &mut MarkdownWidget<'a> {
+    fn render(self, area: Rect, buf: &mut ratatui::buffer::Buffer) {
         // Handle pane wrapping if enabled
         let (area, _pane_footer_area) = if self.has_pane {
             let title = self
@@ -3181,5 +3194,11 @@ impl<'a> Widget for MarkdownWidget<'a> {
 
         // Capture inner area for mouse event handling
         self.inner_area = Some(content_area);
+    }
+}
+
+impl<'a> Widget for MarkdownWidget<'a> {
+    fn render(mut self, area: Rect, buf: &mut ratatui::buffer::Buffer) {
+        <&mut MarkdownWidget<'a> as Widget>::render(&mut self, area, buf);
     }
 }

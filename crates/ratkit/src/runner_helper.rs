@@ -130,12 +130,13 @@ fn run_loop<A: CoordinatorApp>(
     let mut frames = 0u32;
     let mut redraws = 0u64;
     let mut fps = 0u16;
+    let mut last_mouse = (0u16, 0u16);
 
     // Initial draw
     terminal.draw(|frame| {
         let _ = runner.render(frame);
         if draw_diagnostics {
-            draw_fps(frame, fps, redraws);
+            draw_fps(frame, fps, redraws, last_mouse);
         }
     })?;
     redraws = redraws.saturating_add(1);
@@ -145,6 +146,11 @@ fn run_loop<A: CoordinatorApp>(
 
         if event::poll(timeout)? {
             let crossterm_event = event::read()?;
+
+            if let Event::Mouse(mouse) = crossterm_event {
+                last_mouse = (mouse.column, mouse.row);
+            }
+
             let runner_event = convert_event(crossterm_event);
 
             let action = runner
@@ -157,7 +163,7 @@ fn run_loop<A: CoordinatorApp>(
                     terminal.draw(|frame| {
                         let _ = runner.render(frame);
                         if draw_diagnostics {
-                            draw_fps(frame, fps, redraws);
+                            draw_fps(frame, fps, redraws, last_mouse);
                         }
                     })?;
                     redraws = redraws.saturating_add(1);
@@ -180,7 +186,7 @@ fn run_loop<A: CoordinatorApp>(
                     terminal.draw(|frame| {
                         let _ = runner.render(frame);
                         if draw_diagnostics {
-                            draw_fps(frame, fps, redraws);
+                            draw_fps(frame, fps, redraws, last_mouse);
                         }
                     })?;
                     redraws = redraws.saturating_add(1);
@@ -212,9 +218,12 @@ fn convert_event(event: Event) -> RunnerEvent {
     }
 }
 
-fn draw_fps(frame: &mut Frame, fps: u16, redraws: u64) {
+fn draw_fps(frame: &mut Frame, fps: u16, redraws: u64, mouse: (u16, u16)) {
     let area = frame.area();
-    let text = format!("FPS {:>3} | Redraws {}", fps, redraws);
+    let text = format!(
+        "FPS {:>3} | Redraws {} | Mouse {},{}",
+        fps, redraws, mouse.0, mouse.1
+    );
     let width = text.len() as u16 + 2;
     let x = area.x + area.width.saturating_sub(width);
     let rect = Rect {

@@ -1,7 +1,5 @@
 //! Event types for the markdown widget.
 
-
-
 //! Event returned when a line is double-clicked in the markdown widget.
 
 /// Event returned when a line is double-clicked in the markdown widget.
@@ -14,7 +12,6 @@ pub struct MarkdownDoubleClickEvent {
     /// Plain text content of the line.
     pub content: String,
 }
-
 
 /// Events emitted by the markdown widget.
 
@@ -73,6 +70,12 @@ pub enum MarkdownEvent {
         direction: i32,
     },
 
+    /// TOC hover state changed and should be redrawn.
+    TocHoverChanged {
+        /// Whether the TOC is currently hovered.
+        hovered: bool,
+    },
+
     /// Filter mode changed (entered, text changed, or exited with Esc).
     FilterModeChanged {
         /// Whether filter mode is active.
@@ -87,4 +90,3 @@ pub enum MarkdownEvent {
         line: usize,
     },
 }
-

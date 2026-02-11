@@ -34,10 +34,13 @@ ratkit-git-watcher = { path = "../../services/git-watcher" }
 ratkit-file-watcher = { path = "../../services/file-watcher" }
 
 [dev-dependencies]
-ratkit = { path = "../../ratkit" }
+ratkit = { path = "../../ratkit", features = ["markdown-preview", "toast"] }
 ratatui.workspace = true
 crossterm.workspace = true
 tempfile = "3"
+anyhow.workspace = true
+portable-pty = "0.8"
+strip-ansi-escapes = "0.2"
 
 [features]
 default = ["markdown"]
