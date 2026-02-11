@@ -13,12 +13,12 @@ demo:
     fi
 
     selection=$(rg --files \
-        -g 'crates/**/examples/*.rs' \
+        -g 'examples/*.rs' \
         -g '!**/_archives/**' \
         -g '!**/target/**' \
         | while IFS= read -r file; do
-            crate_dir=$(dirname "$(dirname "$file")")
-            manifest="$crate_dir/Cargo.toml"
+            crate_dir=$(dirname "$file")
+            manifest="Cargo.toml"
             if [[ -f "$manifest" ]]; then
                 pkg=$(awk -F'"' '/^name =/ {print $2; exit}' "$manifest")
                 example=$(basename "$file" .rs)
@@ -39,4 +39,4 @@ demo:
     example=${selection#*:}
 
     echo "Running $pkg:$example..."
-    cargo run -p "$pkg" --example "$example" --features full
+    cargo run --example "$example" --features full

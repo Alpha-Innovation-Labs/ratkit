@@ -2,4 +2,4 @@
 # Features: TOC, Statusline, Scrollbar, Selection, Syntax Highlighting
 demo-md:
     @echo "Running Markdown Preview Demo..."
-    cargo run -p ratkit --example markdown_preview_markdown_preview_demo --features markdown-preview
+    cargo run --example markdown_preview_markdown_preview_demo --features markdown-preview

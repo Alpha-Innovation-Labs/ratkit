@@ -1,20 +1,18 @@
-[workspace]
-resolver = "2"
-members = [
-    # Single consolidated ratkit crate
-    "crates/ratkit",
-]
-
-[workspace.package]
+[package]
+name = "ratkit"
 version = "0.2.1"
 edition = "2021"
 rust-version = "1.70"
 authors = ["Alpha Innovation Labs"]
-license = "MIT"
+description = "A comprehensive collection of reusable TUI components for ratatui including resizable splits, tree views, markdown rendering, toast notifications, dialogs, and terminal embedding"
+documentation = "https://docs.rs/ratkit"
 repository = "https://github.com/alpha-innovation-labs/ratatui-toolkit"
 homepage = "https://github.com/alpha-innovation-labs/ratatui-toolkit"
+license = "MIT"
+keywords = ["tui", "ratatui", "widgets", "ui"]
+categories = ["command-line-interface", "gui"]
 
-[workspace.dependencies]
+[dependencies]
 ratatui = "0.29"
 crossterm = "0.28"
 tokio = { version = "1", features = ["full"] }
@@ -22,3 +20,132 @@ unicode-width = "0.2"
 tracing = "0.1"
 anyhow = "1"
 thiserror = "2"
+uuid = { version = "1.10", features = ["v4", "serde"] }
+reqwest = { version = "0.12", features = ["json"], optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
+compact_str = { version = "0.8", optional = true }
+unicode-segmentation = { version = "1.10", optional = true }
+log = { version = "0.4", optional = true }
+notify = { version = "6", optional = true }
+pulldown-cmark = { version = "0.12", optional = true }
+syntect = { version = "5", optional = true }
+syntect-tui = { version = "3", optional = true }
+arboard = { version = "3", optional = true }
+dirs = { version = "5", optional = true }
+similar = { version = "2", optional = true }
+devicons = { version = "0.6", optional = true }
+
+[features]
+default = []
+
+all = [
+    "button",
+    "pane",
+    "dialog",
+    "toast",
+    "statusline",
+    "scroll",
+    "menu-bar",
+    "resizable-grid",
+    "tree-view",
+    "widget-event",
+    "termtui",
+    "markdown-preview",
+    "code-diff",
+    "ai-chat",
+    "hotkey-footer",
+    "file-system-tree",
+    "theme-picker",
+    "file-watcher",
+    "git-watcher",
+    "repo-watcher",
+    "hotkey-service",
+]
+
+full = ["all"]
+
+termtui = ["compact_str", "serde", "unicode-segmentation", "log"]
+
+widgets = [
+    "button",
+    "pane",
+    "dialog",
+    "toast",
+    "statusline",
+    "scroll",
+    "menu-bar",
+    "resizable-grid",
+    "tree-view",
+    "widget-event",
+    "markdown-preview",
+    "code-diff",
+    "ai-chat",
+    "hotkey-footer",
+    "file-system-tree",
+    "theme-picker",
+]
+
+services = [
+    "file-watcher",
+    "git-watcher",
+    "repo-watcher",
+    "hotkey-service",
+]
+
+button = []
+pane = []
+dialog = []
+toast = []
+statusline = []
+scroll = []
+menu-bar = ["widget-event"]
+resizable-grid = []
+tree-view = ["widget-event"]
+widget-event = []
+markdown-preview = ["pulldown-cmark", "syntect", "syntect-tui", "notify", "arboard", "dirs", "serde", "serde_json", "pane", "statusline", "file-watcher", "git-watcher"]
+code-diff = ["similar"]
+ai-chat = ["reqwest", "serde", "serde_json"]
+hotkey-footer = []
+file-system-tree = ["devicons"]
+theme-picker = []
+file-watcher = ["notify"]
+git-watcher = ["notify"]
+repo-watcher = ["notify", "file-watcher", "git-watcher"]
+hotkey-service = []
+
+[dev-dependencies]
+ratatui = "0.29"
+crossterm = "0.28"
+portable-pty = "0.8"
+
+[[example]]
+name = "ratkit_demo"
+required-features = ["button", "pane"]
+
+[[example]]
+name = "mouse_only"
+
+[[example]]
+name = "ai_chat_ai_chat_demo"
+required-features = ["ai-chat"]
+
+[[example]]
+name = "code_diff_code_diff_demo"
+required-features = ["code-diff"]
+
+[[example]]
+name = "file_system_tree_file_system_tree_demo"
+required-features = ["file-system-tree"]
+
+[[example]]
+name = "hotkey_footer_hotkey_footer_demo"
+required-features = ["hotkey-footer"]
+
+[[example]]
+name = "markdown_preview_markdown_preview_demo"
+required-features = ["markdown-preview"]
+
+[[example]]
+name = "theme_picker_theme_picker_demo"
+required-features = ["theme-picker"]
