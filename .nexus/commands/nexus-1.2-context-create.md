@@ -12,7 +12,16 @@ You are creating context specification(s) following `.nexus/context/rules/contex
 ### 1. Understand What The User Wants
 
 - If user already described their goal: acknowledge it and proceed to scanning
-- If unclear, ask: "What are you trying to accomplish?"
+- If unclear, use the `question` tool:
+  ```json
+  {
+    "questions": [{
+      "question": "What are you trying to accomplish?",
+      "header": "User Goal",
+      "options": []
+    }]
+  }
+  ```
 - Have a brief conversation to understand the desired outcome
 
 ### 2. Scan Existing Contexts
@@ -24,8 +33,21 @@ Before creating anything, **quickly scan all files in `.nexus/context/`**:
 3. **Check Next Actions sections** - See if any existing context already covers this work
 
 **If overlap found:**
-- Show the user: "I found `PRJ_NNN-name.md` with outcome: '[outcome]'. This seems related."
-- Ask: "Should I (A) update that context, (B) create a new one, or (C) explain the difference?"
+- Show the user the existing context
+- Use the `question` tool:
+  ```json
+  {
+    "questions": [{
+      "question": "I found `PRJ_NNN-name.md` with outcome: '[outcome]'. This seems related. What would you like to do?",
+      "header": "Context Overlap",
+      "options": [
+        {"label": "Update existing", "description": "Update the existing context file"},
+        {"label": "Create new", "description": "Create a new context file"},
+        {"label": "Explain difference", "description": "Explain the difference between them"}
+      ]
+    }]
+  }
+  ```
 
 **If already done:**
 - Tell the user: "This appears to already be covered by `PRJ_NNN-name.md`. Would you like to review it instead?"
@@ -40,7 +62,19 @@ Apply the core principles:
 If splitting is needed:
 - Explain to the user: "This looks like [N] separate outcomes. I'll create [N] context files..."
 - List the proposed contexts with their outcomes
-- Ask for confirmation before proceeding
+- Use the `question` tool:
+  ```json
+  {
+    "questions": [{
+      "question": "Does this split make sense? [List the N proposed contexts with outcomes]",
+      "header": "Context Split",
+      "options": [
+        {"label": "Yes, proceed", "description": "Create all N context files as proposed"},
+        {"label": "Adjust", "description": "Let me adjust the breakdown"}
+      ]
+    }]
+  }
+  ```
 
 ### 4. Identify Project and Determine Context ID
 
@@ -65,18 +99,22 @@ Propose based on the conversation:
 - **Desired Outcome**: What success looks like (one paragraph)
 - **Next Actions**: Table with Description and Test columns
 
-Use the standardized question format (see Appendix A) only if clarification is needed.
+If clarification is needed, use the `question` tool with appropriate options.
 
 ### 6. Final Check
 
-Before creating:
-```
-**Before I create the context(s):** Is there anything I'm missing?
-
-- Additional constraints or dependencies?
-- Edge cases for Next Actions?
-
-Reply with additions, or "no" to proceed.
+Before creating, use the `question` tool:
+```json
+{
+  "questions": [{
+    "question": "Before I create the context(s): Is there anything I'm missing? (e.g., additional constraints, dependencies, edge cases for Next Actions)",
+    "header": "Final Check",
+    "options": [
+      {"label": "No, proceed", "description": "Create the context files as proposed"},
+      {"label": "Add details", "description": "Let me add more information"}
+    ]
+  }]
+}
 ```
 
 ### 7. Generate Context File(s)
@@ -153,20 +191,46 @@ After creating the context file(s), read any rules in `.nexus/context/rules/` th
 
 ---
 
-## Appendix A: Question Format
+## Appendix A: Question Tool Examples
 
+**Example: Goal Discovery**
+```json
+{
+  "questions": [{
+    "question": "What are you trying to accomplish?",
+    "header": "User Goal",
+    "options": []
+  }]
+}
 ```
-**Question [N/TOTAL]**: <question text>
 
-**Recommended:** Option [X] - <reasoning>
+**Example: Context Overlap**
+```json
+{
+  "questions": [{
+    "question": "I found an existing context that seems related. What would you like to do?",
+    "header": "Context Overlap",
+    "options": [
+      {"label": "Update existing", "description": "Update the existing context file with new requirements"},
+      {"label": "Create new", "description": "Create a new separate context file"},
+      {"label": "Explain difference", "description": "Help me understand the difference"}
+    ]
+  }]
+}
+```
 
-| Option | Description |
-|--------|-------------|
-| A | <description> |
-| B | <description> |
-| Short | Provide different answer |
-
-Reply with: option letter, "yes" for recommended, or your own answer.
+**Example: Confirmation**
+```json
+{
+  "questions": [{
+    "question": "Ready to proceed?",
+    "header": "Confirm",
+    "options": [
+      {"label": "Yes, proceed", "description": "Create the context as proposed"},
+      {"label": "Make changes", "description": "Let me adjust something first"}
+    ]
+  }]
+}
 ```
 
 ## Appendix B: Splitting Examples
@@ -177,7 +241,7 @@ Reply with: option letter, "yes" for recommended, or your own answer.
 1. **User Authentication** - Users can log in via OAuth
 2. **Email Notifications** - System sends email notifications
 
-I'll create 2 context files. Does this split make sense?"
+Use the `question` tool to confirm the split.
 
 **User says:** "Build the entire payment system"
 
@@ -186,4 +250,4 @@ I'll create 2 context files. Does this split make sense?"
 2. **Invoice Generation** - Generate and store invoices
 3. **Refund Handling** - Process refunds and credits
 
-Should I create 3 contexts, or would you like to adjust this breakdown?"
+Use the `question` tool to confirm the breakdown.

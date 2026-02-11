@@ -72,41 +72,41 @@ No parameters needed - the command analyzes the current conversation automatical
 
 ### Phase 4: Present Changes for Approval
 
-Use the standardized question format:
+For each change identified, use the `question` tool:
 
-```
-**Change [N/TOTAL]**: Update CLI_010-context-chat.md - Next Actions
-
-**What I noticed:** During this conversation, a new test `test_context_chat_scans_existing_context_files` was added that verifies the agent scans .nexus/context/ for existing files.
-
-**Recommended:** Option A - Add this action to the context file
-
-| Option | Description |
-|--------|-------------|
-| A | Add row: "Agent system prompt includes list of existing context files" \| `context_files_in_prompt` |
-| B | Skip - This action is already covered or not needed |
-| C | Modify - I'll provide different wording |
-| Short | Provide custom Description \| Test text |
-
-You can reply with: "A" to accept, "B" to skip, "C" to modify, or your own text.
+```json
+{
+  "questions": [{
+    "question": "Change [N/TOTAL]: Update <context-file>.md - Next Actions\n\nWhat I noticed: During this conversation, a new test `<test_name>` was added that verifies <description>.\n\nProposed addition:\nDescription: <action description>\nTest: `<test_name>`",
+    "header": "Sync Context",
+    "options": [
+      {"label": "Add to context", "description": "Add this action to the context file"},
+      {"label": "Skip", "description": "This action is already covered or not needed"},
+      {"label": "Modify", "description": "Let me provide different wording"}
+    ]
+  }]
+}
 ```
 
-Wait for user approval for each change.
+Wait for user approval for each change using the `question` tool.
 
 ### Phase 5: Apply Changes
 
 After all approvals collected:
 
-1. **Show final summary**:
-   ```
-   **Summary of Changes:**
-   
-   I will update the following Next Actions:
-   
-   1. **CLI_010-context-chat.md**
-      - Add: "Agent system prompt includes list of existing context files" | `context_files_in_prompt`
-   
-   **Proceed with these updates?** (A=Yes, B=No, C=Review)
+1. **Show final summary** using the `question` tool:
+   ```json
+   {
+     "questions": [{
+       "question": "Summary of Changes:\n\nI will update the following Next Actions:\n\n1. **<context-file>.md**\n   - Add: <action description> | `<test_name>`\n\nProceed with these updates?",
+       "header": "Confirm Updates",
+       "options": [
+         {"label": "Yes, apply all", "description": "Apply all approved changes"},
+         {"label": "No, cancel", "description": "Cancel all changes"},
+         {"label": "Review", "description": "Show me specific changes again"}
+       ]
+     }]
+   }
    ```
 
 2. **Apply approved changes**:
@@ -156,7 +156,7 @@ Each row should:
    - New action to add: context file scanning
    
 4. Presenting change for approval...
-   [Shows change proposal]
+   [Uses question tool to show proposal]
    
 5. User approves...
 
@@ -168,7 +168,7 @@ Each row should:
 ## Important Notes
 
 - **Non-destructive**: Never removes existing actions
-- **One-by-one approval**: Each change is presented individually
+- **One-by-one approval**: Each change is presented individually using the `question` tool
 - **Final confirmation**: All changes summarized before applying
 - **Preserves format**: Matches existing table format
 - **Test correlation**: `crates/<project>/tests/<context_id>_*/` → `.nexus/context/<project>/<CONTEXT_ID>-*.md`

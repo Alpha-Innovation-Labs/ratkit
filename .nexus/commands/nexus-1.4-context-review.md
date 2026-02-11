@@ -45,22 +45,30 @@ A proper context file should:
 ### Workflow:
 
 1. **Select Review Scope**:
-   - First, ask the user:
+   - Use the `question` tool:
+     ```json
+     {
+       "questions": [{
+         "question": "Which contexts do you want to review?",
+         "header": "Review Scope",
+         "options": [
+           {"label": "All contexts", "description": "Review everything in .nexus/context/tasks/"},
+           {"label": "Specific folder", "description": "Review a specific project folder"}
+         ]
+       }]
+     }
      ```
-     **Which contexts do you want to review?**
-     
-     **Recommended:** Option A - Review all contexts
-     
-     | Option | Description |
-     |--------|-------------|
-     | A | All contexts - Review everything in .nexus/context/tasks/ |
-     | B | Specific folder - I'll specify which project folder |
-     | Short | Specify folder name (e.g., "context-core") |
-     
-     You can reply with: "A" to review all, "B" to specify a folder, or just type the folder name.
+   - If user selects "Specific folder", use the `question` tool again:
+     ```json
+     {
+       "questions": [{
+         "question": "Which project folder would you like to review?",
+         "header": "Select Folder",
+         "options": []
+       }]
+     }
      ```
-   - Wait for user response
-   - If user specifies a folder name, validate it exists in `.nexus/context/tasks/`
+   - Validate the folder exists in `.nexus/context/tasks/`
    - Set the scan path accordingly:
      - All contexts: `.nexus/context/tasks/` (recursive)
      - Specific folder: `.nexus/context/tasks/<folder-name>/`
@@ -77,14 +85,14 @@ A proper context file should:
      - **Invalid content**: How-to instructions, implementation details instead of outcomes
    - Track all issues found across all contexts
 
-2. **Categorize Issues**:
+3. **Categorize Issues**:
    - Group issues by type:
      - **Critical**: Code snippets, missing required sections
      - **Important**: Scope too broad, format violations
      - **Minor**: Verbose descriptions, too many goals
    - Prioritize critical issues first
 
-3. **Check for Context Splitting Candidates**:
+4. **Check for Context Splitting Candidates**:
    - Identify contexts that are doing too much:
      - More than 4 goals
      - Goals that are unrelated to each other
@@ -95,107 +103,64 @@ A proper context file should:
      - Propose how to split into multiple focused contexts
      - Suggest names for the split contexts
 
-4. **Present Issues One-by-One** (Use Standardized Format):
+5. **Present Issues One-by-One** using the `question` tool:
    - For each issue found, present it individually:
+     ```json
+     {
+       "questions": [{
+         "question": "Issue [N/TOTAL]: <context-file> - <Issue Type>\n\nWhat I noticed: <Describe the specific issue found>\n\nExample from context:\n```\n<Show the problematic content>\n```\n\nProposed fix:\n```\n<Show what the section will look like after the fix>\n```",
+         "header": "Context Issue",
+         "options": [
+           {"label": "Apply fix", "description": "Apply the recommended fix"},
+           {"label": "Skip", "description": "Leave as is"},
+           {"label": "Different fix", "description": "I'll specify a different fix"}
+         ]
+       }]
+     }
      ```
-     **Issue [N/TOTAL]**: CONTEXT_XXX-description.md - <Issue Type>
-     
-     **What I noticed:** <Describe the specific issue found>
-     
-     **Example from context:**
-     ```
-     <Show the problematic content>
-     ```
-     
-     **Recommended:** Option A - <Brief description of recommended fix>
-     
-     | Option | Description |
-     |--------|-------------|
-     | A | <Recommended fix> |
-     | B | Skip - Leave as is |
-     | C | Different fix - I'll specify |
-     | Short | Provide custom action (≤5 words) |
-     
-     **Proposed fix:**
-     ```
-     <Show what the section will look like after the fix>
-     ```
-     
-     You can reply with: "A"/"yes" to accept, "B" to skip, "C" to provide different fix, or your custom action.
-     ```
-   - Wait for user response for EACH issue
+   - Wait for user response for EACH issue using the `question` tool
    - Track all approved fixes
 
-5. **Present Context Splitting Recommendations**:
+6. **Present Context Splitting Recommendations** using the `question` tool:
    - If contexts need splitting, present each one:
+     ```json
+     {
+       "questions": [{
+         "question": "Recommendation [N/TOTAL]: Split <context-file> - Context Too Broad\n\nWhat I noticed: This context has N goals covering multiple unrelated features: <list them>\n\nProposed split:\n\n1. **CONTEXT_XXX-1: <Name>**\n   - Goals: <list goals>\n\n2. **CONTEXT_XXX-2: <Name>**\n   - Goals: <list goals>",
+         "header": "Split Context",
+         "options": [
+           {"label": "Split contexts", "description": "Split into M focused contexts"},
+           {"label": "Keep as one", "description": "Reduce goals instead"},
+           {"label": "Different approach", "description": "I'll specify"}
+         ]
+       }]
+     }
      ```
-     **Recommendation [N/TOTAL]**: Split CONTEXT_XXX - Context Too Broad
-     
-     **What I noticed:** This context has N goals covering multiple unrelated features: <list them>
-     
-     **Recommended:** Option A - Split into M focused contexts
-     
-     | Option | Description |
-     |--------|-------------|
-     | A | Split into M contexts - <list proposed context names> |
-     | B | Keep as one context - Reduce goals instead |
-     | C | Different approach - I'll specify |
-     | Short | Provide custom action (≤5 words) |
-     
-     **Proposed split:**
-     
-     1. **CONTEXT_XXX-1: <Name>**
-        - Goals: <list goals>
-     
-     2. **CONTEXT_XXX-2: <Name>**
-        - Goals: <list goals>
-     
-     You can reply with: "A" to split, "B" to keep as one, or "C" for different approach.
-     ```
-   - Wait for user response
+   - Wait for user response using the `question` tool
    - If user approves split, mark for context creation
 
-6. **Final Summary & Confirmation**:
+7. **Final Summary & Confirmation** using the `question` tool:
    - After ALL issues have been reviewed, present summary:
-     ```
-     **Summary of Changes:**
-     
-     I will make the following changes:
-     
-     **Files to Update:**
-     1. CONTEXT_XXX-description.md
-        - Remove code snippets from Summary section
-        - Reduce goals from 6 to 3
-     
-     2. CONTEXT_YYY-other-context.md
-        - Fix missing File System Diff section
-        - Remove implementation steps
-     
-     **Contexts to Split:**
-     1. CONTEXT_ZZZ-big-context.md → Split into:
-        - CONTEXT_ZZZ-1-focused-context-a.md
-        - CONTEXT_ZZZ-2-focused-context-b.md
-     
-     **Contexts to Create:**
-     - N new context files from splits
-     
-     **Proceed with these changes?**
-     
-     | Option | Description |
-     |--------|-------------|
-     | A | Yes - Apply all changes |
-     | B | No - Cancel all changes |
-     | C | Review - Show me specific changes again |
-     
-     Reply with: "A"/"yes" to proceed, "B"/"no" to cancel, or "C" to review.
+     ```json
+     {
+       "questions": [{
+         "question": "Summary of Changes:\n\nI will make the following changes:\n\n**Files to Update:**\n1. CONTEXT_XXX-description.md\n   - Remove code snippets from Summary section\n   - Reduce goals from 6 to 3\n\n**Contexts to Split:**\n1. CONTEXT_ZZZ-big-context.md → Split into N contexts\n\n**Contexts to Create:**\n- N new context files from splits\n\nProceed with these changes?",
+         "header": "Confirm Changes",
+         "options": [
+           {"label": "Yes, apply all", "description": "Apply all changes"},
+           {"label": "No, cancel", "description": "Cancel all changes"},
+           {"label": "Review", "description": "Show me specific changes again"}
+         ]
+       }]
+     }
      ```
 
-7. **Apply Changes**:
-   - If user approves (Option A or "yes"):
+8. **Apply Changes**:
+   - If user approves:
      - **For file location violations**:
        - Move context files from `.nexus/context/tasks/` root to appropriate project subfolder
        - Use the `project` field from frontmatter to determine destination folder
-       - If no `project` field, ask user which folder to move it to
+       - If no `project` field, use the `question` tool to ask which folder to move it to
        - Create project folder if it doesn't exist
      - **For file updates**:
        - Read each context file
@@ -206,37 +171,26 @@ A proper context file should:
        - Create new context files with auto-incremented IDs in the same project folder
        - Distribute goals/content appropriately
        - Update original context with reference to split contexts
-       - Or archive original context (ask user preference)
+       - Or archive original context (use `question` tool to ask user preference)
        - Confirm all changes made
-   - If user cancels (Option B or "no"):
+   - If user cancels:
      - Do not modify any files
 
-8. **Check AGENTS.md Learning Opportunities**:
+9. **Check AGENTS.md Learning Opportunities**:
    - After all context corrections are done, review the lessons learned and changes made
    - For each project folder that had contexts updated, check if there's operational knowledge to add to AGENTS.md
-   - Ask the user ONE TIME (not per-context):
-     ```
-     **AGENTS.md Update Opportunity**
-     
-     During this review, I worked on contexts in the following project folders:
-     - <project-folder-1>
-     - <project-folder-2>
-     
-     **What I noticed:** Based on the lessons learned and validation commands in these contexts, I could add operational knowledge to AGENTS.md files.
-     
-     **Example additions:**
-     - In <project-folder-1>/AGENTS.md: Add "How to run: `just dev check`" (from validation commands)
-     - In <project-folder-2>/AGENTS.md: Add lesson about X discovered during context work
-     
-     **Recommended:** Option A - Review and update AGENTS.md files
-     
-     | Option | Description |
-     |--------|-------------|
-     | A | Yes - Help me update AGENTS.md with operational knowledge |
-     | B | No - Skip AGENTS.md updates |
-     | Short | Custom instruction |
-     
-     You can reply with: "A"/"yes" to update, "B"/"no" to skip.
+   - Ask the user ONE TIME (not per-context) using the `question` tool:
+     ```json
+     {
+       "questions": [{
+         "question": "AGENTS.md Update Opportunity\n\nDuring this review, I worked on contexts in the following project folders:\n- <project-folder-1>\n- <project-folder-2>\n\nBased on the lessons learned and validation commands in these contexts, I could add operational knowledge to AGENTS.md files.\n\nWould you like to update AGENTS.md?",
+         "header": "Update AGENTS.md",
+         "options": [
+           {"label": "Yes, update", "description": "Help me update AGENTS.md with operational knowledge"},
+           {"label": "No, skip", "description": "Skip AGENTS.md updates"}
+         ]
+       }]
+     }
      ```
    - If user approves:
      - For each project folder, read the AGENTS.md (or note if missing)
@@ -244,27 +198,27 @@ A proper context file should:
        - Common validation commands → "Running & Operations" section
        - Major lessons learned → "Major Lessons" section
        - New features from context summaries → "Major Features" section
-     - Present proposed additions ONE-BY-ONE using standard format
+     - Present proposed additions ONE-BY-ONE using the `question` tool
      - Apply approved changes
    - If AGENTS.md doesn't exist, offer to create it from template
 
-9. **Completion**:
-   - Show summary of what was done:
-     ```
-     ✅ Context review complete:
-     
-     **Updated:**
-     - N context files corrected
-     - M issues fixed
-     - X AGENTS.md files updated with operational knowledge
-     
-     **Created:**
-     - Y new focused context files from splits
-     
-     **Summary:**
-     All contexts now comply with context specification requirements.
-     Next: Run 'nexus' to see updated context list.
-     ```
+10. **Completion**:
+    - Show summary of what was done:
+      ```
+      ✅ Context review complete:
+      
+      **Updated:**
+      - N context files corrected
+      - M issues fixed
+      - X AGENTS.md files updated with operational knowledge
+      
+      **Created:**
+      - Y new focused context files from splits
+      
+      **Summary:**
+      All contexts now comply with context specification requirements.
+      Next: Run 'nexus' to see updated context list.
+      ```
 
 ---
 

@@ -1,43 +1,55 @@
 ---
-description: Spawns 5 subagents to investigate a prompt, then summarizes and compares their findings
+description: Spawns 5 subagents that each run the full investigation, then summarizes and compares their findings
 agent: general
 ---
 
 You are an investigator. Your job is to take the user's prompt and spawn 5 separate subagents to explore it thoroughly.
 
 Steps:
-1. Spawn 5 independent subagent sessions using the Task tool, all working on the same prompt
+1. Spawn 5 independent subagent sessions using the Task tool
 2. Use the **General** agent type for all subagents
-3. **CRITICAL**: Instruct each subagent to NOT write any code or modify any files - they should only think at a high level, analyze, and report their findings back
-4. Collect all findings from the 5 subagents
+3. Give all 5 subagents the same complete investigation scope (do NOT split responsibilities by sub-task)
+4. **CRITICAL**: Instruct each subagent to NOT write any code or modify any files - they should only think at a high level, analyze, and report their findings back
+5. Collect all findings from the 5 subagents
 
-After collecting all findings, analyze and present:
-1. A summary of all findings
-2. A voting/comparison system showing:
-   - What answers and conclusions were consistent or matched between multiple agents
-   - What answers and conclusions were contradictory or disagreed upon
-   - Confidence levels for each finding based on agreement
-3. A final recommendations section grouped by severity:
-   - **Critical**
-   - **Minor**
+Investigation scope that every subagent must cover in full:
+1. Interpret the user prompt and identify key assumptions
+2. Analyze risks, tradeoffs, and likely failure modes
+3. Propose practical recommendations with rationale
+4. Highlight open questions, unknowns, and confidence levels
 
-For each recommendation, use the standardized question format from `nexus-1.2-context-create.md` Appendix A:
+After collecting all findings, analyze and present using numbered lists (not bullet lists):
+1. A numbered summary of all findings
+2. A numbered voting/comparison section showing:
+   1. What answers and conclusions were consistent or matched between multiple agents
+   2. What answers and conclusions were contradictory or disagreed upon
+   3. Confidence levels for each finding based on agreement
+3. A numbered final recommendations section grouped by severity:
+   1. **Critical**
+   2. **Minor**
 
+For each recommendation, use the `question` tool:
+
+```json
+{
+  "questions": [{
+    "question": "Recommendation [N/TOTAL]: <severity> - <problem statement>\n\nRecommended: <recommended solution>\n\nAlternative: <alternative solution>",
+    "header": "Investigation",
+    "options": [
+      {"label": "Accept recommended", "description": "Proceed with the recommended solution"},
+      {"label": "Choose alternative", "description": "Use the alternative solution"},
+      {"label": "Provide different", "description": "I'll specify a different approach"}
+    ]
+  }]
+}
 ```
-**Question [N/TOTAL]**: <problem statement>
 
-**Recommended:** Option [X] - <reasoning>
+Provide one question per recommendation, grouped under **Critical** and **Minor** headings, and number each recommendation item.
 
-| Option | Description |
-|--------|-------------|
-| A | <recommended solution> |
-| B | <alternative solution> |
-| Short | Provide different answer |
-
-Reply with: option letter, "yes" for recommended, or your own answer.
-```
-
-Provide one question per recommendation, grouped under **Critical** and **Minor** headings.
+Formatting requirements:
+1. Use numbered lists for all major sections and recommendation items
+2. Do not use bullet lists for findings or recommendations
+3. Use the `question` tool for user interaction instead of markdown tables
 
 After presenting the findings, use the `reporting` tool with:
 - input: the full investigation summary
