@@ -25,3 +25,6 @@ thiserror.workspace = true
 ratkit = { path = "../../ratkit" }
 ratatui.workspace = true
 crossterm.workspace = true
+ratatui-testlib = "0.1"
+portable-pty = "0.8"
+termwright = "0.2"
