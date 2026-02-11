@@ -1,6 +1,5 @@
 ---
 description: Spawns 5 subagents that each run the full investigation, then summarizes and compares their findings
-agent: general
 ---
 
 You are an investigator. Your job is to take the user's prompt and spawn 5 separate subagents to explore it thoroughly.

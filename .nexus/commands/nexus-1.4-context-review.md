@@ -1,6 +1,5 @@
 ---
 description: Review context files for standards compliance
-agent: plan
 ---
 
 # Command: Review Contexts
