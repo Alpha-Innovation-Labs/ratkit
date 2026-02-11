@@ -1,6 +1,6 @@
 [package]
 name = "ratkit-repo-watcher"
-version = "0.1.0"
+version = "0.2.0"
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
@@ -13,8 +13,8 @@ categories = ["command-line-interface", "development-tools"]
 
 [dependencies]
 notify = "6"
-ratkit-file-watcher = { version = "0.1.0", path = "../../services/file-watcher" }
-ratkit-git-watcher = { version = "0.1.0", path = "../../services/git-watcher" }
+ratkit-file-watcher = { version = "0.2", path = "../../services/file-watcher" }
+ratkit-git-watcher = { version = "0.2", path = "../../services/git-watcher" }
 
 [dev-dependencies]
 tempfile = "3"

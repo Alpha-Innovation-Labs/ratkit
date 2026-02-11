@@ -1,6 +1,6 @@
 [package]
 name = "ratkit-markdown-preview"
-version = "0.1.0"
+version = "0.2.0"
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
@@ -28,10 +28,10 @@ serde_json = "1"
 notify = "6"
 arboard = "3"
 dirs = "5"
-ratkit-pane = { path = "../../primitives/pane" }
-ratkit-statusline = { path = "../../primitives/statusline" }
-ratkit-git-watcher = { path = "../../services/git-watcher" }
-ratkit-file-watcher = { path = "../../services/file-watcher" }
+ratkit-pane = { version = "0.2", path = "../../primitives/pane" }
+ratkit-statusline = { version = "0.2", path = "../../primitives/statusline" }
+ratkit-git-watcher = { version = "0.2", path = "../../services/git-watcher" }
+ratkit-file-watcher = { version = "0.2", path = "../../services/file-watcher" }
 
 [dev-dependencies]
 ratkit = { path = "../../ratkit", features = ["markdown-preview", "toast"] }

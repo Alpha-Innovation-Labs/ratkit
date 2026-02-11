@@ -1,6 +1,6 @@
 [package]
 name = "ratkit"
-version = "0.1.0"
+version = "0.2.0"
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
@@ -14,16 +14,16 @@ categories = ["command-line-interface", "gui"]
 
 [dependencies]
 # Core UI widgets (primitives)
-ratkit-button = { path = "../primitives/button", optional = true }
-ratkit-pane = { path = "../primitives/pane", optional = true }
-ratkit-dialog = { path = "../primitives/dialog", optional = true }
-ratkit-toast = { path = "../primitives/toast", optional = true }
-ratkit-statusline = { path = "../primitives/statusline", optional = true }
-ratkit-scroll = { path = "../primitives/scroll", optional = true }
-ratkit-menu-bar = { path = "../primitives/menu-bar", optional = true }
-ratkit-resizable-grid = { path = "../primitives/resizable-grid", optional = true }
-ratkit-tree-view = { path = "../primitives/tree-view", optional = true }
-ratkit-widget-event = { path = "../primitives/widget-event", optional = true }
+ratkit-button = { path = "../primitives/button", version = "0.2", optional = true }
+ratkit-pane = { path = "../primitives/pane", version = "0.2", optional = true }
+ratkit-dialog = { path = "../primitives/dialog", version = "0.2", optional = true }
+ratkit-toast = { path = "../primitives/toast", version = "0.2", optional = true }
+ratkit-statusline = { path = "../primitives/statusline", version = "0.2", optional = true }
+ratkit-scroll = { path = "../primitives/scroll", version = "0.2", optional = true }
+ratkit-menu-bar = { path = "../primitives/menu-bar", version = "0.2", optional = true }
+ratkit-resizable-grid = { path = "../primitives/resizable-grid", version = "0.2", optional = true }
+ratkit-tree-view = { path = "../primitives/tree-view", version = "0.2", optional = true }
+ratkit-widget-event = { path = "../primitives/widget-event", version = "0.2", optional = true }
 crossterm = { workspace = true }
 ratatui = { workspace = true }
 thiserror = { workspace = true }
@@ -31,18 +31,18 @@ tracing = { workspace = true }
 uuid = { version = "1.10", features = ["v4", "serde"] }
 
 # Advanced widgets
-ratkit-markdown-preview = { path = "../widgets/markdown-preview", optional = true }
-ratkit-code-diff = { path = "../widgets/code-diff", optional = true }
-ratkit-ai-chat = { path = "../widgets/ai-chat", optional = true }
-ratkit-hotkey-footer = { path = "../widgets/hotkey-footer", optional = true }
-ratkit-file-system-tree = { path = "../widgets/file-system-tree", optional = true }
-ratkit-theme-picker = { path = "../widgets/theme-picker", optional = true }
+ratkit-markdown-preview = { path = "../widgets/markdown-preview", version = "0.2", optional = true }
+ratkit-code-diff = { path = "../widgets/code-diff", version = "0.2", optional = true }
+ratkit-ai-chat = { path = "../widgets/ai-chat", version = "0.2", optional = true }
+ratkit-hotkey-footer = { path = "../widgets/hotkey-footer", version = "0.2", optional = true }
+ratkit-file-system-tree = { path = "../widgets/file-system-tree", version = "0.2", optional = true }
+ratkit-theme-picker = { path = "../widgets/theme-picker", version = "0.2", optional = true }
 
 # Services
-ratkit-file-watcher = { path = "../services/file-watcher", optional = true }
-ratkit-git-watcher = { path = "../services/git-watcher", optional = true }
-ratkit-repo-watcher = { path = "../services/repo-watcher", optional = true }
-ratkit-hotkey-service = { path = "../services/hotkey-service", optional = true }
+ratkit-file-watcher = { path = "../services/file-watcher", version = "0.2", optional = true }
+ratkit-git-watcher = { path = "../services/git-watcher", version = "0.2", optional = true }
+ratkit-repo-watcher = { path = "../services/repo-watcher", version = "0.2", optional = true }
+ratkit-hotkey-service = { path = "../services/hotkey-service", version = "0.2", optional = true }
 
 [features]
 default = []
@@ -124,8 +124,8 @@ hotkey-service = ["ratkit-hotkey-service"]
 [dev-dependencies]
 ratatui.workspace = true
 crossterm.workspace = true
-ratkit-button = { path = "../primitives/button" }
-ratkit-pane = { path = "../primitives/pane" }
+ratkit-button = { path = "../primitives/button", version = "0.2" }
+ratkit-pane = { path = "../primitives/pane", version = "0.2" }
 
 [[example]]
 name = "ratkit_demo"
