@@ -13,36 +13,42 @@ keywords = ["tui", "ratatui", "widgets", "ui"]
 categories = ["command-line-interface", "gui"]
 
 [dependencies]
-# Core UI widgets (primitives)
-ratkit-button = { path = "../primitives/button", version = "0.2", optional = true }
-ratkit-pane = { path = "../primitives/pane", version = "0.2", optional = true }
-ratkit-dialog = { path = "../primitives/dialog", version = "0.2", optional = true }
-ratkit-toast = { path = "../primitives/toast", version = "0.2", optional = true }
-ratkit-statusline = { path = "../primitives/statusline", version = "0.2", optional = true }
-ratkit-scroll = { path = "../primitives/scroll", version = "0.2", optional = true }
-ratkit-menu-bar = { path = "../primitives/menu-bar", version = "0.2", optional = true }
-ratkit-resizable-grid = { path = "../primitives/resizable-grid", version = "0.2", optional = true }
-ratkit-tree-view = { path = "../primitives/tree-view", version = "0.2", optional = true }
-ratkit-widget-event = { path = "../primitives/widget-event", version = "0.2", optional = true }
-crossterm = { workspace = true }
-ratatui = { workspace = true }
-thiserror = { workspace = true }
-tracing = { workspace = true }
+# Core dependencies (always included)
+ratatui.workspace = true
+crossterm.workspace = true
+tokio.workspace = true
+unicode-width.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
 uuid = { version = "1.10", features = ["v4", "serde"] }
 
-# Advanced widgets
-ratkit-markdown-preview = { path = "../widgets/markdown-preview", version = "0.2", optional = true }
-ratkit-code-diff = { path = "../widgets/code-diff", version = "0.2", optional = true }
-ratkit-ai-chat = { path = "../widgets/ai-chat", version = "0.2", optional = true }
-ratkit-hotkey-footer = { path = "../widgets/hotkey-footer", version = "0.2", optional = true }
-ratkit-file-system-tree = { path = "../widgets/file-system-tree", version = "0.2", optional = true }
-ratkit-theme-picker = { path = "../widgets/theme-picker", version = "0.2", optional = true }
+# Optional dependencies for specific features
+## ai-chat feature
+reqwest = { version = "0.12", features = ["json"], optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
 
-# Services
-ratkit-file-watcher = { path = "../services/file-watcher", version = "0.2", optional = true }
-ratkit-git-watcher = { path = "../services/git-watcher", version = "0.2", optional = true }
-ratkit-repo-watcher = { path = "../services/repo-watcher", version = "0.2", optional = true }
-ratkit-hotkey-service = { path = "../services/hotkey-service", version = "0.2", optional = true }
+## termtui feature
+compact_str = { version = "0.8", optional = true }
+unicode-segmentation = { version = "1.10", optional = true }
+log = { version = "0.4", optional = true }
+
+## file-watcher, git-watcher, markdown-preview features
+notify = { version = "6", optional = true }
+
+## markdown-preview feature
+pulldown-cmark = { version = "0.12", optional = true }
+syntect = { version = "5", optional = true }
+syntect-tui = { version = "3", optional = true }
+arboard = { version = "3", optional = true }
+dirs = { version = "5", optional = true }
+
+## code-diff feature
+similar = { version = "2", optional = true }
+
+## file-system-tree feature
+devicons = { version = "0.6", optional = true }
 
 [features]
 default = []
@@ -58,6 +64,7 @@ all = [
     "resizable-grid",
     "tree-view",
     "widget-event",
+    "termtui",
     "markdown-preview",
     "code-diff",
     "ai-chat",
@@ -71,6 +78,9 @@ all = [
 ]
 
 full = ["all"]
+
+# Additional feature not in main groups
+termtui = ["compact_str", "serde", "unicode-segmentation", "log"]
 
 # Widget feature groups
 widgets = [
@@ -100,32 +110,31 @@ services = [
 ]
 
 # Individual widget features
-button = ["ratkit-button"]
-pane = ["ratkit-pane"]
-dialog = ["ratkit-dialog"]
-toast = ["ratkit-toast"]
-statusline = ["ratkit-statusline"]
-scroll = ["ratkit-scroll"]
-menu-bar = ["ratkit-menu-bar"]
-resizable-grid = ["ratkit-resizable-grid"]
-tree-view = ["ratkit-tree-view"]
-widget-event = ["ratkit-widget-event"]
-markdown-preview = ["ratkit-markdown-preview"]
-code-diff = ["ratkit-code-diff"]
-ai-chat = ["ratkit-ai-chat"]
-hotkey-footer = ["ratkit-hotkey-footer"]
-file-system-tree = ["ratkit-file-system-tree"]
-theme-picker = ["ratkit-theme-picker"]
-file-watcher = ["ratkit-file-watcher"]
-git-watcher = ["ratkit-git-watcher"]
-repo-watcher = ["ratkit-repo-watcher"]
-hotkey-service = ["ratkit-hotkey-service"]
+button = []
+pane = []
+dialog = []
+toast = []
+statusline = []
+scroll = []
+menu-bar = ["widget-event"]
+resizable-grid = []
+tree-view = ["widget-event"]
+widget-event = []
+markdown-preview = ["pulldown-cmark", "syntect", "syntect-tui", "notify", "arboard", "dirs", "serde", "serde_json", "pane", "statusline", "file-watcher", "git-watcher"]
+code-diff = ["similar"]
+ai-chat = ["reqwest", "serde", "serde_json"]
+hotkey-footer = []
+file-system-tree = ["devicons"]
+theme-picker = []
+file-watcher = ["notify"]
+git-watcher = ["notify"]
+repo-watcher = ["notify", "file-watcher", "git-watcher"]
+hotkey-service = []
 
 [dev-dependencies]
 ratatui.workspace = true
 crossterm.workspace = true
-ratkit-button = { path = "../primitives/button", version = "0.2" }
-ratkit-pane = { path = "../primitives/pane", version = "0.2" }
+portable-pty = "0.8"
 
 [[example]]
 name = "ratkit_demo"
@@ -133,3 +142,27 @@ required-features = ["button", "pane"]
 
 [[example]]
 name = "mouse_only"
+
+[[example]]
+name = "ai_chat_ai_chat_demo"
+required-features = ["ai-chat"]
+
+[[example]]
+name = "code_diff_code_diff_demo"
+required-features = ["code-diff"]
+
+[[example]]
+name = "file_system_tree_file_system_tree_demo"
+required-features = ["file-system-tree"]
+
+[[example]]
+name = "hotkey_footer_hotkey_footer_demo"
+required-features = ["hotkey-footer"]
+
+[[example]]
+name = "markdown_preview_markdown_preview_demo"
+required-features = ["markdown-preview"]
+
+[[example]]
+name = "theme_picker_theme_picker_demo"
+required-features = ["theme-picker"]

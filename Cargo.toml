@@ -1,38 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    # Legacy crates archived - see _archives/ directory
-    # "crates/ratatui-toolkit",
-    # "crates/archives",
-    
-    # Primitives (12 crates)
-    "crates/primitives/button",
-    "crates/primitives/pane",
-    "crates/primitives/dialog",
-    "crates/primitives/toast",
-    "crates/primitives/statusline",
-    "crates/primitives/scroll",
-    "crates/primitives/menu-bar",
-    "crates/primitives/resizable-grid",
-    "crates/primitives/tree-view",
-    "crates/primitives/widget-event",
-    "crates/primitives/termtui",
-    
-    # Widgets (6 crates)
-    "crates/widgets/markdown-preview",
-    "crates/widgets/code-diff",
-    "crates/widgets/ai-chat",
-    "crates/widgets/hotkey-footer",
-    "crates/widgets/file-system-tree",
-    "crates/widgets/theme-picker",
-    
-    # Services (4 crates)
-    "crates/services/file-watcher",
-    "crates/services/git-watcher",
-    "crates/services/repo-watcher",
-    "crates/services/hotkey-service",
-    
-    # Meta-crate
+    # Single consolidated ratkit crate
     "crates/ratkit",
 ]
 

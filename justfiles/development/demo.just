@@ -39,4 +39,4 @@ demo:
     example=${selection#*:}
 
     echo "Running $pkg:$example..."
-    cargo run -p "$pkg" --example "$example"
+    cargo run -p "$pkg" --example "$example" --features full

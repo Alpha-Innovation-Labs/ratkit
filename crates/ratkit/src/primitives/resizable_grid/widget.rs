@@ -1,0 +1,577 @@
+//! ResizableGrid widget with integrated hover and mouse handling.
+//!
+//! This widget wraps the ResizableGrid primitive and provides:
+//! - Mouse hover detection on dividers
+//! - Drag-to-resize functionality
+//! - Optional styling for dividers and panes
+//! - Rendering support for pane borders and overlays
+//!
+//! # Minimal resizable split
+//!
+//! Create the widget each frame with the current state, call `handle_mouse` with
+//! the same render area you draw into, and persist `widget.state()` across frames.
+//!
+//! ```rust
+//! use crossterm::event::MouseEvent;
+//! use ratatui::{Frame, layout::Rect};
+//! use ratatui_toolkit::primitives::resizable_grid::ResizableGrid;
+//! use ratatui_toolkit::primitives::resizable_grid::{ResizableGridWidget, ResizableGridWidgetState};
+//!
+//! struct App {
+//!     layout: ResizableGrid,
+//!     split_state: ResizableGridWidgetState,
+//! }
+//!
+//! impl App {
+//!     fn new() -> Self {
+//!         let mut layout = ResizableGrid::new(0);
+//!         let right_pane = layout.split_pane_horizontally(0).unwrap();
+//!
+//!         Self {
+//!             layout,
+//!             split_state: ResizableGridWidgetState::default(),
+//!         }
+//!     }
+//!
+//!     fn handle_mouse(&mut self, mouse: MouseEvent, render_area: Rect) {
+//!         let mut widget = ResizableGridWidget::new(&mut self.layout)
+//!             .with_state(self.split_state);
+//!
+//!         widget.handle_mouse(mouse, render_area);
+//!         self.split_state = widget.state();
+//!     }
+//!
+//!     fn render(&mut self, frame: &mut Frame, area: Rect) {
+//!         let mut widget = ResizableGridWidget::new(&mut self.layout)
+//!             .with_state(self.split_state);
+//!
+//!         self.split_state = widget.state();
+//!         frame.render_widget(widget, area);
+//!     }
+//! }
+//! ```
+//!
+//! For a full example with multiple panes and styling, see `examples/split_demo.rs`.
+//!
+//! # Do / Don't
+//!
+//! Do:
+//! - Use `ResizableGridWidget` for drag-resize interaction.
+//! - Call `handle_mouse(mouse, render_area)` with the same area you render into.
+//! - Persist `ResizableGridWidgetState` across frames.
+//!
+//! Don't:
+//! - Expect `ResizableGrid` to handle mouse events by itself.
+
+use crate::primitives::resizable_grid::layout::PaneLayout;
+use crate::primitives::resizable_grid::types::{ResizableGrid, SplitAxis, SplitDividerLayout};
+use crossterm::event::{MouseButton, MouseEvent, MouseEventKind};
+use ratatui::{
+    layout::Rect,
+    style::{Color, Modifier, Style},
+    text::Line,
+    widgets::{Block, BorderType, Borders, Widget},
+};
+
+/// State for ResizableGridWidget interactions.
+///
+/// This can be stored in app state to preserve hover and drag
+/// information across frames.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ResizableGridWidgetState {
+    /// Index of the divider currently being hovered
+    pub hovered_divider: Option<usize>,
+    /// Index of the divider currently being dragged
+    pub dragging_divider: Option<usize>,
+}
+
+/// A widget that wraps ResizableGrid with mouse interaction support.
+///
+/// This widget manages hover state, drag state, and handles mouse events
+/// to resize dividers. It also provides styling options for visual feedback
+/// during interactions.
+///
+/// See the module-level docs for a minimal resizable split example.
+///
+/// # Example
+///
+/// ```rust
+/// use ratatui_toolkit::primitives::resizable_grid::{ResizableGridWidget, ResizableGrid};
+///
+/// let layout = ResizableGrid::new(0);
+/// let state = ResizableGridWidgetState::default();
+///
+/// let widget = ResizableGridWidget::new(layout)
+///     .with_divider_width(1)
+///     .with_hit_threshold(2);
+/// ```
+#[derive(Debug, Clone)]
+pub struct ResizableGridWidget {
+    /// The underlying ResizableGrid (owned)
+    layout: ResizableGrid,
+    /// State for hover and drag interactions
+    state: ResizableGridWidgetState,
+    /// Width of divider lines in columns
+    divider_width: u16,
+    /// Hit detection threshold in columns/rows
+    hit_threshold: u16,
+    /// Style for hovered dividers
+    hover_style: Style,
+    /// Style for dragging dividers
+    drag_style: Style,
+    /// Style for normal dividers
+    divider_style: Style,
+    /// Optional block to render around the entire widget
+    block: Option<Block<'static>>,
+    /// Whether to show pane borders
+    show_pane_borders: bool,
+}
+
+impl ResizableGridWidget {
+    /// Create a new ResizableGridWidget owning the given ResizableGrid.
+    pub fn new(layout: ResizableGrid) -> Self {
+        Self {
+            layout,
+            state: ResizableGridWidgetState::default(),
+            divider_width: 1,
+            hit_threshold: 2,
+            hover_style: Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+            drag_style: Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+            divider_style: Style::default(),
+            block: None,
+            show_pane_borders: true,
+        }
+    }
+
+    /// Set the widget state (for preserving hover/drag across frames).
+    pub fn with_state(mut self, state: ResizableGridWidgetState) -> Self {
+        self.state = state;
+        self
+    }
+
+    /// Get the current widget state (for saving after frame).
+    pub fn state(&self) -> ResizableGridWidgetState {
+        self.state
+    }
+
+    /// Get the recommended event poll duration based on interaction state.
+    ///
+    /// Returns 8ms (~120fps) when dragging for smooth resizing,
+    /// otherwise returns 50ms (normal rate).
+    ///
+    /// # Example
+    ///
+    /// ```rust,ignore
+    /// let poll_timeout = widget.optimal_poll_duration();
+    /// if event::poll(poll_timeout)? { ... }
+    /// ```
+    pub fn optimal_poll_duration(&self) -> std::time::Duration {
+        if self.state.dragging_divider.is_some() {
+            std::time::Duration::from_millis(8)
+        } else {
+            std::time::Duration::from_millis(50)
+        }
+    }
+
+    /// Get a reference to the underlying layout.
+    pub fn layout(&self) -> &ResizableGrid {
+        &self.layout
+    }
+
+    /// Get a mutable reference to the underlying layout.
+    pub fn layout_mut(&mut self) -> &mut ResizableGrid {
+        &mut self.layout
+    }
+
+    /// Set the width of divider lines.
+    pub fn with_divider_width(mut self, width: u16) -> Self {
+        self.divider_width = width.max(1);
+        self
+    }
+
+    /// Set the hit detection threshold for dividers.
+    pub fn with_hit_threshold(mut self, threshold: u16) -> Self {
+        self.hit_threshold = threshold.max(1);
+        self
+    }
+
+    /// Set the style for hovered dividers.
+    pub fn with_hover_style(mut self, style: Style) -> Self {
+        self.hover_style = style;
+        self
+    }
+
+    /// Set the style for dragging dividers.
+    pub fn with_drag_style(mut self, style: Style) -> Self {
+        self.drag_style = style;
+        self
+    }
+
+    /// Set the style for normal dividers.
+    pub fn with_divider_style(mut self, style: Style) -> Self {
+        self.divider_style = style;
+        self
+    }
+
+    /// Set the block to render around the widget.
+    pub fn with_block(mut self, block: Block<'static>) -> Self {
+        self.block = Some(block);
+        self
+    }
+
+    /// Enable or disable pane borders.
+    pub fn with_pane_borders(mut self, show: bool) -> Self {
+        self.show_pane_borders = show;
+        self
+    }
+
+    /// Check if currently hovering over any divider.
+    pub fn is_hovering(&self) -> bool {
+        self.state.hovered_divider.is_some()
+    }
+
+    /// Check if currently dragging any divider.
+    pub fn is_dragging(&self) -> bool {
+        self.state.dragging_divider.is_some()
+    }
+
+    /// Check if the widget needs fast refresh (during drag operations).
+    pub fn needs_fast_refresh(&self) -> bool {
+        self.is_dragging() || self.is_hovering()
+    }
+
+    /// Get the currently hovered divider index, if any.
+    pub fn hovered_divider(&self) -> Option<usize> {
+        self.state.hovered_divider
+    }
+
+    /// Get the currently dragging divider index, if any.
+    pub fn dragging_divider(&self) -> Option<usize> {
+        self.state.dragging_divider
+    }
+
+    /// Handle a mouse event.
+    ///
+    /// This method processes mouse events and updates the widget's state:
+    /// - Mouse move: Update hover state
+    /// - Mouse down: Start dragging if on a divider
+    /// - Mouse drag: Resize the divider
+    /// - Mouse up: Stop dragging
+    ///
+    /// # Arguments
+    ///
+    /// * `mouse` - The mouse event to handle
+    /// * `area` - The area the widget is rendered in
+    pub fn handle_mouse(&mut self, mouse: MouseEvent, area: Rect) {
+        match mouse.kind {
+            MouseEventKind::Moved => {
+                if self.state.dragging_divider.is_none() {
+                    self.state.hovered_divider =
+                        self.find_divider_at(mouse.column, mouse.row, area);
+                }
+            }
+            MouseEventKind::Down(MouseButton::Left) => {
+                if let Some(pane_id) = self.find_divider_at(mouse.column, mouse.row, area) {
+                    self.state.dragging_divider = Some(pane_id);
+                }
+            }
+            MouseEventKind::Drag(MouseButton::Left) => {
+                if let Some(pane_id) = self.state.dragging_divider {
+                    self.resize_divider(pane_id, mouse.column, mouse.row, area);
+                }
+            }
+            MouseEventKind::Up(MouseButton::Left) => {
+                self.state.dragging_divider = None;
+                self.state.hovered_divider = self.find_divider_at(mouse.column, mouse.row, area);
+            }
+            _ => {}
+        }
+    }
+
+    /// Find which split divider the mouse is over.
+    ///
+    /// Returns the split index if mouse is near a divider, or None otherwise.
+    fn find_divider_at(&self, column: u16, row: u16, area: Rect) -> Option<usize> {
+        let layouts = self.layout.layout_dividers(area);
+        let threshold = self.hit_threshold;
+        let mut best_match: Option<(usize, u16, u32)> = None;
+
+        for divider in &layouts {
+            let rect = divider.area();
+            match divider.axis() {
+                SplitAxis::Vertical => {
+                    let divider_x = rect.x.saturating_add(
+                        ((rect.width as u32 * divider.ratio() as u32) / 100) as u16,
+                    );
+                    let distance = divider_x.abs_diff(column);
+                    if distance <= threshold
+                        && column <= divider_x.saturating_add(threshold)
+                        && row >= rect.y
+                        && row <= rect.y.saturating_add(rect.height)
+                    {
+                        let area_size = rect.width as u32 * rect.height as u32;
+                        if best_match
+                            .map(|(_, best_distance, best_area)| {
+                                distance < best_distance
+                                    || (distance == best_distance && area_size < best_area)
+                            })
+                            .unwrap_or(true)
+                        {
+                            best_match = Some((divider.split_index(), distance, area_size));
+                        }
+                    }
+                }
+                SplitAxis::Horizontal => {
+                    let divider_y = rect.y.saturating_add(
+                        ((rect.height as u32 * divider.ratio() as u32) / 100) as u16,
+                    );
+                    let distance = divider_y.abs_diff(row);
+                    if distance <= threshold
+                        && row <= divider_y.saturating_add(threshold)
+                        && column >= rect.x
+                        && column <= rect.x.saturating_add(rect.width)
+                    {
+                        let area_size = rect.width as u32 * rect.height as u32;
+                        if best_match
+                            .map(|(_, best_distance, best_area)| {
+                                distance < best_distance
+                                    || (distance == best_distance && area_size < best_area)
+                            })
+                            .unwrap_or(true)
+                        {
+                            best_match = Some((divider.split_index(), distance, area_size));
+                        }
+                    }
+                }
+            }
+        }
+
+        best_match.map(|(split_index, _, _)| split_index)
+    }
+
+    /// Resize a divider based on mouse position.
+    ///
+    /// Calculates new split percentage based on mouse position and calls
+    /// resize_divider on the ResizableGrid.
+    fn resize_divider(&mut self, split_index: usize, column: u16, row: u16, area: Rect) {
+        let layouts = self.layout.layout_dividers(area);
+        let divider_layout = layouts
+            .iter()
+            .find(|divider| divider.split_index() == split_index);
+
+        if let Some(divider) = divider_layout {
+            let rect = divider.area();
+            match divider.axis() {
+                SplitAxis::Vertical => {
+                    let content_width = rect.width;
+                    if content_width > 0 {
+                        let relative_x = column.saturating_sub(rect.x);
+                        let percent = ((relative_x as u32 * 100) / content_width as u32) as u16;
+                        let _ = self.layout.resize_split(split_index, percent);
+                    }
+                }
+                SplitAxis::Horizontal => {
+                    let content_height = rect.height;
+                    if content_height > 0 {
+                        let relative_y = row.saturating_sub(rect.y);
+                        let percent = ((relative_y as u32 * 100) / content_height as u32) as u16;
+                        let _ = self.layout.resize_split(split_index, percent);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Get the layout rectangles for all panes.
+    ///
+    /// This allows callers to render pane contents after the widget
+    /// has drawn borders and overlays.
+    pub fn pane_layouts(&self, area: Rect) -> Vec<PaneLayout> {
+        self.layout.layout_panes(area)
+    }
+}
+
+impl Widget for ResizableGridWidget {
+    fn render(self, area: Rect, buf: &mut ratatui::buffer::Buffer) {
+        let mut render_area = area;
+
+        // Render outer block if provided
+        if let Some(ref block) = self.block {
+            let block = block.clone();
+            render_area = block.inner(area);
+            block.render(area, buf);
+        }
+
+        let pane_layouts = self.layout.layout_panes(render_area);
+        let divider_layouts = self.layout.layout_dividers(render_area);
+
+        // Render each pane with borders
+        for pane_layout in &pane_layouts {
+            let pane_id = pane_layout.pane_id();
+            let pane_area = pane_layout.area();
+
+            let border_style = self.divider_style;
+
+            // Render pane border
+            if self.show_pane_borders {
+                let pane_block = Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .border_style(border_style)
+                    .title(Line::from(format!(" {}", pane_id)));
+
+                pane_block.render(pane_area, buf);
+            }
+
+            // Render divider overlay when hovered/dragging
+        }
+
+        for divider in &divider_layouts {
+            let divider_style = if self.state.dragging_divider == Some(divider.split_index()) {
+                self.drag_style
+            } else if self.state.hovered_divider == Some(divider.split_index()) {
+                self.hover_style
+            } else {
+                continue;
+            };
+
+            self.render_divider_overlay(divider, divider_style, buf);
+        }
+    }
+}
+
+impl ResizableGridWidget {
+    /// Render a visual overlay on the divider to indicate it's active.
+    fn render_divider_overlay(
+        &self,
+        divider: &SplitDividerLayout,
+        style: Style,
+        buf: &mut ratatui::buffer::Buffer,
+    ) {
+        let width = self.divider_width;
+        let rect = divider.area();
+
+        match divider.axis() {
+            SplitAxis::Vertical => {
+                let divider_x = rect
+                    .x
+                    .saturating_add(((rect.width as u32 * divider.ratio() as u32) / 100) as u16);
+                for y in rect.top()..rect.bottom() {
+                    for dx in 0..width {
+                        let x = divider_x.saturating_sub(dx);
+                        if let Some(cell) = buf.cell_mut((x, y)) {
+                            cell.set_style(style);
+                            cell.set_char('│');
+                        }
+                    }
+                }
+            }
+            SplitAxis::Horizontal => {
+                let divider_y = rect
+                    .y
+                    .saturating_add(((rect.height as u32 * divider.ratio() as u32) / 100) as u16);
+                for x in rect.left()..rect.right() {
+                    for dy in 0..width {
+                        let y = divider_y.saturating_sub(dy);
+                        if let Some(cell) = buf.cell_mut((x, y)) {
+                            cell.set_style(style);
+                            cell.set_char('─');
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crossterm::event::{KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
+
+    #[test]
+    fn test_widget_creation() {
+        let layout = ResizableGrid::new(0);
+        let widget = ResizableGridWidget::new(layout);
+        assert!(!widget.is_hovering());
+        assert!(!widget.is_dragging());
+    }
+
+    #[test]
+    fn test_hover_on_horizontal_divider() {
+        let mut layout = ResizableGrid::new(0);
+        let _pane_2 = layout.split_pane_vertically(0).unwrap();
+
+        let mut widget = ResizableGridWidget::new(layout);
+
+        let area = Rect::new(0, 0, 80, 24);
+
+        // Test hovering near bottom edge of pane 0 (horizontal divider at ~50%)
+        let mouse = MouseEvent {
+            kind: MouseEventKind::Moved,
+            column: 40,
+            row: 11, // Near 50% of 24 = ~12
+            modifiers: KeyModifiers::empty(),
+        };
+
+        widget.handle_mouse(mouse, area);
+
+        // Should detect hover on pane 0's divider
+        assert!(widget.is_hovering());
+        assert_eq!(widget.hovered_divider(), Some(0));
+    }
+
+    #[test]
+    fn test_divider_hit_threshold() {
+        let mut layout = ResizableGrid::new(0);
+        let _pane_2 = layout.split_pane_horizontally(0).unwrap();
+
+        let widget = ResizableGridWidget::new(layout).with_hit_threshold(5);
+
+        assert_eq!(widget.hit_threshold, 5);
+    }
+
+    #[test]
+    fn test_with_styling_methods() {
+        let mut layout = ResizableGrid::new(0);
+        let hover_style = Style::default().fg(Color::Red);
+        let drag_style = Style::default().fg(Color::Blue);
+        let divider_style = Style::default().fg(Color::Green);
+
+        let widget = ResizableGridWidget::new(layout)
+            .with_hover_style(hover_style)
+            .with_drag_style(drag_style)
+            .with_divider_style(divider_style);
+
+        // Styles should be set
+        assert_eq!(widget.hover_style.fg, Some(Color::Red));
+        assert_eq!(widget.drag_style.fg, Some(Color::Blue));
+        assert_eq!(widget.divider_style.fg, Some(Color::Green));
+    }
+
+    #[test]
+    fn test_no_drag_on_single_pane() {
+        // Single pane has no dividers, so dragging should not work
+        let mut layout = ResizableGrid::new(0);
+
+        let mut widget = ResizableGridWidget::new(layout);
+
+        let area = Rect::new(0, 0, 80, 24);
+
+        let mouse_down = MouseEvent {
+            kind: MouseEventKind::Down(MouseButton::Left),
+            column: 40,
+            row: 10,
+            modifiers: KeyModifiers::empty(),
+        };
+        widget.handle_mouse(mouse_down, area);
+
+        // Should NOT be dragging since there's no divider
+        assert!(!widget.is_dragging());
+        assert!(widget.dragging_divider().is_none());
+    }
+}

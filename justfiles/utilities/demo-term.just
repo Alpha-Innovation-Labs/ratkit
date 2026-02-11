@@ -1,7 +1,7 @@
 # Run the standalone Terminal Pane demo
 demo-term:
     @echo "Running Terminal Pane Demo..."
-    cargo run --example showcase --features terminal
+    cargo run -p ratkit --example termtui_term_mprocs_demo --features termtui
 
 # ============================================================================
 # Demo Widget Commands

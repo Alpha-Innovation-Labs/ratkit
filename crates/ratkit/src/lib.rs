@@ -79,6 +79,15 @@ mod types;
 /// Core runtime pieces for ratkit.
 pub mod core;
 
+/// Feature-gated primitive widget modules.
+pub mod primitives;
+
+/// Feature-gated widget modules (includes primitives for backward compatibility).
+pub mod widgets;
+
+/// Feature-gated service modules.
+pub mod services;
+
 pub use runner_helper::{run, run_with_diagnostics};
 
 pub use core::{
@@ -95,52 +104,4 @@ pub mod prelude {
         CoordinatorEvent, KeyboardEvent, LayoutResult, MouseEvent, MouseRouterConfig, ResizeEvent,
         Runner, RunnerAction, RunnerConfig, RunnerEvent, TickEvent,
     };
-}
-
-/// Feature-gated UI widgets.
-pub mod widgets {
-    #[cfg(feature = "ai-chat")]
-    pub use ratkit_ai_chat::*;
-    #[cfg(feature = "button")]
-    pub use ratkit_button::*;
-    #[cfg(feature = "code-diff")]
-    pub use ratkit_code_diff::*;
-    #[cfg(feature = "dialog")]
-    pub use ratkit_dialog::*;
-    #[cfg(feature = "file-system-tree")]
-    pub use ratkit_file_system_tree::*;
-    #[cfg(feature = "hotkey-footer")]
-    pub use ratkit_hotkey_footer::*;
-    #[cfg(feature = "markdown-preview")]
-    pub use ratkit_markdown_preview::*;
-    #[cfg(feature = "menu-bar")]
-    pub use ratkit_menu_bar::*;
-    #[cfg(feature = "pane")]
-    pub use ratkit_pane::*;
-    #[cfg(feature = "resizable-grid")]
-    pub use ratkit_resizable_grid::*;
-    #[cfg(feature = "scroll")]
-    pub use ratkit_scroll::*;
-    #[cfg(feature = "statusline")]
-    pub use ratkit_statusline::*;
-    #[cfg(feature = "theme-picker")]
-    pub use ratkit_theme_picker::*;
-    #[cfg(feature = "toast")]
-    pub use ratkit_toast::*;
-    #[cfg(feature = "tree-view")]
-    pub use ratkit_tree_view::*;
-    #[cfg(feature = "widget-event")]
-    pub use ratkit_widget_event::*;
-}
-
-/// Feature-gated services.
-pub mod services {
-    #[cfg(feature = "file-watcher")]
-    pub use ratkit_file_watcher::*;
-    #[cfg(feature = "git-watcher")]
-    pub use ratkit_git_watcher::*;
-    #[cfg(feature = "hotkey-service")]
-    pub use ratkit_hotkey_service::*;
-    #[cfg(feature = "repo-watcher")]
-    pub use ratkit_repo_watcher::*;
 }
