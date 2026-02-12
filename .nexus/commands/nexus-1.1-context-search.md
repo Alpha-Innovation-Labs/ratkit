@@ -1,6 +1,5 @@
 ---
 description: Search existing context files for relevant outcomes/actions
-agent: plan
 ---
 
 # Command: Search Contexts
