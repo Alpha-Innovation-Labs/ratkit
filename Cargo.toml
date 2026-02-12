@@ -6,8 +6,8 @@ rust-version = "1.70"
 authors = ["Alpha Innovation Labs"]
 description = "A comprehensive collection of reusable TUI components for ratatui including resizable splits, tree views, markdown rendering, toast notifications, dialogs, and terminal embedding"
 documentation = "https://docs.rs/ratkit"
-repository = "https://github.com/alpha-innovation-labs/ratatui-toolkit"
-homepage = "https://github.com/alpha-innovation-labs/ratatui-toolkit"
+repository = "https://github.com/Alpha-Innovation-Labs/ratkit"
+homepage = "https://github.com/Alpha-Innovation-Labs/ratkit"
 license = "MIT"
 keywords = ["tui", "ratatui", "terminal", "widgets", "cli"]
 categories = ["command-line-interface"]
@@ -118,6 +118,11 @@ hotkey-service = []
 ratatui = "0.29"
 crossterm = "0.28"
 portable-pty = "0.8"
+opencode-sdk = { path = "../opencode-rs-sdk", features = ["http", "sse", "server"] }
+serde_json = "1"
+reqwest = { version = "0.12", features = ["json"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
 
 [[example]]
 name = "ratkit_demo"
@@ -149,3 +154,6 @@ required-features = ["markdown-preview"]
 [[example]]
 name = "theme_picker_theme_picker_demo"
 required-features = ["theme-picker"]
+
+# [[example]]
+# name = "test_opencode"
