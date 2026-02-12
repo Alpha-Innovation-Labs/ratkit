@@ -1,12 +1,12 @@
 # ratkit
 
-> Comprehensive Rust TUI component library built on ratatui 0.29, providing 22 feature-gated modules (primitives, widgets, services) for building rich terminal applications.
+> Comprehensive Rust TUI component library built on ratatui 0.29, providing 21 feature-gated modules (primitives, widgets, services) for building rich terminal applications.
 
 This file provides a complete reference for working with the ratkit codebase. The repository is organized as a single crate at the root level with feature-based modularity. Use this guide to understand component relationships, find APIs, and follow established patterns when implementing new features.
 
 ## Agent Operating Rules
 
-1. **Single crate at root**: All code is in `src/` with 22 feature flags (e.g., `button`, `pane`, `markdown-preview`)
+1. **Single crate at root**: All code is in `src/` with 21 feature flags (e.g., `button`, `pane`, `markdown-preview`)
 2. **Enable features explicitly**: No default features; add required features to Cargo.toml (e.g., `features = ["button", "dialog"]`)
 3. **Cross-feature dependencies**: Some features auto-enable others (e.g., `tree-view` enables `widget-event`, `repo-watcher` enables `file-watcher` and `git-watcher`)
 4. **Use `just` for all operations**: Build (`just build`), test (`just test`), check (`just check`), demos (`just demo`)
@@ -25,7 +25,7 @@ This file provides a complete reference for working with the ratkit codebase. Th
 - ratatui 0.29 as the underlying rendering library
 - crossterm 0.28 for terminal input/events
 - tokio for async runtime
-- Single crate at root with 22 feature flags (no workspace members)
+- Single crate at root with 21 feature flags (no workspace members)
 - 23 examples in `examples/` (moved from `crates/ratkit/examples/`)
 - Optional external deps: notify (file watching), reqwest (ai-chat), pulldown-cmark/syntect (markdown), similar (code-diff)
 
@@ -96,7 +96,7 @@ fn main() -> std::io::Result<()> {
 
 ## Workspace Overview
 
-The ratkit workspace contains a **single crate** with 22 feature-gated modules organized into:
+The ratkit workspace contains a **single crate** with 21 feature-gated modules organized into:
 
 - **Primitives** (11 modules): Core UI building blocks in `src/primitives/`
   - button, pane, dialog, toast, statusline, scroll, menu_bar, resizable_grid, tree_view, widget_event, termtui
@@ -393,5 +393,5 @@ All watcher services use the `notify` crate for filesystem events.
 
 ### Version
 
-- Current: 0.2.0
+- Current: 0.2.5
 - Rust: 1.70+
