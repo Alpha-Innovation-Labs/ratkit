@@ -1,7 +1,5 @@
 {
   "llms_path": "llms.txt",
-  "last_generated_commit": "dd238ebd26098d3814c6713df5a6efbb2546b2b7",
-  "generated_at": "2025-02-12T09:46:00Z",
-  "mode": "full",
-  "domains": ["core-runtime", "primitives", "widgets", "services"]
+  "last_generated_commit": "408e9e535965b9b4893e0ebae2cf5c53be0c872a",
+  "generated_at": "2026-02-19T16:31:43Z"
 }
