@@ -1,0 +1,11 @@
+---
+source: tests/markdown_inline_code_snapshot.rs
+assertion_line: 76
+expression: snapshot
+---
+00 T|5. Run examples with  --features  flag: Examples require|
+00 B|                                                        |
+01 T|   their specific features (e.g., `--features           |
+01 B|                                                        |
+02 T|   markdown-preview`)                                   |
+02 B|                                                        |
