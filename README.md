@@ -52,21 +52,21 @@ Add the core runtime to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ratkit = "0.2"
+ratkit = "0.2.5"
 ```
 
 For the full bundle of components:
 
 ```toml
 [dependencies]
-ratkit = { version = "0.2", features = ["all"] }
+ratkit = { version = "0.2.5", features = ["all"] }
 ```
 
 For selected components:
 
 ```toml
 [dependencies]
-ratkit = { version = "0.2", default-features = false, features = ["markdown-preview", "tree-view", "button"] }
+ratkit = { version = "0.2.5", default-features = false, features = ["markdown-preview", "tree-view", "button"] }
 ```
 
 ## Feature Flags
@@ -76,7 +76,7 @@ core runtime is enabled; opt in to specific components or use the `all` feature
 to pull everything.
 
 ```toml
-ratkit = { version = "0.2", default-features = false, features = ["tree-view", "toast"] }
+ratkit = { version = "0.2.5", default-features = false, features = ["tree-view", "toast"] }
 ```
 
 ### Feature Groups
@@ -271,6 +271,26 @@ Core UI building blocks for custom interfaces:
 - **Run:** `cargo run --example toast_toast_demo --features toast`
 - **See:** `examples/toast_toast_demo.rs`
 
+#### StatusLine
+**Example:** `statusline_statusline_demo` — Powerline-style status bar  
+**Feature:** `statusline`
+
+- **Use when:** Displaying compact status information in app headers/footers
+- **Enable:** `features = ["statusline"]`
+- **Import:** `use ratkit::StatusLine;`
+- **Run:** `cargo run --example statusline_statusline_demo --features statusline`
+- **See:** `examples/statusline_statusline_demo.rs`
+
+#### Scroll
+**Example:** `scroll_scroll_demo` — Scroll offset helpers  
+**Feature:** `scroll`
+
+- **Use when:** Managing viewport and cursor movement for long content
+- **Enable:** `features = ["scroll"]`
+- **Import:** `use ratkit::scroll::*;`
+- **Run:** `cargo run --example scroll_scroll_demo --features scroll`
+- **See:** `examples/scroll_scroll_demo.rs`
+
 #### TreeView
 **Example:** `tree-view_tree_view_demo` — Hierarchical tree widget  
 **Feature:** `tree-view` (enables `widget-event`)
@@ -300,6 +320,16 @@ Core UI building blocks for custom interfaces:
 - **Import:** `use ratkit::MenuBar;`
 - **Run:** `cargo run --example menu-bar_menu_bar_demo --features menu-bar`
 - **See:** `examples/menu-bar_menu_bar_demo.rs`
+
+#### WidgetEvent
+**Example:** `widget-event_widget_event_demo` — Shared widget event model  
+**Feature:** `widget-event`
+
+- **Use when:** Building custom widgets that exchange strongly-typed events
+- **Enable:** `features = ["widget-event"]`
+- **Import:** `use ratkit::WidgetEvent;`
+- **Run:** `cargo run --example widget-event_widget_event_demo --features widget-event`
+- **See:** `examples/widget-event_widget_event_demo.rs`
 
 #### TermTui
 **Example:** `termtui_term_mprocs_demo` — Terminal emulator  
