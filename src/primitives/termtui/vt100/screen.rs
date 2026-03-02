@@ -195,7 +195,11 @@ impl Screen {
     /// Returns the `Cell` object at the given location in the terminal, if it
     /// exists.
     #[must_use]
-    pub fn cell(&self, row: u16, col: u16) -> Option<&crate::primitives::termtui::vt100::cell::Cell> {
+    pub fn cell(
+        &self,
+        row: u16,
+        col: u16,
+    ) -> Option<&crate::primitives::termtui::vt100::cell::Cell> {
         self.grid()
             .visible_cell(crate::primitives::termtui::vt100::grid::Pos { row, col })
     }

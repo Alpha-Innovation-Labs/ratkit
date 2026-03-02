@@ -10,13 +10,19 @@ pub struct Row {
 impl Row {
     pub fn new(cols: u16) -> Self {
         Self {
-            cells: vec![crate::primitives::termtui::vt100::cell::Cell::default(); usize::from(cols)],
+            cells: vec![
+                crate::primitives::termtui::vt100::cell::Cell::default();
+                usize::from(cols)
+            ],
             size: 0,
             wrapped: false,
         }
     }
 
-    pub fn new_with_attrs(cols: u16, attrs: crate::primitives::termtui::vt100::attrs::Attrs) -> Self {
+    pub fn new_with_attrs(
+        cols: u16,
+        attrs: crate::primitives::termtui::vt100::attrs::Attrs,
+    ) -> Self {
         let mut cell = crate::primitives::termtui::vt100::cell::Cell::default();
         cell.set_attrs(attrs);
         Self {
@@ -50,7 +56,10 @@ impl Row {
         self.cells.get(usize::from(col))
     }
 
-    pub fn get_mut(&mut self, col: u16) -> Option<&mut crate::primitives::termtui::vt100::cell::Cell> {
+    pub fn get_mut(
+        &mut self,
+        col: u16,
+    ) -> Option<&mut crate::primitives::termtui::vt100::cell::Cell> {
         self.size = self.size.max(col + 1);
         self.cells.get_mut(usize::from(col))
     }
