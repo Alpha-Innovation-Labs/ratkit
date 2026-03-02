@@ -14,14 +14,9 @@ impl Default for FileSystemTreeConfig {
         Self {
             show_hidden: false,
             use_dark_theme: true,
-            dir_style: Style::default()
-                .fg(Color::Cyan)
-                .add_modifier(Modifier::BOLD),
+            dir_style: Style::default().fg(Color::Blue),
             file_style: Style::default().fg(Color::White),
-            selected_style: Style::default()
-                .bg(Color::Blue)
-                .fg(Color::White)
-                .add_modifier(Modifier::BOLD),
+            selected_style: Style::default().add_modifier(Modifier::REVERSED),
         }
     }
 }

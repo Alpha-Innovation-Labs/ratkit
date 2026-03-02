@@ -13,141 +13,20 @@ use crate::widgets::file_system_tree::state::FileSystemTreeState;
 use crate::widgets::file_system_tree::tree_node::FileSystemTreeNode;
 use devicons::{icon_for_file, Theme as DevIconTheme};
 
-fn get_ayu_dark_color(filename: &str) -> Color {
-    let lower = filename.to_lowercase();
-
-    if lower.ends_with(".sh")
-        || lower.ends_with(".bash")
-        || lower.ends_with(".zsh")
-        || lower.ends_with(".fish")
-        || lower.ends_with(".py")
-        || lower.ends_with(".rb")
-    {
-        return Color::Rgb(126, 147, 80);
+fn parse_hex_color(color: &str) -> Option<Color> {
+    let hex = color.strip_prefix('#')?;
+    if hex.len() != 6 {
+        return None;
     }
 
-    if lower.ends_with(".png")
-        || lower.ends_with(".jpg")
-        || lower.ends_with(".jpeg")
-        || lower.ends_with(".gif")
-        || lower.ends_with(".svg")
-        || lower.ends_with(".ico")
-        || lower.ends_with(".webp")
-        || lower.ends_with(".bmp")
-    {
-        return Color::Rgb(194, 160, 92);
-    }
-
-    if lower.ends_with(".mp3")
-        || lower.ends_with(".mp4")
-        || lower.ends_with(".wav")
-        || lower.ends_with(".avi")
-        || lower.ends_with(".mkv")
-        || lower.ends_with(".flac")
-        || lower.ends_with(".ogg")
-        || lower.ends_with(".webm")
-    {
-        return Color::Rgb(126, 147, 80);
-    }
-
-    if lower.ends_with(".zip")
-        || lower.ends_with(".tar")
-        || lower.ends_with(".gz")
-        || lower.ends_with(".bz2")
-        || lower.ends_with(".xz")
-        || lower.ends_with(".7z")
-        || lower.ends_with(".rar")
-    {
-        return Color::Rgb(168, 83, 97);
-    }
-
-    if lower.ends_with(".pdf")
-        || lower.ends_with(".doc")
-        || lower.ends_with(".docx")
-        || lower.ends_with(".rtf")
-        || lower.ends_with(".odt")
-    {
-        return Color::Rgb(31, 111, 136);
-    }
-
-    if lower.ends_with(".json")
-        || lower.ends_with(".js")
-        || lower.ends_with(".ts")
-        || lower.ends_with(".jsx")
-        || lower.ends_with(".tsx")
-    {
-        return Color::Rgb(194, 160, 92);
-    }
-
-    if lower.ends_with(".yml") || lower.ends_with(".yaml") {
-        return Color::Rgb(31, 111, 136);
-    }
-
-    if lower.ends_with(".toml") {
-        return Color::Rgb(148, 100, 182);
-    }
-
-    if lower.ends_with(".rs") {
-        return Color::Rgb(194, 160, 92);
-    }
-
-    if lower.ends_with(".c")
-        || lower.ends_with(".cpp")
-        || lower.ends_with(".h")
-        || lower.ends_with(".hpp")
-    {
-        return Color::Rgb(31, 111, 136);
-    }
-
-    if lower.ends_with(".go") {
-        return Color::Rgb(31, 111, 136);
-    }
-
-    if lower.ends_with(".md") || lower.ends_with(".txt") || lower.ends_with(".log") {
-        return Color::Rgb(230, 225, 207);
-    }
-
-    Color::Rgb(230, 225, 207)
+    let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
+    let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
+    let b = u8::from_str_radix(&hex[4..6], 16).ok()?;
+    Some(Color::Rgb(r, g, b))
 }
 
-fn get_custom_icon(filename: &str) -> Option<(char, Color)> {
-    let lower = filename.to_lowercase();
-
-    if lower.ends_with(".just") || lower == "justfile" || lower == ".justfile" {
-        return Some(('\u{e779}', Color::Rgb(194, 160, 92)));
-    }
-
-    if lower == "makefile" || lower.starts_with("makefile.") || lower == "gnumakefile" {
-        return Some(('\u{e779}', Color::Rgb(109, 128, 134)));
-    }
-
-    if lower == "gemfile" || lower == "gemfile.lock" {
-        return Some(('\u{e21e}', Color::Rgb(112, 21, 22)));
-    }
-
-    if lower == ".env" || lower.starts_with(".env.") {
-        return Some(('\u{f462}', Color::Rgb(251, 192, 45)));
-    }
-
-    if lower == "license"
-        || lower == "license.txt"
-        || lower == "license.md"
-        || lower == "licence"
-        || lower == "licence.txt"
-        || lower == "copying"
-    {
-        return Some(('\u{f48a}', Color::Rgb(216, 187, 98)));
-    }
-
-    if lower == "jenkinsfile" || lower.starts_with("jenkinsfile.") {
-        return Some(('\u{e767}', Color::Rgb(217, 69, 57)));
-    }
-
-    if lower == ".ds_store" {
-        return Some(('\u{f179}', Color::Rgb(126, 142, 168)));
-    }
-
-    None
+fn yazi_dir_icon_color() -> Color {
+    parse_hex_color("#03a9f4").unwrap_or(Color::Blue)
 }
 
 #[derive(Clone)]
@@ -552,9 +431,9 @@ impl<'a> ratatui::widgets::StatefulWidget for FileSystemTree<'a> {
 
                 let (icon_glyph, icon_color) = if entry.is_dir {
                     if state.is_expanded(path) {
-                        ('\u{f07c}', Color::Rgb(31, 111, 136))
+                        ('\u{f115}', yazi_dir_icon_color())
                     } else {
-                        ('\u{f07b}', Color::Rgb(31, 111, 136))
+                        ('\u{f114}', yazi_dir_icon_color())
                     }
                 } else {
                     let theme = if config.use_dark_theme {
@@ -562,13 +441,9 @@ impl<'a> ratatui::widgets::StatefulWidget for FileSystemTree<'a> {
                     } else {
                         DevIconTheme::Light
                     };
-                    let icon_char = if let Some((custom_icon, _)) = get_custom_icon(&entry.name) {
-                        custom_icon
-                    } else {
-                        let file_icon = icon_for_file(&entry.name, &Some(theme));
-                        file_icon.icon
-                    };
-                    let color = get_ayu_dark_color(&entry.name);
+                    let file_icon = icon_for_file(&entry.name, &Some(theme));
+                    let icon_char = file_icon.icon;
+                    let color = parse_hex_color(file_icon.color).unwrap_or(Color::White);
                     (icon_char, color)
                 };
 
@@ -580,16 +455,63 @@ impl<'a> ratatui::widgets::StatefulWidget for FileSystemTree<'a> {
                     config.file_style
                 };
 
+                let selected_bg = if entry.is_dir {
+                    config.dir_style.fg.unwrap_or(Color::Blue)
+                } else {
+                    config.file_style.fg.unwrap_or(Color::White)
+                };
+                let selected_text_style = Style::default().fg(Color::Black).bg(selected_bg);
+
                 let depth = path.len().saturating_sub(1);
                 let indent = "  ".repeat(depth);
 
-                let line = Line::from(vec![
-                    Span::raw(indent),
-                    Span::styled(format!("{} ", icon_glyph), Style::default().fg(icon_color)),
-                    Span::styled(entry.name.clone(), style),
-                ]);
+                let (line_x, line_width) = if tree_area.width > 2 {
+                    let left_x = tree_area.x;
+                    let right_x = tree_area.x + tree_area.width - 1;
 
-                buf.set_line(tree_area.x, y, &line, tree_area.width);
+                    if is_selected {
+                        buf[(left_x, y)]
+                            .set_symbol("")
+                            .set_style(Style::default().fg(selected_bg));
+                        buf[(right_x, y)]
+                            .set_symbol("")
+                            .set_style(Style::default().fg(selected_bg));
+
+                        for x in (left_x + 1)..right_x {
+                            buf[(x, y)].set_style(selected_text_style);
+                        }
+                    } else {
+                        buf[(left_x, y)].set_symbol(" ").set_style(Style::default());
+                        buf[(right_x, y)]
+                            .set_symbol(" ")
+                            .set_style(Style::default());
+                    }
+
+                    (left_x + 1, tree_area.width - 2)
+                } else {
+                    if is_selected {
+                        for x in tree_area.x..(tree_area.x + tree_area.width) {
+                            buf[(x, y)].set_style(selected_text_style);
+                        }
+                    }
+                    (tree_area.x, tree_area.width)
+                };
+
+                let line = if is_selected {
+                    Line::from(vec![
+                        Span::styled(indent, selected_text_style),
+                        Span::styled(format!("{} ", icon_glyph), selected_text_style),
+                        Span::styled(entry.name.clone(), selected_text_style),
+                    ])
+                } else {
+                    Line::from(vec![
+                        Span::raw(indent),
+                        Span::styled(format!("{} ", icon_glyph), Style::default().fg(icon_color)),
+                        Span::styled(entry.name.clone(), style),
+                    ])
+                };
+
+                buf.set_line(line_x, y, &line, line_width);
             }
         }
 
@@ -603,18 +525,21 @@ impl<'a> ratatui::widgets::StatefulWidget for FileSystemTree<'a> {
                     "/ ",
                     Style::default()
                         .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
+                        .add_modifier(Modifier::BOLD)
+                        .add_modifier(Modifier::ITALIC)
+                        .add_modifier(Modifier::UNDERLINED),
                 ),
                 Span::styled(filter_str, Style::default().fg(Color::White)),
                 Span::styled(
                     cursor,
                     Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::SLOW_BLINK),
+                        .fg(Color::Magenta)
+                        .add_modifier(Modifier::BOLD)
+                        .add_modifier(Modifier::ITALIC),
                 ),
             ]);
 
-            let bg_style = Style::default().bg(Color::Rgb(15, 25, 40));
+            let bg_style = Style::default();
             for x in area.x..(area.x + area.width) {
                 buf[(x, y)].set_style(bg_style);
             }
