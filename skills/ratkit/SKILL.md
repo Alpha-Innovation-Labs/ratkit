@@ -75,7 +75,7 @@ This file provides a complete reference for working with the ratkit codebase. Th
 ```toml
 # Cargo.toml - enable specific features
 [dependencies]
-ratkit = { version = "0.2", features = ["button", "dialog", "pane"] }
+ratkit = { version = "0.2.5", features = ["button", "dialog", "pane"] }
 ```
 
 ```rust
@@ -182,6 +182,16 @@ Higher-level composite widgets in `src/widgets/`.
 | markdown-preview | pulldown-cmark, syntect, syntect-tui, notify, arboard, dirs |
 | code-diff | similar |
 | file-system-tree | devicons |
+
+### FileSystemTree visual parity notes (Yazi-style)
+
+When adjusting `file-system-tree` visuals, keep these conventions to match Yazi-like behavior:
+
+- Prefer `devicons::icon_for_file(...).color` (hex) for file icon colors instead of hardcoded extension maps.
+- Parse devicons hex colors into `ratatui::style::Color::Rgb` before rendering.
+- Selected row background should use item color (directory rows use dir color; file rows use file color) with black foreground text.
+- Keep row content alignment stable between selected and non-selected states (avoid 1-column shifts when drawing decorations).
+- Directory selection should use a filled highlight; file selection may use rounded edge glyphs if desired.
 
 ## Services
 
@@ -313,6 +323,19 @@ All watcher services use the `notify` crate for filesystem events.
 - **Key APIs**: `new()`, `handle_key()`, `handle_mouse()`, `.show_toc()`, `.show_scrollbar()`
 - **Pitfalls**: Requires mouse capture enabled; state must persist across renders
 - **Source**: `src/widgets/markdown_preview/widgets/markdown_widget/`
+
+### FileSystemTree
+- **Use when**: Browsing local files/directories with icons and keyboard navigation
+- **Enable/Install**: `features = ["file-system-tree"]`
+- **Import/Invoke**: `use ratkit::widgets::file_system_tree::{FileSystemTree, FileSystemTreeState, FileSystemTreeConfig};`
+- **Minimal flow**:
+  1. Create `FileSystemTree::new(root_path)` or `with_config(...)`
+  2. Persist `FileSystemTreeState` in app state
+  3. Route nav keys to `handle_navigation_key(...)`
+  4. Route filter keys to `handle_filter_key(...)` when filter mode is active
+- **Key APIs**: `new()`, `with_config()`, `handle_navigation_key()`, `enter_filter_mode()`, `expand_selected()`, `collapse_selected()`
+- **Pitfalls**: Keep icon colors sourced from devicons, and preserve selection-row alignment when adding rounded highlight glyphs
+- **Source**: `src/widgets/file_system_tree/widget.rs`, `src/widgets/file_system_tree/config.rs`, `src/widgets/file_system_tree/state.rs`
 
 ### FileWatcher
 - **Use when**: Detecting file/directory changes
