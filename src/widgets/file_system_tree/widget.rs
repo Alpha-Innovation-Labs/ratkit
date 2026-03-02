@@ -470,15 +470,28 @@ impl<'a> ratatui::widgets::StatefulWidget for FileSystemTree<'a> {
                     let right_x = tree_area.x + tree_area.width - 1;
 
                     if is_selected {
-                        buf[(left_x, y)]
-                            .set_symbol("")
-                            .set_style(Style::default().fg(selected_bg));
-                        buf[(right_x, y)]
-                            .set_symbol("")
-                            .set_style(Style::default().fg(selected_bg));
+                        if entry.is_dir {
+                            buf[(left_x, y)]
+                                .set_symbol(" ")
+                                .set_style(selected_text_style);
+                            buf[(right_x, y)]
+                                .set_symbol(" ")
+                                .set_style(selected_text_style);
 
-                        for x in (left_x + 1)..right_x {
-                            buf[(x, y)].set_style(selected_text_style);
+                            for x in (left_x + 1)..right_x {
+                                buf[(x, y)].set_style(selected_text_style);
+                            }
+                        } else {
+                            buf[(left_x, y)]
+                                .set_symbol("")
+                                .set_style(Style::default().fg(selected_bg));
+                            buf[(right_x, y)]
+                                .set_symbol("")
+                                .set_style(Style::default().fg(selected_bg));
+
+                            for x in (left_x + 1)..right_x {
+                                buf[(x, y)].set_style(selected_text_style);
+                            }
                         }
                     } else {
                         buf[(left_x, y)].set_symbol(" ").set_style(Style::default());
