@@ -3,7 +3,7 @@ name: ratkit
 description: Comprehensive guide for the ratkit Rust TUI component library built on ratatui 0.29, including feature flags, APIs, and implementation patterns. Use when building, debugging, or extending ratkit applications and examples.
 compatibility: Requires Rust 1.70+, Cargo, just, and a terminal environment for interactive TUI demos.
 metadata:
-  version: "0.2.6"
+  version: "0.2.7"
 ---
 
 # ratkit
@@ -53,7 +53,7 @@ This file provides a complete reference for working with the ratkit codebase. Th
 ### Run with just
 - **Where to edit**: N/A
 - **Related files**: `justfile`
-- **Validation**: `just demo` (interactive picker) or `just demo-md`, `just demo-term`, etc.
+- **Validation**: `just demo` (interactive picker) or `just demo-md`, `just demo-md-collapsed`, `just demo-term`, etc.
 
 ### Build with specific features
 - **Where to edit**: `Cargo.toml` (root level)
@@ -75,7 +75,7 @@ This file provides a complete reference for working with the ratkit codebase. Th
 ```toml
 # Cargo.toml - enable specific features
 [dependencies]
-ratkit = { version = "0.2.5", features = ["button", "dialog", "pane"] }
+ratkit = { version = "0.2.7", features = ["button", "dialog", "pane"] }
 ```
 
 ```rust
@@ -340,9 +340,15 @@ All watcher services use the `notify` crate for filesystem events.
   2. Create `MarkdownWidget::new(content, scroll, source, ...)`
   3. Handle keyboard with `handle_key()`
   4. Render with ratatui
-- **Key APIs**: `new()`, `handle_key()`, `handle_mouse()`, `.show_toc()`, `.show_scrollbar()`
-- **Pitfalls**: Requires mouse capture enabled; state must persist across renders
+- **Key APIs**: `new()`, `handle_key()`, `handle_mouse()`, `.show_toc()`, `.toggle_toc()`, `.with_frontmatter_collapsed()`, `set_frontmatter_collapsed()`, `.show_scrollbar()`
+- **Pitfalls**: Requires mouse capture enabled; state must persist across renders; frontmatter collapse is section-based (section id `0`)
 - **Source**: `src/widgets/markdown_preview/widgets/markdown_widget/`
+
+### Markdown demo frontmatter modes
+- **Use when**: Validating frontmatter collapse interactions in demo behavior
+- **Run**: `just demo-md` (starts expanded) and `just demo-md-collapsed` (starts collapsed)
+- **Expected behavior**: Clicking frontmatter header/content toggles collapsed/expanded state at runtime
+- **Source**: `examples/markdown_preview_markdown_preview_demo.rs`, `justfiles/utilities/demo-md.just`
 
 ### FileSystemTree
 - **Use when**: Browsing local files/directories with icons and keyboard navigation
@@ -501,5 +507,5 @@ Use this section to transfer the demo's responsiveness patterns into other ratki
 
 ### Version
 
-- Current: 0.2.5
+- Current: 0.2.7
 - Rust: 1.70+
