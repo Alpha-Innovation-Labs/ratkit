@@ -282,15 +282,24 @@ All watcher services use the `notify` crate for filesystem events.
 ### Dialog
 - **Use when**: Modal dialogs for confirmation/information
 - **Enable/Install**: `features = ["dialog"]`
-- **Import/Invoke**: `use ratkit::{Dialog, DialogState, DialogType};`
+- **Import/Invoke**: `use ratkit::primitives::dialog::{Dialog, DialogWidget, DialogAction, DialogActionsLayout, DialogWrap, DialogShadow, DialogModalMode};`
 - **Minimal flow**:
-  1. Create `Dialog::new(title, message)` or use builder (`Dialog::confirm()`)
-  2. Set buttons with `.buttons(vec!["Yes", "No"])`
-  3. Create `DialogState::new()` for button selection
-  4. Render with `DialogWidget`
-- **Key APIs**: `new()`, `info()`, `warning()`, `error()`, `success()`, `confirm()`, `buttons()`
-- **Pitfalls**: DialogState must persist; uses StatefulWidget pattern
+  1. Create `Dialog::new(title, message)` or `Dialog::confirm(...)`
+  2. Configure layout and visuals with `.actions_layout(...)`, `.message_alignment(...)`, `.content_padding(...)`, `.wrap_mode(...)`, `.shadow(...)`, `.overlay(...)`
+  3. Configure actions/keys with `.buttons(...)`, `.default_selection(...)`, `.next_keys(...)`, `.previous_keys(...)`, `.confirm_keys(...)`, `.cancel_keys(...)`
+  4. In event loop, route keys to `dialog.handle_key_event(...)` and react to `DialogAction`
+  5. Render with `DialogWidget::new(&mut dialog)`
+- **Key APIs**: `actions_layout()`, `actions_alignment()`, `message_alignment()`, `content_padding()`, `wrap_mode()`, `hide_footer()`, `footer()`, `footer_style()`, `shadow()`, `overlay()`, `modal_mode()`, `body_renderer()`, `handle_key_event()`, `handle_mouse_confirm()`, `blocks_background_events()`
+- **Pitfalls**: If you want `Tab` to control inner body UI (for example a list) instead of dialog actions, remove `Tab` from dialog keymap and handle it in your app event loop; if you want no action row, set `.buttons(vec![])`
 - **Source**: `src/primitives/dialog/`
+
+### Dialog interaction patterns
+- **Vertical actions**: `.actions_layout(DialogActionsLayout::Vertical)` for stacked action menus
+- **Horizontal actions**: `.actions_layout(DialogActionsLayout::Horizontal)` for classic Yes/No rows
+- **No actions shown**: `.buttons(vec![])` hides the actions row so dialog body content can be primary
+- **Custom body widget**: implement `DialogBodyRenderer` and pass `.body_renderer(Box::new(...))` to render a selectable list/menu inside dialog chrome
+- **Blocking modal**: `.modal_mode(DialogModalMode::Blocking)` plus `blocks_background_events()` to prevent background input handling
+- **Tab delegation**: use `.next_keys(...)` / `.previous_keys(...)` to exclude `Tab` and route `Tab` to body-level focus/selection logic
 
 ### Toast
 - **Use when**: Auto-dismissing notifications

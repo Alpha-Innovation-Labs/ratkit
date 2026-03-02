@@ -1,4 +1,5 @@
-use crate::primitives::dialog::types::{Dialog, DialogType};
+use crate::primitives::dialog::types::{Dialog, DialogAction, DialogEventResult, DialogType};
+use crossterm::event::KeyCode;
 use ratatui::style::Color;
 
 impl<'a> Dialog<'a> {
@@ -25,15 +26,35 @@ impl<'a> Dialog<'a> {
     }
 
     pub fn select_next_button(&mut self) {
-        if !self.buttons.is_empty() && self.selected_button < self.buttons.len() - 1 {
+        if self.buttons.is_empty() {
+            return;
+        }
+
+        if self.selected_button + 1 < self.buttons.len() {
             self.selected_button += 1;
+        } else if self.wrap_button_navigation {
+            self.selected_button = 0;
         }
     }
 
     pub fn select_previous_button(&mut self) {
+        if self.buttons.is_empty() {
+            return;
+        }
+
         if self.selected_button > 0 {
             self.selected_button -= 1;
+        } else if self.wrap_button_navigation {
+            self.selected_button = self.buttons.len().saturating_sub(1);
         }
+    }
+
+    pub fn set_selected_button(&mut self, index: usize) {
+        if self.buttons.is_empty() {
+            self.selected_button = 0;
+            return;
+        }
+        self.selected_button = index.min(self.buttons.len() - 1);
     }
 
     pub fn handle_click(&self, column: u16, row: u16) -> Option<usize> {
@@ -47,5 +68,46 @@ impl<'a> Dialog<'a> {
             }
         }
         None
+    }
+
+    pub fn blocks_background_events(&self) -> bool {
+        matches!(
+            self.modal_mode,
+            crate::primitives::dialog::types::DialogModalMode::Blocking
+        )
+    }
+
+    pub fn handle_key_event(&mut self, key: KeyCode) -> DialogEventResult {
+        if self.keymap.next.contains(&key) {
+            self.select_next_button();
+            return DialogEventResult::consumed(Some(DialogAction::Select(self.selected_button)));
+        }
+
+        if self.keymap.previous.contains(&key) {
+            self.select_previous_button();
+            return DialogEventResult::consumed(Some(DialogAction::Select(self.selected_button)));
+        }
+
+        if self.keymap.confirm.contains(&key) {
+            return DialogEventResult::consumed(Some(DialogAction::Confirm(self.selected_button)));
+        }
+
+        if self.keymap.cancel.contains(&key) {
+            return DialogEventResult::consumed(Some(DialogAction::Cancel));
+        }
+
+        if self.keymap.close.contains(&key) {
+            return DialogEventResult::consumed(Some(DialogAction::Close));
+        }
+
+        DialogEventResult::ignored()
+    }
+
+    pub fn handle_mouse_confirm(&mut self, column: u16, row: u16) -> DialogEventResult {
+        if let Some(index) = self.handle_click(column, row) {
+            self.set_selected_button(index);
+            return DialogEventResult::consumed(Some(DialogAction::Confirm(index)));
+        }
+        DialogEventResult::ignored()
     }
 }

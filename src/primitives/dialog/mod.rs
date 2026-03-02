@@ -8,4 +8,8 @@ pub mod render;
 pub mod types;
 
 pub use render::DialogWidget;
-pub use types::{Dialog, DialogState, DialogType};
+pub use types::{
+    Dialog, DialogAction, DialogActionsLayout, DialogBodyRenderer, DialogEventResult, DialogFooter,
+    DialogKeymap, DialogModalMode, DialogPadding, DialogShadow, DialogState, DialogType,
+    DialogWrap,
+};

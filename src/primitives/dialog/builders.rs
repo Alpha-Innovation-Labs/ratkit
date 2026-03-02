@@ -1,4 +1,9 @@
-use crate::primitives::dialog::types::{Dialog, DialogType};
+use crate::primitives::dialog::types::{
+    Dialog, DialogActionsLayout, DialogBodyRenderer, DialogFooter, DialogKeymap, DialogModalMode,
+    DialogPadding, DialogShadow, DialogType, DialogWrap,
+};
+use crossterm::event::KeyCode;
+use ratatui::layout::Alignment;
 use ratatui::style::{Color, Modifier, Style};
 
 impl<'a> Dialog<'a> {
@@ -11,13 +16,13 @@ impl<'a> Dialog<'a> {
             selected_button: 0,
             width_percent: 0.6,
             height_percent: 0.4,
-            footer: None,
+            footer: DialogFooter::Hidden,
             footer_style: Style::default().fg(Color::DarkGray),
+            footer_alignment: Alignment::Center,
             title_inside: false,
-            overlay: false,
-            overlay_style: Style::default()
-                .bg(Color::Rgb(0, 0, 0))
-                .fg(Color::Rgb(40, 40, 40)),
+            backdrop_style: None,
+            shadow: DialogShadow::None,
+            modal_mode: DialogModalMode::Blocking,
             border_color: None,
             style: Style::default(),
             button_selected_style: Style::default()
@@ -25,6 +30,14 @@ impl<'a> Dialog<'a> {
                 .bg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
             button_style: Style::default(),
+            actions_layout: DialogActionsLayout::Horizontal,
+            actions_alignment: Alignment::Center,
+            message_alignment: Alignment::Center,
+            content_padding: DialogPadding::default(),
+            wrap: DialogWrap::WordTrim,
+            body_renderer: None,
+            keymap: DialogKeymap::default(),
+            wrap_button_navigation: false,
             button_areas: Vec::new(),
             theme_info_color: None,
             theme_success_color: None,
@@ -87,7 +100,17 @@ impl<'a> Dialog<'a> {
     }
 
     pub fn footer(mut self, footer: &'a str) -> Self {
-        self.footer = Some(footer);
+        self.footer = DialogFooter::Text(footer);
+        self
+    }
+
+    pub fn hide_footer(mut self) -> Self {
+        self.footer = DialogFooter::Hidden;
+        self
+    }
+
+    pub fn footer_alignment(mut self, alignment: Alignment) -> Self {
+        self.footer_alignment = alignment;
         self
     }
 
@@ -102,12 +125,36 @@ impl<'a> Dialog<'a> {
     }
 
     pub fn overlay(mut self, overlay: bool) -> Self {
-        self.overlay = overlay;
+        self.backdrop_style = if overlay {
+            Some(Style::default().bg(Color::Rgb(0, 0, 0)))
+        } else {
+            None
+        };
         self
     }
 
     pub fn overlay_style(mut self, overlay_style: Style) -> Self {
-        self.overlay_style = overlay_style;
+        self.backdrop_style = Some(overlay_style);
+        self
+    }
+
+    pub fn backdrop_style(mut self, backdrop_style: Style) -> Self {
+        self.backdrop_style = Some(backdrop_style);
+        self
+    }
+
+    pub fn no_backdrop(mut self) -> Self {
+        self.backdrop_style = None;
+        self
+    }
+
+    pub fn shadow(mut self, shadow: DialogShadow) -> Self {
+        self.shadow = shadow;
+        self
+    }
+
+    pub fn modal_mode(mut self, modal_mode: DialogModalMode) -> Self {
+        self.modal_mode = modal_mode;
         self
     }
 
@@ -118,6 +165,76 @@ impl<'a> Dialog<'a> {
 
     pub fn button_style(mut self, button_style: Style) -> Self {
         self.button_style = button_style;
+        self
+    }
+
+    pub fn actions_layout(mut self, layout: DialogActionsLayout) -> Self {
+        self.actions_layout = layout;
+        self
+    }
+
+    pub fn actions_alignment(mut self, alignment: Alignment) -> Self {
+        self.actions_alignment = alignment;
+        self
+    }
+
+    pub fn message_alignment(mut self, alignment: Alignment) -> Self {
+        self.message_alignment = alignment;
+        self
+    }
+
+    pub fn content_padding(mut self, horizontal: u16, vertical: u16) -> Self {
+        self.content_padding = DialogPadding {
+            horizontal,
+            vertical,
+        };
+        self
+    }
+
+    pub fn wrap_mode(mut self, wrap: DialogWrap) -> Self {
+        self.wrap = wrap;
+        self
+    }
+
+    pub fn body_renderer(mut self, body_renderer: Box<dyn DialogBodyRenderer + 'a>) -> Self {
+        self.body_renderer = Some(body_renderer);
+        self
+    }
+
+    pub fn keymap(mut self, keymap: DialogKeymap) -> Self {
+        self.keymap = keymap;
+        self
+    }
+
+    pub fn wrap_button_navigation(mut self, wrap: bool) -> Self {
+        self.wrap_button_navigation = wrap;
+        self
+    }
+
+    pub fn default_selection(mut self, index: usize) -> Self {
+        if !self.buttons.is_empty() {
+            self.selected_button = index.min(self.buttons.len() - 1);
+        }
+        self
+    }
+
+    pub fn next_keys(mut self, keys: Vec<KeyCode>) -> Self {
+        self.keymap.next = keys;
+        self
+    }
+
+    pub fn previous_keys(mut self, keys: Vec<KeyCode>) -> Self {
+        self.keymap.previous = keys;
+        self
+    }
+
+    pub fn confirm_keys(mut self, keys: Vec<KeyCode>) -> Self {
+        self.keymap.confirm = keys;
+        self
+    }
+
+    pub fn cancel_keys(mut self, keys: Vec<KeyCode>) -> Self {
+        self.keymap.cancel = keys;
         self
     }
 
