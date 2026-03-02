@@ -3,8 +3,9 @@ use ratatui::backend::TestBackend;
 use ratatui::style::Color;
 use ratatui::Terminal;
 use ratkit::widgets::markdown_preview::{
-    CacheState, CollapseState, DisplaySettings, DoubleClickState, ExpandableState, GitStatsState,
-    MarkdownWidget, ScrollState, SelectionState, SourceState, VimState,
+    render_markdown_to_elements, CacheState, CollapseState, DisplaySettings, DoubleClickState,
+    ElementKind, ExpandableState, GitStatsState, MarkdownWidget, ScrollState, SelectionState,
+    SourceState, VimState,
 };
 
 fn render_snapshot_text() -> String {
@@ -44,26 +45,26 @@ fn render_snapshot_text() -> String {
     let mut out = String::new();
     for y in 0..buffer.area.height {
         let mut text_line = String::new();
-        let mut bg_line = String::new();
+        let mut code_fg_line = String::new();
 
         for x in 0..buffer.area.width {
             let cell = &buffer[(x, y)];
             let ch = cell.symbol().chars().next().unwrap_or(' ');
             text_line.push(ch);
 
-            if cell.bg == Color::Rgb(60, 60, 60) {
-                bg_line.push('^');
+            if cell.fg == Color::Rgb(230, 180, 100) {
+                code_fg_line.push('^');
             } else {
-                bg_line.push(' ');
+                code_fg_line.push(' ');
             }
         }
 
         if text_line.contains("--features")
             || text_line.contains("markdown-preview")
-            || bg_line.contains('^')
+            || code_fg_line.contains('^')
         {
             out.push_str(&format!("{y:02} T|{text_line}|\n"));
-            out.push_str(&format!("{y:02} B|{bg_line}|\n"));
+            out.push_str(&format!("{y:02} C|{code_fg_line}|\n"));
         }
     }
 
@@ -72,6 +73,29 @@ fn render_snapshot_text() -> String {
 
 #[test]
 fn snapshot_inline_code_wrap_background() {
+    let markdown = "5. Run examples with `--features` flag: Examples require their specific features (e.g., `--features markdown-preview`)";
+    let parsed = render_markdown_to_elements(markdown, false);
+    let inline_code_segments = parsed
+        .iter()
+        .filter_map(|el| match &el.kind {
+            ElementKind::ListItem { content, .. } | ElementKind::Paragraph(content) => {
+                Some(content)
+            }
+            _ => None,
+        })
+        .flat_map(|segments| segments.iter())
+        .filter(|segment| {
+            matches!(
+                segment,
+                ratkit::widgets::markdown_preview::TextSegment::InlineCode(_)
+            )
+        })
+        .count();
+    assert_eq!(
+        inline_code_segments, 2,
+        "expected two inline-code segments in parsed markdown"
+    );
+
     let snapshot = render_snapshot_text();
     assert_snapshot!(snapshot);
 }
