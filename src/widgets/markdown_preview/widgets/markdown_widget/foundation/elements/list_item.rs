@@ -6,6 +6,7 @@ use crate::widgets::markdown_preview::widgets::markdown_widget::foundation::elem
 use crate::widgets::markdown_preview::widgets::markdown_widget::foundation::elements::enums::{
     CheckboxState, TextSegment,
 };
+use crate::widgets::markdown_preview::widgets::markdown_widget::foundation::elements::text::inline_code_style;
 use crate::widgets::markdown_preview::widgets::markdown_widget::foundation::elements::MarkdownElement;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -97,9 +98,6 @@ fn segment_text_and_style(
     segment: &TextSegment,
     app_theme: Option<&crate::widgets::markdown_preview::services::theme::AppTheme>,
 ) -> (String, Style) {
-    let code_color = app_theme
-        .map(|t| t.markdown.code)
-        .unwrap_or(Color::Rgb(230, 180, 100));
     let link_color = app_theme
         .map(|t| t.markdown.link_text)
         .unwrap_or(Color::Rgb(100, 200, 100));
@@ -129,7 +127,7 @@ fn segment_text_and_style(
         ),
         TextSegment::InlineCode(text) => (
             format!(" {} ", text),
-            Style::default().bg(Color::Rgb(60, 60, 60)).fg(code_color),
+            inline_code_style(Style::default(), app_theme),
         ),
         TextSegment::Link {
             text,
@@ -210,23 +208,121 @@ fn wrap_styled_segments(segments: &[(String, Style)], width: usize) -> Vec<Vec<S
     }
 
     for (text, style) in segments {
+        let mut token = String::new();
+        let mut token_is_ws = false;
+
+        let flush_token = |tok: &mut String,
+                           is_ws: bool,
+                           style: Style,
+                           lines: &mut Vec<Vec<Span<'static>>>,
+                           current_line: &mut Vec<Span<'static>>,
+                           current_width: &mut usize,
+                           run_text: &mut String,
+                           run_style: &mut Option<Style>| {
+            if tok.is_empty() {
+                return;
+            }
+
+            let tok_width: usize = tok
+                .chars()
+                .map(|c| UnicodeWidthChar::width(c).unwrap_or(0))
+                .sum();
+
+            // Skip leading whitespace at start of wrapped lines.
+            if is_ws && *current_width == 0 {
+                tok.clear();
+                return;
+            }
+
+            // Word-wrap by token first; only hard-wrap when a single token exceeds width.
+            if !is_ws && *current_width > 0 && *current_width + tok_width > width {
+                flush_run(current_line, run_text, run_style);
+                flush_line(lines, current_line);
+                *current_width = 0;
+            }
+
+            // After wrapping to a new line, drop pure leading whitespace.
+            if is_ws && *current_width == 0 {
+                tok.clear();
+                return;
+            }
+
+            if tok_width > width {
+                for ch in tok.chars() {
+                    let ch_width = UnicodeWidthChar::width(ch).unwrap_or(0);
+                    if *current_width > 0 && *current_width + ch_width > width {
+                        flush_run(current_line, run_text, run_style);
+                        flush_line(lines, current_line);
+                        *current_width = 0;
+                    }
+
+                    if run_style != &Some(style) {
+                        flush_run(current_line, run_text, run_style);
+                        *run_style = Some(style);
+                    }
+
+                    run_text.push(ch);
+                    *current_width += ch_width;
+                }
+                tok.clear();
+                return;
+            }
+
+            if *current_width > 0 && *current_width + tok_width > width {
+                flush_run(current_line, run_text, run_style);
+                flush_line(lines, current_line);
+                *current_width = 0;
+            }
+
+            // If line wrap happened above and this token is whitespace, drop it.
+            if is_ws && *current_width == 0 {
+                tok.clear();
+                return;
+            }
+
+            if run_style != &Some(style) {
+                flush_run(current_line, run_text, run_style);
+                *run_style = Some(style);
+            }
+
+            run_text.push_str(tok);
+            *current_width += tok_width;
+            tok.clear();
+        };
+
         for ch in text.chars() {
-            let ch_width = UnicodeWidthChar::width(ch).unwrap_or(0);
-
-            if current_width > 0 && current_width + ch_width > width {
-                flush_run(&mut current_line, &mut run_text, &mut run_style);
-                flush_line(&mut lines, &mut current_line);
-                current_width = 0;
+            let is_ws = ch.is_whitespace();
+            if token.is_empty() {
+                token_is_ws = is_ws;
+                token.push(ch);
+            } else if is_ws == token_is_ws {
+                token.push(ch);
+            } else {
+                flush_token(
+                    &mut token,
+                    token_is_ws,
+                    *style,
+                    &mut lines,
+                    &mut current_line,
+                    &mut current_width,
+                    &mut run_text,
+                    &mut run_style,
+                );
+                token_is_ws = is_ws;
+                token.push(ch);
             }
-
-            if run_style != Some(*style) {
-                flush_run(&mut current_line, &mut run_text, &mut run_style);
-                run_style = Some(*style);
-            }
-
-            run_text.push(ch);
-            current_width += ch_width;
         }
+
+        flush_token(
+            &mut token,
+            token_is_ws,
+            *style,
+            &mut lines,
+            &mut current_line,
+            &mut current_width,
+            &mut run_text,
+            &mut run_style,
+        );
     }
 
     flush_run(&mut current_line, &mut run_text, &mut run_style);

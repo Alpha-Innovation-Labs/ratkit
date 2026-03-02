@@ -22,5 +22,5 @@ pub use widgets::markdown_widget::{
     MarkdownWidgetMode, ParsedCache, RenderCache, RenderOptions, ScrollState, SelectionPos,
     SelectionState, SourceState, TableBorderKind, TextSegment, TocEntry, TocState, VimState,
     BLOCKQUOTE_MARKER, BULLET_MARKERS, CHECKBOX_CHECKED, CHECKBOX_TODO, CHECKBOX_UNCHECKED,
-    HEADING_ICONS, HORIZONTAL_RULE_CHAR,
+    HEADING_ICONS, HORIZONTAL_RULE_CHAR, INLINE_CODE_BG, INLINE_CODE_FG_FALLBACK,
 };

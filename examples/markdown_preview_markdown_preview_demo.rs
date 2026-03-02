@@ -1,8 +1,9 @@
 //! Interactive markdown preview demo with TOC hover and dev bar.
 //!
 //! Run with:
-//! `cargo run -p ratkit-markdown-preview --example markdown_preview_demo`
+//! `cargo run --example markdown_preview_markdown_preview_demo --features markdown-preview`
 
+use std::env;
 use std::io;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
@@ -40,7 +41,7 @@ struct MarkdownPreviewDemo {
 }
 
 impl MarkdownPreviewDemo {
-    fn new(markdown_content: String) -> Self {
+    fn new(markdown_content: String, frontmatter_collapsed: bool) -> Self {
         let mut source = SourceState::default();
         source.set_source_string(markdown_content.clone());
 
@@ -64,6 +65,7 @@ impl MarkdownPreviewDemo {
             DoubleClickState::default(),
         )
         .with_has_pane(true)
+        .with_frontmatter_collapsed(frontmatter_collapsed)
         .show_toc(true)
         .show_scrollbar(true)
         .show_statusline(true);
@@ -271,8 +273,9 @@ fn load_demo_markdown() -> io::Result<String> {
 }
 
 fn main() -> io::Result<()> {
+    let frontmatter_collapsed = env::args().any(|arg| arg == "--frontmatter-collapsed");
     let markdown = load_demo_markdown()?;
-    let app = MarkdownPreviewDemo::new(markdown);
+    let app = MarkdownPreviewDemo::new(markdown, frontmatter_collapsed);
     let config = RunnerConfig {
         tick_rate: Duration::from_millis(250),
         ..RunnerConfig::default()

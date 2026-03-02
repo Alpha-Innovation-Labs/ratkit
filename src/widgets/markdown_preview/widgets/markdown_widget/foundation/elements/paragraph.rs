@@ -6,7 +6,9 @@ use crate::widgets::markdown_preview::widgets::markdown_widget::foundation::elem
 use crate::widgets::markdown_preview::widgets::markdown_widget::foundation::elements::enums::{
     CheckboxState, TextSegment,
 };
-use crate::widgets::markdown_preview::widgets::markdown_widget::foundation::elements::text::wrap_text;
+use crate::widgets::markdown_preview::widgets::markdown_widget::foundation::elements::text::{
+    inline_code_style, wrap_text,
+};
 use crate::widgets::markdown_preview::widgets::markdown_widget::foundation::elements::MarkdownElement;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -51,9 +53,6 @@ fn render_line_with_segments(
     let mut char_pos = 0;
 
     // Get theme colors with fallbacks
-    let code_color = app_theme
-        .map(|t| t.markdown.code)
-        .unwrap_or(Color::Rgb(230, 180, 100));
     let link_color = app_theme
         .map(|t| t.markdown.link_text)
         .unwrap_or(Color::Rgb(100, 200, 100));
@@ -82,10 +81,9 @@ fn render_line_with_segments(
                     .add_modifier(Modifier::BOLD)
                     .add_modifier(Modifier::ITALIC),
             ),
-            TextSegment::InlineCode(t) => (
-                t.clone(),
-                Style::default().bg(Color::Rgb(60, 60, 60)).fg(code_color),
-            ),
+            TextSegment::InlineCode(t) => {
+                (t.clone(), inline_code_style(Style::default(), app_theme))
+            }
             TextSegment::Link {
                 text,
                 url,

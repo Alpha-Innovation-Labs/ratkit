@@ -1,16 +1,13 @@
 use insta::assert_snapshot;
 use ratatui::backend::TestBackend;
-use ratatui::style::Color;
 use ratatui::Terminal;
 use ratkit::widgets::markdown_preview::{
     render_markdown_to_elements, CacheState, CollapseState, DisplaySettings, DoubleClickState,
     ElementKind, ExpandableState, GitStatsState, MarkdownWidget, ScrollState, SelectionState,
-    SourceState, VimState,
+    SourceState, VimState, INLINE_CODE_FG_FALLBACK,
 };
 
-fn render_snapshot_text() -> String {
-    let markdown = "5. Run examples with `--features` flag: Examples require their specific features (e.g., `--features markdown-preview`)";
-
+fn render_snapshot_text(markdown: &str, width: u16, height: u16) -> String {
     let mut source = SourceState::default();
     source.set_source_string(markdown.to_string());
 
@@ -35,7 +32,7 @@ fn render_snapshot_text() -> String {
     .show_scrollbar(false)
     .show_statusline(false);
 
-    let backend = TestBackend::new(56, 8);
+    let backend = TestBackend::new(width, height);
     let mut terminal = Terminal::new(backend).expect("create test terminal");
     terminal
         .draw(|frame| frame.render_widget(&mut widget, frame.area()))
@@ -52,17 +49,14 @@ fn render_snapshot_text() -> String {
             let ch = cell.symbol().chars().next().unwrap_or(' ');
             text_line.push(ch);
 
-            if cell.fg == Color::Rgb(230, 180, 100) {
+            if cell.fg == INLINE_CODE_FG_FALLBACK {
                 code_fg_line.push('^');
             } else {
                 code_fg_line.push(' ');
             }
         }
 
-        if text_line.contains("--features")
-            || text_line.contains("markdown-preview")
-            || code_fg_line.contains('^')
-        {
+        if !text_line.trim().is_empty() || code_fg_line.contains('^') {
             out.push_str(&format!("{y:02} T|{text_line}|\n"));
             out.push_str(&format!("{y:02} C|{code_fg_line}|\n"));
         }
@@ -96,6 +90,19 @@ fn snapshot_inline_code_wrap_background() {
         "expected two inline-code segments in parsed markdown"
     );
 
-    let snapshot = render_snapshot_text();
-    assert_snapshot!(snapshot);
+    let snapshot = render_snapshot_text(markdown, 56, 8);
+    assert_snapshot!("inline_code_wrap_background", snapshot);
+}
+
+#[test]
+fn snapshot_no_dropped_first_char_on_wrapped_inline_code() {
+    let markdown = "3. **Cross-feature dependencies**: Some features auto-enable others (e.g., `tree-view` enables `widget-event`, `repo-watcher` enables `file-watcher` and `git-watcher`)";
+    let snapshot = render_snapshot_text(markdown, 120, 8);
+
+    assert!(
+        !snapshot.contains(" ile-watcher "),
+        "first character was dropped in wrapped inline code:\n{snapshot}"
+    );
+
+    assert_snapshot!("inline_code_no_dropped_first_char", snapshot);
 }

@@ -1,5 +1,6 @@
 //! Text processing helper functions for markdown rendering.
 
+use crate::widgets::markdown_preview::services::theme::AppTheme;
 use crate::widgets::markdown_preview::widgets::markdown_widget::foundation::elements::constants::{
     get_link_icon, CHECKBOX_CHECKED, CHECKBOX_TODO, CHECKBOX_UNCHECKED,
 };
@@ -8,6 +9,19 @@ use crate::widgets::markdown_preview::widgets::markdown_widget::foundation::elem
 };
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::Span;
+
+pub const INLINE_CODE_BG: Color = Color::Rgb(17, 19, 23);
+pub const INLINE_CODE_FG_FALLBACK: Color = Color::Rgb(240, 113, 120);
+
+pub fn inline_code_fg(app_theme: Option<&AppTheme>) -> Color {
+    app_theme
+        .map(|theme| theme.markdown.code)
+        .unwrap_or(INLINE_CODE_FG_FALLBACK)
+}
+
+pub fn inline_code_style(base_style: Style, app_theme: Option<&AppTheme>) -> Style {
+    base_style.bg(INLINE_CODE_BG).fg(inline_code_fg(app_theme))
+}
 
 pub fn render_text_segment(segment: &TextSegment, base_style: Style) -> Span<'static> {
     match segment {
@@ -24,12 +38,9 @@ pub fn render_text_segment(segment: &TextSegment, base_style: Style) -> Span<'st
                 .add_modifier(Modifier::BOLD)
                 .add_modifier(Modifier::ITALIC),
         ),
-        TextSegment::InlineCode(text) => Span::styled(
-            format!(" {} ", text),
-            base_style
-                .bg(Color::Rgb(60, 60, 60))
-                .fg(Color::Rgb(230, 180, 100)),
-        ),
+        TextSegment::InlineCode(text) => {
+            Span::styled(format!(" {} ", text), inline_code_style(base_style, None))
+        }
         TextSegment::Link {
             text,
             url,

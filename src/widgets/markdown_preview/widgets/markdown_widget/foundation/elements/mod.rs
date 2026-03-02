@@ -24,6 +24,7 @@ pub use enums::{
     CheckboxState, CodeBlockBorderKind, ColumnAlignment, ElementKind, TableBorderKind, TextSegment,
 };
 pub use render::{render, render_with_options, RenderOptions};
+pub use text::{inline_code_fg, inline_code_style, INLINE_CODE_BG, INLINE_CODE_FG_FALLBACK};
 
 /// A single markdown element that can be rendered to ratatui.
 #[derive(Debug, Clone, Default)]

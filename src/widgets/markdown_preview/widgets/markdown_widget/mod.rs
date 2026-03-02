@@ -111,6 +111,8 @@ pub use foundation::elements::{
     CHECKBOX_UNCHECKED,
     HEADING_ICONS,
     HORIZONTAL_RULE_CHAR,
+    INLINE_CODE_BG,
+    INLINE_CODE_FG_FALLBACK,
 };
 
 // Element methods

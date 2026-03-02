@@ -15,6 +15,8 @@ use crate::widgets::markdown_preview::widgets::markdown_widget::state::{
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
 use ratatui::widgets::{Block, Borders, Widget};
 
+const FRONTMATTER_SECTION_ID: usize = 0;
+
 /// A scrollable, interactive markdown widget.
 ///
 /// This widget renders markdown content with:
@@ -461,6 +463,14 @@ impl<'a> MarkdownWidget<'a> {
 /// Enable or disable the TOC (Table of Contents).
 
 impl<'a> MarkdownWidget<'a> {
+    fn is_frontmatter_collapsed(&self) -> bool {
+        self.collapse.is_section_collapsed(FRONTMATTER_SECTION_ID)
+    }
+
+    fn parse_elements(&self) -> Vec<crate::widgets::markdown_preview::MarkdownElement> {
+        render_markdown_to_elements(&self.content, self.is_frontmatter_collapsed())
+    }
+
     /// Enable or disable the TOC (Table of Contents).
     ///
     /// When enabled, shows heading navigation in the top-right corner.
@@ -488,6 +498,20 @@ impl<'a> MarkdownWidget<'a> {
             self.toc_hovered_entry = None;
         }
         self.show_toc
+    }
+
+    /// Set frontmatter collapsed state for section `0`.
+    pub fn with_frontmatter_collapsed(mut self, collapsed: bool) -> Self {
+        self.collapse
+            .set_section_collapsed(FRONTMATTER_SECTION_ID, collapsed);
+        self
+    }
+
+    /// Update frontmatter collapsed state at runtime.
+    pub fn set_frontmatter_collapsed(&mut self, collapsed: bool) {
+        self.collapse
+            .set_section_collapsed(FRONTMATTER_SECTION_ID, collapsed);
+        self.cache.invalidate();
     }
 }
 
@@ -795,7 +819,10 @@ fn get_filtered_visual_lines(
     width: usize,
 ) -> Vec<usize> {
     let filter_lower = filter_text.to_lowercase();
-    let elements = render_markdown_to_elements(content, true);
+    let elements = render_markdown_to_elements(
+        content,
+        collapse.is_section_collapsed(FRONTMATTER_SECTION_ID),
+    );
     let mut filtered_visual_lines: Vec<usize> = Vec::new();
     let mut visual_line_idx = 0;
 
@@ -1372,11 +1399,7 @@ impl<'a> MarkdownWidget<'a> {
             return None;
         }
         let filter_lower = filter.to_lowercase();
-        let elements =
-            crate::widgets::markdown_preview::widgets::markdown_widget::foundation::parser::render_markdown_to_elements(
-                &self.content,
-                true,
-            );
+        let elements = self.parse_elements();
         let current = self.scroll.current_line;
 
         for (idx, element) in elements.iter().enumerate() {
@@ -1405,11 +1428,7 @@ impl<'a> MarkdownWidget<'a> {
             return None;
         }
         let filter_lower = filter.to_lowercase();
-        let elements =
-            crate::widgets::markdown_preview::widgets::markdown_widget::foundation::parser::render_markdown_to_elements(
-                &self.content,
-                true,
-            );
+        let elements = self.parse_elements();
         let current = self.scroll.current_line;
 
         for (idx, element) in elements.iter().enumerate().rev() {
@@ -1573,6 +1592,16 @@ impl<'a> MarkdownWidget<'a> {
                 if self.selection.is_active() {
                     self.selection.exit();
                     self.selection_active = false;
+                }
+
+                // Toggle collapsible lines immediately on single click.
+                if self.handle_click_collapse(relative_x, relative_y, width) {
+                    self.double_click.clear_pending();
+                    let clicked_line = self.scroll.scroll_offset + relative_y + 1;
+                    if clicked_line <= self.scroll.total_lines {
+                        self.scroll.set_current_line(clicked_line);
+                    }
+                    return MarkdownEvent::FocusedLine { line: clicked_line };
                 }
 
                 // Process click for double-click detection
@@ -1761,7 +1790,7 @@ impl<'a> MarkdownWidget<'a> {
     ///
     /// Returns `true` if a collapsible element was toggled.
     fn handle_click_collapse(&mut self, _x: usize, y: usize, width: usize) -> bool {
-        let elements = render_markdown_to_elements(&self.content, true);
+        let elements = self.parse_elements();
 
         // Account for scroll offset - y is relative to visible area
         let document_y = y + self.scroll.scroll_offset;
@@ -1787,12 +1816,12 @@ impl<'a> MarkdownWidget<'a> {
                         }
                     }
                     ElementKind::Frontmatter { .. } => {
-                        self.collapse.toggle_section(0);
+                        self.collapse.toggle_section(FRONTMATTER_SECTION_ID);
                         self.cache.invalidate();
                         return true;
                     }
                     ElementKind::FrontmatterStart { .. } => {
-                        self.collapse.toggle_section(0);
+                        self.collapse.toggle_section(FRONTMATTER_SECTION_ID);
                         self.cache.invalidate();
                         return true;
                     }
@@ -1819,7 +1848,7 @@ impl<'a> MarkdownWidget<'a> {
         y: usize,
         width: usize,
     ) -> Option<(usize, String, String)> {
-        let elements = render_markdown_to_elements(&self.content, true);
+        let elements = self.parse_elements();
         let document_y = y + self.scroll.scroll_offset;
         let mut visual_line_idx = 0;
         let mut logical_line_num = 0;
@@ -1938,7 +1967,7 @@ impl<'a> MarkdownWidget<'a> {
         // The document position of current_line is current_line - 1 (0-indexed).
         // Since get_line_info_at_position adds scroll_offset, we pass (current_line - 1).
         let document_y = self.scroll.current_line.saturating_sub(1);
-        let elements = render_markdown_to_elements(&self.content, true);
+        let elements = self.parse_elements();
         let mut visual_line_idx = 0;
         let mut logical_line_num = 0;
 
@@ -2954,7 +2983,7 @@ impl<'a> Widget for &mut MarkdownWidget<'a> {
                     self.cache.parsed.as_ref().unwrap().elements.clone()
                 } else {
                     // Parse markdown and cache
-                    let parsed = render_markdown_to_elements(&self.content, true);
+                    let parsed = self.parse_elements();
                     self.cache.parsed = Some(ParsedCache {
                         content_hash,
                         elements: parsed.clone(),

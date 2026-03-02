@@ -1,0 +1,9 @@
+---
+source: tests/markdown_inline_code_snapshot.rs
+assertion_line: 107
+expression: snapshot
+---
+00 T|3. Cross-feature dependencies: Some features auto-enable others (e.g.,  tree-view  enables  widget-event ,  repo-watcher|
+00 C|                                                                       ^^^^^^^^^^^         ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^|
+01 T|   enables  file-watcher  and  git-watcher )                                                                            |
+01 C|           ^^^^^^^^^^^^^^     ^^^^^^^^^^^^^                                                                             |
