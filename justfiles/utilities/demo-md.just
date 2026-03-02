@@ -2,9 +2,9 @@
 # Features: TOC, Statusline, Scrollbar, Selection, Syntax Highlighting
 demo-md:
     @echo "Running Markdown Preview Demo..."
-    cargo run --example markdown_preview_markdown_preview_demo --features markdown-preview
+    RATKIT_MD_DEMO_FILE=.agents/skills/opencode-rs-sdk/SKILL.md cargo run --example markdown_preview_markdown_preview_demo --features markdown-preview
 
-# Run markdown demo with frontmatter collapsed initially
-demo-md-collapsed:
-    @echo "Running Markdown Preview Demo (frontmatter collapsed)..."
-    cargo run --example markdown_preview_markdown_preview_demo --features markdown-preview -- --frontmatter-collapsed
+# Run markdown demo with smaller/default ratkit skill markdown
+demo-md-small:
+    @echo "Running Markdown Preview Demo (small markdown)..."
+    RATKIT_MD_DEMO_FILE=skills/ratkit/SKILL.md cargo run --example markdown_preview_markdown_preview_demo --features markdown-preview

@@ -45,7 +45,7 @@ help:
     @echo "\033[1;35m  Demos:\033[0m"
     @echo "  just \033[0;33mdemo\033[0m                      \033[0;32mPick and run an example\033[0m"
     @echo "  just \033[0;33mdemo-md\033[0m                   \033[0;32mMarkdown viewer demo\033[0m"
-    @echo "  just \033[0;33mdemo-md-collapsed\033[0m         \033[0;32mMarkdown demo (collapsed FM)\033[0m"
+    @echo "  just \033[0;33mdemo-md-small\033[0m             \033[0;32mMarkdown demo (small file)\033[0m"
     @echo "  just \033[0;33mdemo-term\033[0m                 \033[0;32mTerminal pane demo\033[0m"
     @echo "  just \033[0;33mdemo-split\033[0m                \033[0;32mSplit layout demo\033[0m"
     @echo "  just \033[0;33mdemo-codediff\033[0m             \033[0;32mCode diff demo\033[0m"
