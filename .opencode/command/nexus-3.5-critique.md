@@ -1,1 +1,0 @@
-../../.nexus/commands/nexus-3.5-critique.md

@@ -1,1 +1,0 @@
-../../.nexus/commands/nexus-3-plan.md

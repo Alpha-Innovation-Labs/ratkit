@@ -1,1 +1,0 @@
-../../.nexus/commands/nexus-5-llms-txt-generate.md

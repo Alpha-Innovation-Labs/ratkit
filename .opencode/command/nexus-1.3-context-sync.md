@@ -1,1 +1,0 @@
-../../.nexus/commands/nexus-1.3-context-sync.md
