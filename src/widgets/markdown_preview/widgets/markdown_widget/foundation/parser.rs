@@ -256,6 +256,7 @@ pub fn render_markdown_to_elements(
 
     let options = Options::all();
     let parser = Parser::new_ext(remaining_content, options).into_offset_iter();
+    let highlighter = SyntaxHighlighter::new();
 
     // Track the last event's source line for use in flush_paragraph
     let mut last_event_source_line = current_source_line;
@@ -661,7 +662,6 @@ pub fn render_markdown_to_elements(
                     }
 
                     // Add each line of code with syntax highlighting
-                    let highlighter = SyntaxHighlighter::new();
                     for (i, line) in text.lines().enumerate() {
                         let highlighted = highlighter.highlight(line, &code_block_lang);
                         lines.push(MarkdownElement {

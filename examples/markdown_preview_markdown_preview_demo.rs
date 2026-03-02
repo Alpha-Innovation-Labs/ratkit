@@ -38,10 +38,19 @@ struct MarkdownPreviewDemo {
     last_move_processed: Instant,
     toast_message: Option<String>,
     toast_expires_at: Option<Instant>,
+    startup_started_at: Instant,
+    startup_probe: bool,
+    startup_reported: bool,
+    request_quit: bool,
 }
 
 impl MarkdownPreviewDemo {
-    fn new(markdown_content: String, frontmatter_collapsed: bool) -> Self {
+    fn new(
+        markdown_content: String,
+        frontmatter_collapsed: bool,
+        startup_probe: bool,
+        startup_started_at: Instant,
+    ) -> Self {
         let mut source = SourceState::default();
         source.set_source_string(markdown_content.clone());
 
@@ -82,6 +91,10 @@ impl MarkdownPreviewDemo {
             last_move_processed: Instant::now(),
             toast_message: None,
             toast_expires_at: None,
+            startup_started_at,
+            startup_probe,
+            startup_reported: false,
+            request_quit: false,
         }
     }
 
@@ -115,6 +128,10 @@ impl MarkdownPreviewDemo {
 
 impl CoordinatorApp for MarkdownPreviewDemo {
     fn on_event(&mut self, event: CoordinatorEvent) -> LayoutResult<CoordinatorAction> {
+        if self.request_quit {
+            return Ok(CoordinatorAction::Quit);
+        }
+
         match event {
             CoordinatorEvent::Keyboard(key) => {
                 if !key.is_key_down() {
@@ -261,6 +278,15 @@ impl CoordinatorApp for MarkdownPreviewDemo {
                 );
             }
         }
+
+        if !self.startup_reported {
+            self.startup_reported = true;
+            let ready_ms = self.startup_started_at.elapsed().as_secs_f64() * 1000.0;
+            eprintln!("MARKDOWN_DEMO_READY_MS={ready_ms:.1}");
+            if self.startup_probe {
+                self.request_quit = true;
+            }
+        }
     }
 }
 
@@ -277,9 +303,16 @@ fn load_demo_markdown() -> io::Result<String> {
 }
 
 fn main() -> io::Result<()> {
+    let startup_started_at = Instant::now();
     let frontmatter_collapsed = env::args().any(|arg| arg == "--frontmatter-collapsed");
+    let startup_probe = env::args().any(|arg| arg == "--startup-probe");
     let markdown = load_demo_markdown()?;
-    let app = MarkdownPreviewDemo::new(markdown, frontmatter_collapsed);
+    let app = MarkdownPreviewDemo::new(
+        markdown,
+        frontmatter_collapsed,
+        startup_probe,
+        startup_started_at,
+    );
     let config = RunnerConfig {
         tick_rate: Duration::from_millis(250),
         ..RunnerConfig::default()

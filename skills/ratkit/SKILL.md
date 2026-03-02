@@ -341,13 +341,14 @@ All watcher services use the `notify` crate for filesystem events.
   3. Handle keyboard with `handle_key()`
   4. Render with ratatui
 - **Key APIs**: `new()`, `handle_key()`, `handle_mouse()`, `.show_toc()`, `.toggle_toc()`, `.with_frontmatter_collapsed()`, `set_frontmatter_collapsed()`, `.show_scrollbar()`
-- **Pitfalls**: Requires mouse capture enabled; state must persist across renders; frontmatter collapse is section-based (section id `0`)
+- **Pitfalls**: Requires mouse capture enabled; state must persist across renders; frontmatter collapse is section-based (section id `0`); large markdown with many fenced code blocks can increase first-render time if syntax highlighter initialization is repeated (parser now reuses one `SyntaxHighlighter` per parse call)
 - **Source**: `src/widgets/markdown_preview/widgets/markdown_widget/`
 
 ### Markdown demo variants
 - **Use when**: Choosing markdown content size for preview behavior checks
 - **Run**: `just demo-md` (opencode SDK skill markdown) and `just demo-md-small` (ratkit skill markdown)
 - **Expected behavior**: Both variants render with TOC, statusline, hover interactions, and copy support
+- **Startup profiling**: Run `target/debug/examples/markdown_preview_markdown_preview_demo --startup-probe` (with `RATKIT_MD_DEMO_FILE=...`) to print `MARKDOWN_DEMO_READY_MS=<ms>` for repeatable load-time comparisons
 - **Source**: `examples/markdown_preview_markdown_preview_demo.rs`, `justfiles/utilities/demo-md.just`
 
 ### FileSystemTree
