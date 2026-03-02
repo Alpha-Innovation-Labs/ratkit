@@ -53,7 +53,7 @@ This file provides a complete reference for working with the ratkit codebase. Th
 ### Run with just
 - **Where to edit**: N/A
 - **Related files**: `justfile`
-- **Validation**: `just demo` (interactive picker) or `just demo-md`, `just demo-md-collapsed`, `just demo-term`, etc.
+- **Validation**: `just demo` (interactive picker) or `just demo-md`, `just demo-md-small`, `just demo-term`, etc.
 
 ### Build with specific features
 - **Where to edit**: `Cargo.toml` (root level)
@@ -344,10 +344,10 @@ All watcher services use the `notify` crate for filesystem events.
 - **Pitfalls**: Requires mouse capture enabled; state must persist across renders; frontmatter collapse is section-based (section id `0`)
 - **Source**: `src/widgets/markdown_preview/widgets/markdown_widget/`
 
-### Markdown demo frontmatter modes
-- **Use when**: Validating frontmatter collapse interactions in demo behavior
-- **Run**: `just demo-md` (starts expanded) and `just demo-md-collapsed` (starts collapsed)
-- **Expected behavior**: Clicking frontmatter header/content toggles collapsed/expanded state at runtime
+### Markdown demo variants
+- **Use when**: Choosing markdown content size for preview behavior checks
+- **Run**: `just demo-md` (opencode SDK skill markdown) and `just demo-md-small` (ratkit skill markdown)
+- **Expected behavior**: Both variants render with TOC, statusline, hover interactions, and copy support
 - **Source**: `examples/markdown_preview_markdown_preview_demo.rs`, `justfiles/utilities/demo-md.just`
 
 ### FileSystemTree
